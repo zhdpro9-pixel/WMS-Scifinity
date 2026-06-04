@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WMS Parfum · Warehouse Management System</title>
+
+  <!-- Fonts: Cormorant Garamond (brand) + DM Sans (UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CDN (requires internet) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            s: {
+              50:  '#FAF7F2', 100: '#F2EAE0', 200: '#E4D3BD',
+              300: '#D0B898', 400: '#C9A882', 500: '#B08A62',
+              600: '#8B6F5E', 700: '#5C4A3C', 800: '#4A3A2F', 900: '#2D1F17'
+            }
+          },
+          fontFamily: { dm: ['"DM Sans"', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Base */
+    *, body { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
+    h1, .brand { font-family: 'Cormorant Garamond', serif; }
+    body { background: #FAF7F2; color: #2D1F17; min-height: 100vh; }
+
+    /* Sidebar */
+    #sidebar {
+      width: 260px; background: #fff; min-height: 100vh;
+      border-right: 1px solid #E4D3BD; position: fixed; top: 0; left: 0;
+      z-index: 40; display: flex; flex-direction: column;
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    #main { margin-left: 260px; min-height: 100vh; }
+
+    /* Mobile sidebar */
+    @media (max-width: 1023px) {
+      #sidebar { transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+      #main { margin-left: 0; }
+    }
+
+    /* Nav links */
+    .nav-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 10px; font-size: 14px;
+      font-weight: 500; color: #8B6F5E; cursor: pointer;
+      transition: all 0.15s; text-decoration: none; border: none; background: none; width: 100%;
+    }
+    .nav-link:hover { background: #F2EAE0; color: #5C4A3C; }
+    .nav-link.active { background: #5C4A3C; color: #fff; }
+    .nav-link .icon { font-size: 16px; width: 20px; text-align: center; }
+
+    /* Pages */
+    .page { display: none; }
+    .page.active { display: block; animation: fadeUp 0.22s ease both; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: #fff; border: 1px solid #E4D3BD; border-radius: 16px;
+      padding: 20px; transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .card:hover { box-shadow: 0 4px 20px rgba(92,74,60,0.08); }
+
+    /* Stock badge */
+    .badge-ok   { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+    .badge-warn { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
+    .badge-low  { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+
+    /* Activity log badges */
+    .log-in    { background: #ECFDF5; color: #065F46; }
+    .log-prod  { background: #EFF6FF; color: #1E40AF; }
+    .log-out   { background: #FFF7ED; color: #9A3412; }
+
+    /* Form inputs */
+    .form-input {
+      width: 100%; border: 1px solid #E4D3BD; border-radius: 10px;
+      padding: 10px 14px; font-size: 14px; color: #2D1F17; background: #FAF7F2;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: 'DM Sans', sans-serif; outline: none;
+    }
+    .form-input:focus { border-color: #C9A882; box-shadow: 0 0 0 3px rgba(201,168,130,0.2); }
+    label { display: block; font-size: 12px; font-weight: 600; color: #5C4A3C; margin-bottom: 6px; letter-spacing: 0.02em; text-transform: uppercase; }
+
+    /* Primary button */
+    .btn-primary {
+      background: #5C4A3C; color: #fff; border: none; border-radius: 10px;
+      padding: 11px 20px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+    }
+    .btn-primary:hover { background: #4A3A2F; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(92,74,60,0.3); }
+    .btn-primary:active { transform: translateY(0); box-shadow: none; }
+    .btn-primary:disabled { background: #D0B898; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Secondary button */
+    .btn-secondary {
+      background: transparent; color: #5C4A3C; border: 1px solid #C9A882;
+      border-radius: 10px; padding: 8px 16px; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+    }
+    .btn-secondary:hover { background: #F2EAE0; }
+
+    /* Toast */
+    .toast {
+      position: fixed; top: 20px; right: 20px; z-index: 9999;
+      border-radius: 12px; padding: 12px 18px; font-size: 13px; font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15); max-width: 320px;
+      animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      white-space: pre-line; line-height: 1.5;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(30px) scale(0.9); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    .toast-success { background: #065F46; color: #fff; }
+    .toast-error   { background: #991B1B; color: #fff; }
+    .toast-warn    { background: #92400E; color: #fff; }
+
+    /* Stat number */
+    .stat-num { font-size: 28px; font-weight: 700; line-height: 1.1; }
+    .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #8B6F5E; }
+    .stat-unit { font-size: 13px; font-weight: 400; color: #B08A62; margin-left: 3px; }
+
+    /* Table */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th { text-align: left; padding: 8px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #8B6F5E; border-bottom: 1px solid #E4D3BD; }
+    .data-table td { padding: 10px 12px; border-bottom: 1px solid #F2EAE0; color: #4A3A2F; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover { background: #FAF7F2; }
+
+    /* Section header */
+    .section-title { font-size: 18px; font-weight: 700; color: #2D1F17; margin-bottom: 4px; }
+    .section-sub { font-size: 13px; color: #8B6F5E; margin-bottom: 20px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #FAF7F2; }
+    ::-webkit-scrollbar-thumb { background: #D0B898; border-radius: 4px; }
+
+    /* Overlay */
+    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 30; display: none; }
+    #overlay.open { display: block; }
+
+    /* Hero gradient */
+    .hero-grad {
+      background: linear-gradient(135deg, #5C4A3C 0%, #8B6F5E 60%, #C9A882 100%);
+      border-radius: 18px; padding: 28px; color: #fff;
+    }
+
+    /* Preview box */
+    .preview-box { background: #FAF7F2; border: 1px solid #E4D3BD; border-radius: 12px; padding: 14px; }
+
+    /* Channel badges */
+    .ch-shopee { background: #FFF7ED; color: #9A3412; border: 1px solid #FED7AA; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+    .ch-ebay   { background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+
+    /* Progress bar */
+    .progress-bar { height: 6px; background: #E4D3BD; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #5C4A3C, #C9A882); border-radius: 3px; transition: width 0.4s ease; }
+  </style>
+</head>
+<body>
+
+<!-- Overlay (mobile) -->
+<div id="overlay" onclick="closeSidebar()"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════════════════════ -->
+<aside id="sidebar">
+  <!-- Brand -->
+  <div style="padding: 24px 20px; border-bottom: 1px solid #E4D3BD;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="width:40px;height:40px;background:#5C4A3C;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🌿</div>
+      <div>
+        <div class="brand" style="font-size:20px;font-weight:700;color:#2D1F17;line-height:1;">WMS Parfum</div>
+        <div style="font-size:11px;color:#8B6F5E;margin-top:1px;">Warehouse Management</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav style="flex:1; padding:14px 12px; display:flex; flex-direction:column; gap:3px;">
+    <button class="nav-link active" data-page="dashboard" onclick="navigateTo('dashboard')">
+      <span class="icon">📊</span> Dashboard
+    </button>
+    <button class="nav-link" data-page="rawmaterials" onclick="navigateTo('rawmaterials')">
+      <span class="icon">📦</span> Stok Bahan Baku
+    </button>
+    <button class="nav-link" data-page="production" onclick="navigateTo('production')">
+      <span class="icon">⚗️</span> Modul Produksi
+    </button>
+    <button class="nav-link" data-page="sales" onclick="navigateTo('sales')">
+      <span class="icon">🚀</span> Penjualan & Outbound
+    </button>
+  </nav>
+
+  <!-- Footer -->
+  <div style="padding:16px 20px; border-top:1px solid #E4D3BD; display:flex; flex-direction:column; gap:8px;">
+    <div style="font-size:11px;color:#B08A62;text-align:center;">💾 Data tersimpan di browser Anda</div>
+    <button onclick="resetData()" style="font-size:12px;color:#991B1B;background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='none'">
+      ⚠️ Reset Semua Data
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════════════════ -->
+<div id="main">
+
+  <!-- Top Bar -->
+  <header style="background:#fff; border-bottom:1px solid #E4D3BD; padding:14px 24px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:20;">
+    <button onclick="toggleSidebar()" id="hamburger" style="display:none; background:none; border:none; cursor:pointer; padding:6px; border-radius:8px; transition:background 0.15s;" class="lg:hidden">
+      <svg width="20" height="20" fill="none" stroke="#5C4A3C" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <div>
+      <div id="pageTitle" style="font-size:16px;font-weight:700;color:#2D1F17;">Dashboard</div>
+    </div>
+    <div id="nowTime" style="margin-left:auto; font-size:12px; color:#B08A62; font-variant-numeric:tabular-nums;"></div>
+  </header>
+
+  <!-- Pages -->
+  <main style="padding: 24px; max-width: 1200px; margin: 0 auto;">
+
+    <!-- ╔══════════════════════════════════════╗ -->
+    <!-- ║  PAGE: DASHBOARD                     ║ -->
+    <!-- ╚══════════════════════════════════════╝ -->
+    <div id="page-dashboard" class="page active">
+
+      <!-- Hero -->
+      <div class="hero-grad" style="margin-bottom:24px;">
+        <div style="font-size:12px;font-weight:500;opacity:0.7;margin-bottom:4px;">Selamat datang di gudang Anda</div>
+        <div class="brand" style="font-size:28px;font-weight:700;line-height:1.1;">Parfum Inventory<br>Management</div>
+        <div id="hero-date" style="margin-top:8px;font-size:13px;opacity:0.8;"></div>
+      </div>
+
+      <!-- Main stats row 1 -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:16px; margin-bottom:16px;">
+        <div class="card">
+          <div class="stat-label">Biang Parfum</div>
+          <div class="stat-num" id="d-biang" style="color:#5C4A3C;">0 <span class="stat-unit">mL</span></div>
+          <div id="d-biang-bar" class="progress-bar" style="margin-top:10px;"><div class="progress-fill" id="d-biang-fill" style="width:0%"></div></div>
+        </div>
+        <div class="card">
+          <div class="stat-label">Botol Perempuan ♀</div>
+          <div class="stat-num" id="d-botp" style="color:#BE185D;">0 <span class="stat-unit">pcs</span></div>
+          <div class="progress-bar" style="margin-top:10px;"><div class="progress-fill" id="d-botp-fill" style="width:0%;background:linear-gradient(90deg,#BE185D,#F9A8D4)"></div></div>
+        </div>
+        <div class="card">
+          <div class="stat-label">Botol Laki-laki ♂</div>
+          <div class="stat-num" id="d-botl" style="color:#1D4ED8;">0 <span class="stat-unit">pcs</span></div>
+          <div class="progress-bar" style="margin-top:10px;"><div class="progress-fill" id="d-botl-fill" style="width:0%;background:linear-gradient(90deg,#1D4ED8,#93C5FD)"></div></div>
+        </div>
+        <div class="card">
+          <div class="stat-label">Box Parfum</div>
+          <div class="stat-num" id="d-box" style="color:#5C4A3C;">0 <span class="stat-unit">pcs</span></div>
+          <div class="progress-bar" style="margin-top:10px;"><div class="progress-fill" id="d-box-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- Main stats row 2 -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:16px; margin-bottom:24px;">
+        <div class="card">
+          <div class="stat-label">Kardus Luar</div>
+          <div class="stat-num" id="d-kardus" style="color:#5C4A3C;">0 <span class="stat-unit">pcs</span></div>
+        </div>
+        <div class="card">
+          <div class="stat-label">Bubble Wrap</div>
+          <div class="stat-num" id="d-bubble" style="color:#5C4A3C;">0 <span class="stat-unit">m</span></div>
+        </div>
+        <div class="card" style="border-color:#C9A882;">
+          <div class="stat-label" style="color:#BE185D;">Parfum ♀ Siap Jual</div>
+          <div class="stat-num" id="d-fp-p" style="color:#BE185D;">0 <span class="stat-unit">pcs</span></div>
+        </div>
+        <div class="card" style="border-color:#93C5FD;">
+          <div class="stat-label" style="color:#1D4ED8;">Parfum ♂ Siap Jual</div>
+          <div class="stat-num" id="d-fp-l" style="color:#1D4ED8;">0 <span class="stat-unit">pcs</span></div>
+        </div>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div style="font-size:15px;font-weight:700;color:#2D1F17;">📋 Aktivitas Terbaru</div>
+          <div style="font-size:11px;color:#B08A62;">10 log terakhir</div>
+        </div>
+        <div id="dash-log" style="display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;">
+          <div style="text-align:center;color:#B08A62;font-size:13px;padding:32px 0;">Belum ada aktivitas yang tercatat</div>
+        </div>
+      </div>
+    </div><!-- /dashboard -->
+
+    <!-- ╔══════════════════════════════════════╗ -->
+    <!-- ║  PAGE: RAW MATERIALS                 ║ -->
+    <!-- ╚══════════════════════════════════════╝ -->
+    <div id="page-rawmaterials" class="page">
+      <div class="section-title">📦 Manajemen Stok Bahan Baku</div>
+      <div class="section-sub">Catat setiap bahan baku yang masuk dari vendor ke gudang.</div>
+
+      <!-- Stock Overview -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;">
+        <div class="card" id="rm-card-biang">
+          <div class="stat-label">Biang Parfum</div>
+          <div style="font-size:22px;font-weight:700;color:#5C4A3C;margin-top:4px;" id="rm-biang-val">0 <span class="stat-unit">mL</span></div>
+          <span class="badge-ok" id="rm-biang-badge" style="display:inline-block;margin-top:8px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;">OK</span>
+        </div>
+        <div class="card">
+          <div class="stat-label">Botol Perempuan ♀</div>
+          <div style="font-size:22px;font-weight:700;color:#BE185D;margin-top:4px;" id="rm-botp-val">0 <span class="stat-unit">pcs</span></div>
+          <span class="badge-ok" id="rm-botp-badge" style="display:inline-block;margin-top:8px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;">OK</span>
+        </div>
+        <div class="card">
+          <div class="stat-label">Botol Laki-laki ♂</div>
+          <div style="font-size:22px;font-weight:700;color:#1D4ED8;margin-top:4px;" id="rm-botl-val">0 <span class="stat-unit">pcs</span></div>
+          <span class="badge-ok" id="rm-botl-badge" style="display:inline-block;margin-top:8px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;">OK</span>
+        </div>
+        <div class="card">
+          <div class="stat-label">Box Parfum Jadi</div>
+          <div style="font-size:22px;font-weight:700;color:#5C4A3C;margin-top:4px;" id="rm-box-val">0 <span class="stat-unit">pcs</span></div>
+          <span class="badge-ok" id="rm-box-badge" style="display:inline-block;margin-top:8px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;">OK</span>
+        </div>
+        <div class="card">
+          <div class="stat-label">Kardus Luar</div>
+          <div style="font-size:22px;font-weight:700;color:#5C4A3C;margin-top:4px;" id="rm-kardus-val">0 <span class="stat-unit">pcs</span></div>
+          <span class="badge-ok" id="rm-kardus-badge" style="display:inline-block;margin-top:8px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;">OK</span>
+        </div>
+        <div class="card">
+          <div class="stat-label">Bubble Wrap</div>
+          <div style="font-size:22px;font-weight:700;color:#5C4A3C;margin-top:4px;" id="rm-bubble-val">0 <span class="stat-unit">m</span></div>
+          <span class="badge-ok" id="rm-bubble-badge" style="display:inline-block;margin-top:8px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;">OK</span>
+        </div>
+      </div>
+
+      <!-- Add Stock Form -->
+      <div class="card" style="margin-bottom:20px;">
+        <div style="font-size:15px;font-weight:700;color:#2D1F17;margin-bottom:4px;">➕ Tambah Stok Masuk (Inbound)</div>
+        <div style="font-size:12px;color:#8B6F5E;margin-bottom:18px;">Catat bahan baku baru yang datang dari vendor.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+          <div>
+            <label>Jenis Bahan Baku</label>
+            <select id="rm-type" class="form-input">
+              <option value="biang">🧪 Biang Parfum (mL)</option>
+              <option value="botolP">♀ Botol Perempuan (pcs)</option>
+              <option value="botolL">♂ Botol Laki-laki (pcs)</option>
+              <option value="box">📦 Box Parfum Jadi (pcs)</option>
+              <option value="kardus">📫 Kardus Luar (pcs)</option>
+              <option value="bubble">🫧 Bubble Wrap (meter)</option>
+            </select>
+          </div>
+          <div>
+            <label>Jumlah</label>
+            <input type="number" id="rm-qty" class="form-input" min="0.1" step="0.1" placeholder="Contoh: 200">
+          </div>
+          <div>
+            <label>Catatan / Vendor (Opsional)</label>
+            <input type="text" id="rm-notes" class="form-input" placeholder="Contoh: Dari Vendor A, batch Juli">
+          </div>
+        </div>
+        <div style="margin-top:16px;">
+          <button class="btn-primary" onclick="addStock()">➕ Tambah Stok</button>
+        </div>
+      </div>
+
+      <!-- Inbound Log -->
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;color:#2D1F17;margin-bottom:16px;">📋 Riwayat Inbound Bahan Baku</div>
+        <div id="rm-log" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;">
+          <div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada data inbound</div>
+        </div>
+      </div>
+    </div><!-- /rawmaterials -->
+
+    <!-- ╔══════════════════════════════════════╗ -->
+    <!-- ║  PAGE: PRODUCTION                    ║ -->
+    <!-- ╚══════════════════════════════════════╝ -->
+    <div id="page-production" class="page">
+      <div class="section-title">⚗️ Modul Produksi</div>
+      <div class="section-sub">Rakit botol parfum dari bahan baku. Sistem akan otomatis memotong stok bahan baku dan menambah produk jadi.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <!-- Left: Form -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <div style="font-size:15px;font-weight:700;color:#2D1F17;margin-bottom:16px;">Form Perakitan</div>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div>
+                <label>Jumlah Botol Perempuan ♀ (pcs)</label>
+                <input type="number" id="prod-bp" class="form-input" min="0" value="0" placeholder="0" oninput="updateProdPreview()">
+              </div>
+              <div>
+                <label>Jumlah Botol Laki-laki ♂ (pcs)</label>
+                <input type="number" id="prod-bl" class="form-input" min="0" value="0" placeholder="0" oninput="updateProdPreview()">
+              </div>
+              <div>
+                <label>Ukuran Botol (mL per botol)</label>
+                <select id="prod-size" class="form-input" onchange="updateProdPreview()">
+                  <option value="30">30 mL</option>
+                  <option value="50">50 mL</option>
+                  <option value="100">100 mL</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="preview-box" style="margin-top:18px;">
+              <div style="font-size:12px;font-weight:700;color:#5C4A3C;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;">📋 Kebutuhan Material:</div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                  <span style="color:#6B5347;">🧪 Biang Parfum</span>
+                  <strong id="prev-biang">0 mL</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                  <span style="color:#6B5347;">♀ Botol Perempuan</span>
+                  <strong id="prev-bp">0 pcs</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                  <span style="color:#6B5347;">♂ Botol Laki-laki</span>
+                  <strong id="prev-bl">0 pcs</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;">
+                  <span style="color:#6B5347;">📦 Box Parfum</span>
+                  <strong id="prev-box">0 pcs</strong>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-primary" style="width:100%;margin-top:18px;" onclick="processProduction()">⚗️ Proses Produksi</button>
+          </div>
+        </div>
+
+        <!-- Right: Stock Info + Log -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- Current raw materials -->
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;color:#2D1F17;margin-bottom:12px;">Stok Bahan Baku Saat Ini</div>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 10px;background:#FAF7F2;border-radius:8px;">
+                <span>🧪 Biang Parfum</span><strong id="p-biang" style="color:#5C4A3C;">0 mL</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 10px;background:#FDF2F8;border-radius:8px;">
+                <span>♀ Botol Perempuan</span><strong id="p-botp" style="color:#BE185D;">0 pcs</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 10px;background:#EFF6FF;border-radius:8px;">
+                <span>♂ Botol Laki-laki</span><strong id="p-botl" style="color:#1D4ED8;">0 pcs</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 10px;background:#FAF7F2;border-radius:8px;">
+                <span>📦 Box Parfum</span><strong id="p-box" style="color:#5C4A3C;">0 pcs</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Finished products -->
+          <div class="card" style="border-color:#C9A882;">
+            <div style="font-size:13px;font-weight:700;color:#2D1F17;margin-bottom:12px;">✅ Produk Jadi Siap Jual</div>
+            <div style="display:flex;gap:12px;">
+              <div style="flex:1;text-align:center;padding:14px;background:#FDF2F8;border-radius:12px;">
+                <div style="font-size:11px;font-weight:600;color:#BE185D;text-transform:uppercase;letter-spacing:0.04em;">Parfum ♀</div>
+                <div style="font-size:30px;font-weight:700;color:#BE185D;margin:4px 0;" id="p-fp-p">0</div>
+                <div style="font-size:11px;color:#BE185D;">pcs</div>
+              </div>
+              <div style="flex:1;text-align:center;padding:14px;background:#EFF6FF;border-radius:12px;">
+                <div style="font-size:11px;font-weight:600;color:#1D4ED8;text-transform:uppercase;letter-spacing:0.04em;">Parfum ♂</div>
+                <div style="font-size:30px;font-weight:700;color:#1D4ED8;margin:4px 0;" id="p-fp-l">0</div>
+                <div style="font-size:11px;color:#1D4ED8;">pcs</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Production log -->
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;color:#2D1F17;margin-bottom:12px;">📋 Riwayat Produksi</div>
+            <div id="prod-log" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;">
+              <div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada data produksi</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /production -->
+
+    <!-- ╔══════════════════════════════════════╗ -->
+    <!-- ║  PAGE: SALES & OUTBOUND              ║ -->
+    <!-- ╚══════════════════════════════════════╝ -->
+    <div id="page-sales" class="page">
+      <div class="section-title">🚀 Penjualan & Outbound Log</div>
+      <div class="section-sub">Catat setiap penjualan yang keluar. Stok produk jadi dan packing akan terpotong otomatis.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <!-- Left: Form -->
+        <div>
+          <div class="card">
+            <div style="font-size:15px;font-weight:700;color:#2D1F17;margin-bottom:4px;">Catat Penjualan Baru</div>
+            <div style="font-size:12px;color:#8B6F5E;margin-bottom:18px;">Isi semua data order, lalu klik "Catat & Proses".</div>
+
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div>
+                <label>Jenis Produk</label>
+                <select id="sale-product" class="form-input">
+                  <option value="perempuan">♀ Parfum Perempuan</option>
+                  <option value="lakiLaki">♂ Parfum Laki-laki</option>
+                </select>
+              </div>
+              <div>
+                <label>Jumlah (pcs)</label>
+                <input type="number" id="sale-qty" class="form-input" min="1" value="1">
+              </div>
+              <div>
+                <label>Channel Penjualan</label>
+                <select id="sale-channel" class="form-input">
+                  <option value="Shopee">🛒 Shopee (Lokal)</option>
+                  <option value="eBay">🌍 eBay (Internasional)</option>
+                </select>
+              </div>
+              <div>
+                <label>
+                  Nomor Resi / Tracking Number
+                  <span style="color:#C9A882;font-weight:400;text-transform:none;font-size:11px;letter-spacing:0;"> — Wajib untuk eBay</span>
+                </label>
+                <input type="text" id="sale-tracking" class="form-input" placeholder="Contoh: JT1234567890ID atau USPS12345">
+              </div>
+              <div>
+                <label>Catatan Tambahan (Opsional)</label>
+                <input type="text" id="sale-notes" class="form-input" placeholder="Contoh: Customer minta gift wrap">
+              </div>
+            </div>
+
+            <!-- Packing estimate info -->
+            <div style="margin-top:16px;padding:12px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;font-size:12px;color:#92400E;">
+              <strong>📦 Estimasi Packing per Order:</strong><br>
+              • 1 Kardus per botol yang dijual<br>
+              • 0.5 meter Bubble Wrap per botol
+            </div>
+
+            <button class="btn-primary" style="width:100%;margin-top:18px;" onclick="recordSale()">
+              🚀 Catat Penjualan & Proses
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Stock + Log -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- Stock status -->
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;color:#2D1F17;margin-bottom:12px;">Stok Tersedia</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:9px 12px;background:#FDF2F8;border-radius:9px;">
+                <span>♀ Parfum Perempuan</span><strong id="s-fp-p" style="color:#BE185D;">0 pcs</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:9px 12px;background:#EFF6FF;border-radius:9px;">
+                <span>♂ Parfum Laki-laki</span><strong id="s-fp-l" style="color:#1D4ED8;">0 pcs</strong>
+              </div>
+              <div style="height:1px;background:#E4D3BD;margin:2px 0;"></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:9px 12px;background:#FAF7F2;border-radius:9px;">
+                <span>📫 Kardus Luar</span><strong id="s-kardus" style="color:#5C4A3C;">0 pcs</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:9px 12px;background:#FAF7F2;border-radius:9px;">
+                <span>🫧 Bubble Wrap</span><strong id="s-bubble" style="color:#5C4A3C;">0 m</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Outbound log table -->
+          <div class="card" style="flex:1;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+              <div style="font-size:13px;font-weight:700;color:#2D1F17;">📤 Outbound Log</div>
+              <button class="btn-secondary" onclick="exportCSV()" style="font-size:12px;padding:6px 12px;">📥 Export CSV</button>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Tanggal</th>
+                    <th>Produk</th>
+                    <th>Qty</th>
+                    <th>Channel</th>
+                    <th>Resi</th>
+                  </tr>
+                </thead>
+                <tbody id="sales-tbody">
+                  <tr><td colspan="5" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data penjualan</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /sales -->
+
+  </main>
+</div><!-- /main -->
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─────────────── CONSTANTS ─────────────── */
+const LS_KEY = 'wmsParfum_v2';
+
+const MATERIAL_META = {
+  biang:  { label:'Biang Parfum', unit:'mL',  warnAt:100, lowAt:30  },
+  botolP: { label:'Botol Perempuan', unit:'pcs', warnAt:5,   lowAt:2   },
+  botolL: { label:'Botol Laki-laki', unit:'pcs', warnAt:5,   lowAt:2   },
+  box:    { label:'Box Parfum',    unit:'pcs', warnAt:5,   lowAt:2   },
+  kardus: { label:'Kardus Luar',   unit:'pcs', warnAt:5,   lowAt:2   },
+  bubble: { label:'Bubble Wrap',   unit:'m',   warnAt:2,   lowAt:0.5 }
+};
+
+const DEFAULT_STATE = {
+  rm: { biang:0, botolP:0, botolL:0, box:0, kardus:0, bubble:0 },
+  fp: { parfumP:0, parfumL:0 },
+  log: [],      // { id, type, description, ts }
+  sales: []     // { id, product, qty, channel, tracking, notes, ts }
+};
+
+/* ─────────────── STATE ─────────────── */
+let S = deepClone(DEFAULT_STATE);
+
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) S = { ...deepClone(DEFAULT_STATE), ...JSON.parse(raw) };
+  } catch(e) { console.warn('loadState error', e); }
+}
+
+function saveState() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+  catch(e) { console.warn('saveState error', e); }
+}
+
+/* ─────────────── NAVIGATION ─────────────── */
+const PAGE_TITLES = {
+  dashboard:    'Dashboard',
+  rawmaterials: 'Stok Bahan Baku',
+  production:   'Modul Produksi',
+  sales:        'Penjualan & Outbound'
+};
+
+function navigateTo(pageKey) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+  document.getElementById(`page-${pageKey}`).classList.add('active');
+  document.querySelector(`[data-page="${pageKey}"]`).classList.add('active');
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[pageKey];
+
+  renderAll();
+  closeSidebar();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+/* ─────────────── RENDER ─────────────── */
+function renderAll() {
+  renderDashboard();
+  renderRawMaterials();
+  renderProduction();
+  renderSales();
+}
+
+// ---------- Dashboard ----------
+function renderDashboard() {
+  const { rm, fp, log } = S;
+  const maxes = { biang:500, botolP:50, botolL:50, box:50 }; // for progress bars
+
+  set('d-biang', fmt(rm.biang) + '<span class="stat-unit">mL</span>');
+  set('d-botp',  fmt(rm.botolP) + '<span class="stat-unit">pcs</span>');
+  set('d-botl',  fmt(rm.botolL) + '<span class="stat-unit">pcs</span>');
+  set('d-box',   fmt(rm.box)    + '<span class="stat-unit">pcs</span>');
+  set('d-kardus', fmt(rm.kardus) + '<span class="stat-unit">pcs</span>');
+  set('d-bubble', fmt(rm.bubble) + '<span class="stat-unit">m</span>');
+  set('d-fp-p', fmt(fp.parfumP) + '<span class="stat-unit">pcs</span>');
+  set('d-fp-l', fmt(fp.parfumL) + '<span class="stat-unit">pcs</span>');
+
+  // Progress fills (capped at 100%)
+  setStyle('d-biang-fill', 'width', Math.min(100, (rm.biang / maxes.biang) * 100) + '%');
+  setStyle('d-botp-fill',  'width', Math.min(100, (rm.botolP / maxes.botolP) * 100) + '%');
+  setStyle('d-botl-fill',  'width', Math.min(100, (rm.botolL / maxes.botolL) * 100) + '%');
+  setStyle('d-box-fill',   'width', Math.min(100, (rm.box / maxes.box) * 100) + '%');
+
+  // Activity log (last 10, newest first)
+  const el = document.getElementById('dash-log');
+  const entries = [...log].reverse().slice(0, 10);
+  if (!entries.length) {
+    el.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:32px 0;">Belum ada aktivitas yang tercatat</div>';
+    return;
+  }
+  const ICONS = { inbound:'📥', production:'⚗️', outbound:'📤' };
+  const BADGE = { inbound:'log-in', production:'log-prod', outbound:'log-out' };
+  const BADGE_LABEL = { inbound:'INBOUND', production:'PRODUKSI', outbound:'OUTBOUND' };
+  el.innerHTML = entries.map(e => `
+    <div style="display:flex;align-items:start;gap:12px;padding:10px 12px;border-radius:10px;background:#FAF7F2;">
+      <span style="font-size:16px;line-height:1;margin-top:2px;">${ICONS[e.type]||'•'}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;color:#2D1F17;font-weight:500;">${e.description}</div>
+        <div style="font-size:11px;color:#B08A62;margin-top:2px;">${fmtDate(e.ts)}</div>
+      </div>
+      <span class="${BADGE[e.type]||''}" style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;margin-top:2px;">${BADGE_LABEL[e.type]||e.type}</span>
+    </div>`).join('');
+}
+
+// ---------- Raw Materials ----------
+function renderRawMaterials() {
+  const { rm, log } = S;
+
+  // Update value displays
+  setTxt('rm-biang-val', fmt(rm.biang) + '<span class="stat-unit">mL</span>');
+  setTxt('rm-botp-val',  fmt(rm.botolP) + '<span class="stat-unit">pcs</span>');
+  setTxt('rm-botl-val',  fmt(rm.botolL) + '<span class="stat-unit">pcs</span>');
+  setTxt('rm-box-val',   fmt(rm.box)    + '<span class="stat-unit">pcs</span>');
+  setTxt('rm-kardus-val', fmt(rm.kardus) + '<span class="stat-unit">pcs</span>');
+  setTxt('rm-bubble-val', fmt(rm.bubble) + '<span class="stat-unit">m</span>');
+
+  // Update badges
+  updateBadge('rm-biang-badge', rm.biang, 'biang');
+  updateBadge('rm-botp-badge',  rm.botolP, 'botolP');
+  updateBadge('rm-botl-badge',  rm.botolL, 'botolL');
+  updateBadge('rm-box-badge',   rm.box,    'box');
+  updateBadge('rm-kardus-badge', rm.kardus, 'kardus');
+  updateBadge('rm-bubble-badge', rm.bubble, 'bubble');
+
+  // Inbound log
+  const el = document.getElementById('rm-log');
+  const entries = log.filter(e => e.type === 'inbound').reverse().slice(0, 10);
+  if (!entries.length) {
+    el.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada data inbound</div>';
+    return;
+  }
+  el.innerHTML = entries.map(e => `
+    <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:9px 12px;background:#ECFDF5;border-radius:8px;border:1px solid #BBF7D0;">
+      <span style="color:#065F46;font-weight:500;">📥 ${e.description}</span>
+      <span style="color:#6EE7B7;font-size:11px;white-space:nowrap;margin-left:10px;">${fmtDate(e.ts)}</span>
+    </div>`).join('');
+}
+
+// ---------- Production ----------
+function renderProduction() {
+  const { rm, fp, log } = S;
+  setTxt('p-biang', fmt(rm.biang) + ' mL');
+  setTxt('p-botp',  fmt(rm.botolP) + ' pcs');
+  setTxt('p-botl',  fmt(rm.botolL) + ' pcs');
+  setTxt('p-box',   fmt(rm.box)    + ' pcs');
+  setTxt('p-fp-p',  fmt(fp.parfumP));
+  setTxt('p-fp-l',  fmt(fp.parfumL));
+
+  const el = document.getElementById('prod-log');
+  const entries = log.filter(e => e.type === 'production').reverse().slice(0, 8);
+  if (!entries.length) {
+    el.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada data produksi</div>';
+    return;
+  }
+  el.innerHTML = entries.map(e => `
+    <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:9px 12px;background:#EFF6FF;border-radius:8px;border:1px solid #BFDBFE;">
+      <span style="color:#1E40AF;font-weight:500;">⚗️ ${e.description}</span>
+      <span style="color:#93C5FD;font-size:11px;white-space:nowrap;margin-left:10px;">${fmtDate(e.ts)}</span>
+    </div>`).join('');
+}
+
+// ---------- Sales ----------
+function renderSales() {
+  const { fp, rm, sales } = S;
+  setTxt('s-fp-p', fmt(fp.parfumP) + ' pcs');
+  setTxt('s-fp-l', fmt(fp.parfumL) + ' pcs');
+  setTxt('s-kardus', fmt(rm.kardus) + ' pcs');
+  setTxt('s-bubble', fmt(rm.bubble) + ' m');
+
+  const tbody = document.getElementById('sales-tbody');
+  if (!sales || !sales.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data penjualan</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...sales].reverse().map(s => {
+    const prod = s.product === 'perempuan' ? '♀ Parfum Perempuan' : '♂ Parfum Laki-laki';
+    const ch = s.channel === 'Shopee'
+      ? '<span class="ch-shopee">🛒 Shopee</span>'
+      : '<span class="ch-ebay">🌍 eBay</span>';
+    return `
+    <tr>
+      <td style="white-space:nowrap;">${fmtDateShort(s.ts)}</td>
+      <td>${prod}</td>
+      <td style="font-weight:600;">${s.qty}</td>
+      <td>${ch}</td>
+      <td style="font-family:monospace;font-size:12px;color:#5C4A3C;">${s.tracking || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ─────────────── ACTIONS ─────────────── */
+
+// ADD STOCK (inbound)
+function addStock() {
+  const type  = document.getElementById('rm-type').value;
+  const qty   = parseFloat(document.getElementById('rm-qty').value);
+  const notes = document.getElementById('rm-notes').value.trim();
+
+  if (!qty || isNaN(qty) || qty <= 0) { toast('⚠️ Jumlah harus lebih dari 0', 'error'); return; }
+
+  S.rm[type] = +(S.rm[type] + qty).toFixed(2);
+  const m = MATERIAL_META[type];
+  addLog('inbound', `+${fmt(qty)} ${m.unit} ${m.label}${notes ? ' — ' + notes : ''}`);
+  saveState(); renderAll();
+
+  document.getElementById('rm-qty').value = '';
+  document.getElementById('rm-notes').value = '';
+  toast(`✅ ${m.label} berhasil ditambah: +${fmt(qty)} ${m.unit}`, 'success');
+}
+
+// PRODUCTION PREVIEW
+function updateProdPreview() {
+  const bp   = parseInt(document.getElementById('prod-bp').value) || 0;
+  const bl   = parseInt(document.getElementById('prod-bl').value) || 0;
+  const size = parseInt(document.getElementById('prod-size').value) || 30;
+  const tot  = bp + bl;
+
+  setTxt('prev-biang', `${fmt(tot * size)} mL`);
+  setTxt('prev-bp', `${bp} pcs`);
+  setTxt('prev-bl', `${bl} pcs`);
+  setTxt('prev-box', `${tot} pcs`);
+}
+
+// PROCESS PRODUCTION
+function processProduction() {
+  const bp   = parseInt(document.getElementById('prod-bp').value) || 0;
+  const bl   = parseInt(document.getElementById('prod-bl').value) || 0;
+  const size = parseInt(document.getElementById('prod-size').value) || 30;
+
+  if (bp === 0 && bl === 0) { toast('⚠️ Masukkan jumlah botol yang ingin dirakit (minimal 1)', 'error'); return; }
+
+  const tot   = bp + bl;
+  const biang = tot * size;
+  const errors = [];
+
+  if (S.rm.biang  < biang) errors.push(`Biang kurang: butuh ${fmt(biang)}mL, stok ${fmt(S.rm.biang)}mL`);
+  if (S.rm.botolP < bp)    errors.push(`Botol ♀ kurang: butuh ${bp}, stok ${S.rm.botolP}`);
+  if (S.rm.botolL < bl)    errors.push(`Botol ♂ kurang: butuh ${bl}, stok ${S.rm.botolL}`);
+  if (S.rm.box    < tot)   errors.push(`Box kurang: butuh ${tot}, stok ${S.rm.box}`);
+
+  if (errors.length) { toast('❌ Stok tidak cukup:\n' + errors.join('\n'), 'error', 5000); return; }
+
+  // Deduct
+  S.rm.biang  = +(S.rm.biang  - biang).toFixed(2);
+  S.rm.botolP -= bp;
+  S.rm.botolL -= bl;
+  S.rm.box    -= tot;
+
+  // Add finished products
+  S.fp.parfumP += bp;
+  S.fp.parfumL += bl;
+
+  const parts = [];
+  if (bp > 0) parts.push(`${bp} Parfum ♀`);
+  if (bl > 0) parts.push(`${bl} Parfum ♂`);
+  addLog('production', `Rakit ${parts.join(' + ')} @ ${size}mL — Biang terpotong ${fmt(biang)}mL`);
+
+  saveState(); renderAll();
+  document.getElementById('prod-bp').value = '0';
+  document.getElementById('prod-bl').value = '0';
+  updateProdPreview();
+  toast(`✅ Produksi selesai!\n${parts.join(' & ')} siap jual.`, 'success');
+}
+
+// RECORD SALE (outbound)
+function recordSale() {
+  const product  = document.getElementById('sale-product').value;
+  const qty      = parseInt(document.getElementById('sale-qty').value) || 0;
+  const channel  = document.getElementById('sale-channel').value;
+  const tracking = document.getElementById('sale-tracking').value.trim();
+  const notes    = document.getElementById('sale-notes').value.trim();
+
+  if (qty <= 0) { toast('⚠️ Jumlah harus lebih dari 0', 'error'); return; }
+  if (channel === 'eBay' && !tracking) { toast('⚠️ Nomor Resi wajib diisi untuk pengiriman eBay!', 'error'); return; }
+
+  const errors = [];
+  if (product === 'perempuan' && S.fp.parfumP < qty) errors.push(`Stok Parfum ♀ hanya ${S.fp.parfumP} pcs`);
+  if (product === 'lakiLaki'  && S.fp.parfumL < qty) errors.push(`Stok Parfum ♂ hanya ${S.fp.parfumL} pcs`);
+  if (S.rm.kardus < qty) errors.push(`Kardus hanya ${S.rm.kardus} pcs`);
+
+  if (errors.length) { toast('❌ Stok tidak cukup:\n' + errors.join('\n'), 'error', 5000); return; }
+
+  // Deduct finished products
+  if (product === 'perempuan') S.fp.parfumP -= qty;
+  else                         S.fp.parfumL -= qty;
+
+  // Deduct packing
+  S.rm.kardus -= qty;
+  S.rm.bubble  = +(Math.max(0, S.rm.bubble - (qty * 0.5))).toFixed(2);
+
+  const prodLabel = product === 'perempuan' ? '♀ Parfum Perempuan' : '♂ Parfum Laki-laki';
+  const chLabel   = channel === 'Shopee' ? 'Shopee (Lokal)' : 'eBay (Internasional)';
+  addLog('outbound', `Jual ${qty}x ${prodLabel} via ${chLabel}${tracking ? ' [' + tracking + ']' : ''}${notes ? ' — ' + notes : ''}`);
+
+  // Persist sales record
+  if (!S.sales) S.sales = [];
+  S.sales.push({ id: Date.now(), product, qty, channel, tracking, notes, ts: new Date().toISOString() });
+  // Trim to last 200 sales
+  if (S.sales.length > 200) S.sales = S.sales.slice(-200);
+
+  saveState(); renderAll();
+  document.getElementById('sale-qty').value = '1';
+  document.getElementById('sale-tracking').value = '';
+  document.getElementById('sale-notes').value = '';
+  toast(`✅ Penjualan tercatat!\n${qty}x ${prodLabel} via ${chLabel}`, 'success');
+}
+
+// EXPORT CSV
+function exportCSV() {
+  if (!S.sales || !S.sales.length) { toast('⚠️ Belum ada data penjualan untuk di-export', 'warn'); return; }
+
+  const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Catatan'];
+  const rows   = S.sales.map(s => [
+    fmtDate(s.ts),
+    s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
+    s.qty, s.channel, s.tracking || '', s.notes || ''
+  ]);
+  const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: `outbound_${todayStr()}.csv` });
+  a.click(); URL.revokeObjectURL(url);
+  toast('📥 CSV berhasil di-export!', 'success');
+}
+
+// RESET DATA
+function resetData() {
+  if (!confirm('⚠️ Yakin ingin MENGHAPUS SEMUA data?\n\nTindakan ini tidak bisa dibatalkan!')) return;
+  S = deepClone(DEFAULT_STATE);
+  saveState(); renderAll();
+  toast('🔄 Semua data telah di-reset', 'warn');
+}
+
+/* ─────────────── HELPERS ─────────────── */
+function addLog(type, description) {
+  S.log.push({ id: Date.now(), type, description, ts: new Date().toISOString() });
+  if (S.log.length > 200) S.log = S.log.slice(-200);
+}
+
+function fmt(n) {
+  if (Number.isInteger(n) || n === Math.floor(n)) return n.toLocaleString('id-ID');
+  return parseFloat(n.toFixed(2)).toLocaleString('id-ID');
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' })
+       + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+function fmtDateShort(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('id-ID', { day:'numeric', month:'short' })
+       + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+}
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+function updateBadge(id, val, key) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const m = MATERIAL_META[key];
+  if (val <= 0)          { el.className = 'badge-low';  el.textContent = 'HABIS'; }
+  else if (val < m.lowAt){ el.className = 'badge-low';  el.textContent = 'KRITIS'; }
+  else if (val < m.warnAt){el.className = 'badge-warn'; el.textContent = 'RENDAH'; }
+  else                   { el.className = 'badge-ok';   el.textContent = 'OK'; }
+}
+
+// Set innerHTML (for stat numbers with spans)
+function set(id, html) { const e = document.getElementById(id); if (e) e.innerHTML = html; }
+// Set innerHTML (for other elements)
+function setTxt(id, html) { set(id, html); }
+// Set a specific style property
+function setStyle(id, prop, val) { const e = document.getElementById(id); if (e) e.style[prop] = val; }
+
+// Toast notification
+let _toastTimer;
+function toast(msg, type='success', duration=3200) {
+  const existing = document.getElementById('_toast');
+  if (existing) existing.remove();
+  clearTimeout(_toastTimer);
+  const el = document.createElement('div');
+  el.id = '_toast';
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  _toastTimer = setTimeout(() => { if (el.parentNode) el.remove(); }, duration);
+}
+
+/* ─────────────── CLOCK ─────────────── */
+function updateClock() {
+  const now = new Date();
+  const el  = document.getElementById('nowTime');
+  if (el) el.textContent = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const heroDate = document.getElementById('hero-date');
+  if (heroDate) heroDate.textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+/* ─────────────── RESPONSIVE ─────────────── */
+function checkMobile() {
+  const ham = document.getElementById('hamburger');
+  if (window.innerWidth < 1024) { ham.style.display = 'block'; }
+  else { ham.style.display = 'none'; closeSidebar(); }
+}
+
+// Production grid — stack on mobile
+function adjustGrids() {
+  const w = window.innerWidth;
+  document.querySelectorAll('#page-production > div > div, #page-sales > div > div').forEach(el => {
+    if (w < 768) el.style.gridTemplateColumns = '1fr';
+  });
+}
+
+/* ─────────────── INIT ─────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  renderAll();
+  updateClock();
+  setInterval(updateClock, 60000);
+  checkMobile();
+  adjustGrids();
+  window.addEventListener('resize', () => { checkMobile(); adjustGrids(); });
+  updateProdPreview();
+});
+</script>
+</body>
+</html>
