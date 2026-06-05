@@ -186,7 +186,7 @@
   <!-- Brand -->
   <div style="padding: 24px 20px; border-bottom: 1px solid #E4D3BD;">
     <div style="display:flex; align-items:center; gap:12px;">
-      <div style="width:40px;height:40px;background:#2E4A38;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><img src="logo.png" alt="WMS Scifinity"></div>
+      <div style="width:40px;height:40px;background:#2E4A38;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><img src="logo.png" alt="WMS Scifi[...]
       <div>
         <div class="brand" style="font-size:20px;font-weight:700;color:#2D1F17;line-height:1;">WMS Scifinity</div>
         <div style="font-size:11px;color:#8B6F5E;margin-top:1px;">Warehouse Management</div>
@@ -213,7 +213,7 @@
   <!-- Footer -->
   <div style="padding:16px 20px; border-top:1px solid #E4D3BD; display:flex; flex-direction:column; gap:8px;">
     <div style="font-size:11px;color:#B08A62;text-align:center;">💾 Data tersimpan di browser Anda</div>
-    <button onclick="resetData()" style="font-size:12px;color:#991B1B;background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;" onmouseover="this.style.background='rgba(153,27,27,0.1)';" onmouseout="this.style.background='none';">
+    <button onclick="resetData()" style="font-size:12px;color:#991B1B;background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;" onmouseover="this.style.bac[...]
       ⚠️ Reset Semua Data
     </button>
   </div>
@@ -371,7 +371,7 @@
           </div>
           <div>
             <label>
-              Catatan / Vendor
+              Nama Vendor
               <span style="color:#991B1B;font-weight:600;text-transform:none;font-size:11px;letter-spacing:0;"> — Wajib diisi</span>
             </label>
             <input type="text" id="rm-notes" class="form-input" placeholder="Contoh: Vendor A, batch Juli 2024" onkeydown="if(event.key==='Enter') addStock()">
@@ -831,7 +831,7 @@ function addStock() {
 
   // Validasi vendor/catatan (WAJIB DIISI)
   if (!notes) {
-    toast('⚠️ Vendor/Catatan wajib diisi sebelum menambah stok!', 'warn', 4000);
+    toast('⚠️ Nama vendor wajib diisi sebelum menambah stok!\n\nData ini penting untuk dokumentasi dan traceable inventory.', 'warn', 4000);
     document.getElementById('rm-notes').focus();
     return;
   }
@@ -998,37 +998,30 @@ function updateBadge(id, val, key) {
   const m = MATERIAL_META[key];
   if (val <= 0)          { el.className = 'badge-low';  el.textContent = 'HABIS'; }
   else if (val < m.lowAt){ el.className = 'badge-low';  el.textContent = 'KRITIS'; }
-  else if (val < m.warnAt){el.className = 'badge-warn'; el.textContent = 'RENDAH'; }
+  else if (val < m.warnAt){ el.className = 'badge-warn'; el.textContent = 'HAMPIR HABIS'; }
   else                   { el.className = 'badge-ok';   el.textContent = 'OK'; }
 }
 
-// Set innerHTML (for stat numbers with spans)
-function set(id, html) { const e = document.getElementById(id); if (e) e.innerHTML = html; }
-// Set innerHTML (for other elements)
-function setTxt(id, html) { set(id, html); }
-// Set a specific style property
-function setStyle(id, prop, val) { const e = document.getElementById(id); if (e) e.style[prop] = val; }
+function set(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+function setTxt(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+function setStyle(id, prop, val) { const el = document.getElementById(id); if (el) el.style[prop] = val; }
 
-// Toast notification
-let _toastTimer;
-function toast(msg, type='success', duration=3200) {
-  clearTimeout(_toastTimer);
-  const el = document.createElement('div');
-  el.className = `toast toast-${type}`;
-  el.textContent = msg;
-  document.body.appendChild(el);
-  _toastTimer = setTimeout(() => { el.remove(); }, duration);
+function toast(msg, type='info', dur=3000) {
+  const div = document.createElement('div');
+  div.className = `toast toast-${type}`;
+  div.textContent = msg;
+  document.body.appendChild(div);
+  setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.3s'; setTimeout(() => div.remove(), 300); }, dur);
 }
 
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-  loadState();
-  renderAll();
-  document.getElementById('hero-date').textContent = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  setInterval(() => {
-    document.getElementById('nowTime').textContent = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  }, 1000);
-});
+// On startup
+loadState();
+renderAll();
+setInterval(() => {
+  const now = new Date();
+  document.getElementById('nowTime').textContent = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  document.getElementById('hero-date').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}, 1000);
 </script>
 </body>
 </html>
