@@ -479,7 +479,8 @@
       <div style="display:flex; align-items:center; gap:12px;">
         <div
           style="width:40px;height:40px;background:#2E4A38;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
-          <img src="logo.png" alt="WMS Scifinity" style="width:100%;height:100%;object-fit:cover;"></div>
+          <img src="logo.png" alt="WMS Scifinity" style="width:100%;height:100%;object-fit:cover;">
+        </div>
         <div>
           <div class="brand" style="font-size:20px;font-weight:700;color:#2D1F17;line-height:1;">WMS Scifinity</div>
           <div style="font-size:11px;color:#8B6F5E;margin-top:1px;">Warehouse Management</div>
@@ -984,7 +985,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHlmamNxYnVlaGJmcWNiY2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDM3MDEsImV4cCI6MjA5NjIxOTcwMX0.khoftJXX6sDM5vTA4pKZXWlrUhwFipA3jDHt1mRWlUE';
 
     const isSupabaseConfigured = SUPABASE_URL && SUPABASE_ANON_KEY && !SUPABASE_URL.startsWith('YOUR_') && SUPABASE_URL !== '';
-    const supabase = (window.supabase && isSupabaseConfigured) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    const supabaseClient = (window.supabase && isSupabaseConfigured) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     /* ─────────────── CONSTANTS ─────────────── */
     const LS_KEY = 'wmsParfum_v2'; // fallback jika Supabase belum diatur
@@ -1011,7 +1012,7 @@
     function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
 
     async function loadState() {
-      if (!supabase) {
+      if (!supabaseClient) {
         try {
           const raw = localStorage.getItem(LS_KEY);
           if (raw) S = { ...deepClone(DEFAULT_STATE), ...JSON.parse(raw) };
@@ -1021,7 +1022,7 @@
 
       try {
         // 1. Ambil data inventory (ID = 1)
-        const { data: inv, error: invErr } = await supabase
+        const { data: inv, error: invErr } = await supabaseClient
           .from('wms_inventory')
           .select('*')
           .eq('id', 1)
@@ -1044,7 +1045,7 @@
           };
         } else {
           // Jika data inventory kosong sama sekali, buat baru dengan ID 1
-          await supabase.from('wms_inventory').insert({
+          await supabaseClient.from('wms_inventory').insert({
             id: 1,
             biang: 0,
             botol_p: 0,
@@ -1058,7 +1059,7 @@
         }
 
         // 2. Ambil logs (maksimal 200, urutkan berdasarkan id terkecil ke terbesar)
-        const { data: dbLogs, error: logsErr } = await supabase
+        const { data: dbLogs, error: logsErr } = await supabaseClient
           .from('wms_logs')
           .select('*')
           .order('id', { ascending: true })
@@ -1068,7 +1069,7 @@
         if (dbLogs) S.log = dbLogs;
 
         // 3. Ambil sales (maksimal 200, urutkan berdasarkan id terkecil ke terbesar)
-        const { data: dbSales, error: salesErr } = await supabase
+        const { data: dbSales, error: salesErr } = await supabaseClient
           .from('wms_sales')
           .select('*')
           .order('id', { ascending: true })
@@ -1089,9 +1090,9 @@
     }
 
     async function syncInventory() {
-      if (!supabase) return;
+      if (!supabaseClient) return;
       try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from('wms_inventory')
           .update({
             biang: S.rm.biang,
@@ -1114,7 +1115,7 @@
     }
 
     async function saveState() {
-      if (!supabase) {
+      if (!supabaseClient) {
         try { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
         catch (e) { console.warn('saveState error', e); }
       } else {
@@ -1409,9 +1410,9 @@
       S.sales.push(saleItem);
       if (S.sales.length > 200) S.sales = S.sales.slice(-200);
 
-      if (supabase) {
+      if (supabaseClient) {
         try {
-          const { error } = await supabase
+          const { error } = await supabaseClient
             .from('wms_sales')
             .insert(saleItem);
           if (error) throw error;
@@ -1450,10 +1451,10 @@
       if (!confirm('⚠️ Yakin ingin MENGHAPUS SEMUA data?\n\nTindakan ini tidak bisa dibatalkan!')) return;
       S = deepClone(DEFAULT_STATE);
 
-      if (supabase) {
+      if (supabaseClient) {
         try {
-          await supabase.from('wms_logs').delete().gt('id', 0);
-          await supabase.from('wms_sales').delete().gt('id', 0);
+          await supabaseClient.from('wms_logs').delete().gt('id', 0);
+          await supabaseClient.from('wms_sales').delete().gt('id', 0);
         } catch (e) {
           console.error('resetData supabase error:', e);
         }
@@ -1471,9 +1472,9 @@
       S.log.push(logItem);
       if (S.log.length > 200) S.log = S.log.slice(-200);
 
-      if (supabase) {
+      if (supabaseClient) {
         try {
-          await supabase.from('wms_logs').insert(logItem);
+          await supabaseClient.from('wms_logs').insert(logItem);
         } catch (e) {
           console.error('addLog supabase error:', e);
         }
@@ -1481,10 +1482,10 @@
     }
 
     function setupRealtime() {
-      if (!supabase) return;
+      if (!supabaseClient) return;
 
       // Listen to changes in inventory, logs, and sales
-      supabase
+      supabaseClient
         .channel('schema-db-changes')
         .on(
           'postgres_changes',
@@ -1600,7 +1601,7 @@
       renderAll();
       setupRealtime();
 
-      if (supabase) {
+      if (supabaseClient) {
         toast('⚡ Terhubung dengan Supabase Cloud', 'success');
       } else {
         toast('💾 Menggunakan penyimpanan lokal offline', 'warn', 4000);
