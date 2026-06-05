@@ -186,7 +186,7 @@
   <!-- Brand -->
   <div style="padding: 24px 20px; border-bottom: 1px solid #E4D3BD;">
     <div style="display:flex; align-items:center; gap:12px;">
-      <div style="width:40px;height:40px;background:#2E4A38;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><img src="logo.png" alt="WMS Scifi[...]
+      <div style="width:40px;height:40px;background:#2E4A38;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><img src="logo.png" alt="WMS Scifinity" style="width:100%;height:100%;object-fit:cover;"></div>
       <div>
         <div class="brand" style="font-size:20px;font-weight:700;color:#2D1F17;line-height:1;">WMS Scifinity</div>
         <div style="font-size:11px;color:#8B6F5E;margin-top:1px;">Warehouse Management</div>
@@ -213,7 +213,7 @@
   <!-- Footer -->
   <div style="padding:16px 20px; border-top:1px solid #E4D3BD; display:flex; flex-direction:column; gap:8px;">
     <div style="font-size:11px;color:#B08A62;text-align:center;">💾 Data tersimpan di browser Anda</div>
-    <button onclick="resetData()" style="font-size:12px;color:#991B1B;background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;" onmouseover="this.style.bac[...]
+    <button onclick="resetData()" style="font-size:12px;color:#991B1B;background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;" onmouseover="this.style.background='rgba(153,27,27,0.1)'" onmouseout="this.style.background='none'">
       ⚠️ Reset Semua Data
     </button>
   </div>
@@ -998,29 +998,29 @@ function updateBadge(id, val, key) {
   const m = MATERIAL_META[key];
   if (val <= 0)          { el.className = 'badge-low';  el.textContent = 'HABIS'; }
   else if (val < m.lowAt){ el.className = 'badge-low';  el.textContent = 'KRITIS'; }
-  else if (val < m.warnAt){ el.className = 'badge-warn'; el.textContent = 'HAMPIR HABIS'; }
+  else if (val < m.warnAt){ el.className = 'badge-warn'; el.textContent = 'PERINGATAN'; }
   else                   { el.className = 'badge-ok';   el.textContent = 'OK'; }
 }
 
-function set(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
-function setTxt(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+function set(id, html)   { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+function setTxt(id, txt) { const el = document.getElementById(id); if (el) el.innerHTML = txt; }
 function setStyle(id, prop, val) { const el = document.getElementById(id); if (el) el.style[prop] = val; }
 
-function toast(msg, type='info', dur=3000) {
-  const div = document.createElement('div');
-  div.className = `toast toast-${type}`;
-  div.textContent = msg;
-  document.body.appendChild(div);
-  setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.3s'; setTimeout(() => div.remove(), 300); }, dur);
+function toast(msg, type = 'info', duration = 3000) {
+  const className = type === 'success' ? 'toast-success' : type === 'error' ? 'toast-error' : 'toast-warn';
+  const el = document.createElement('div');
+  el.className = `toast ${className}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), duration);
 }
 
-// On startup
-loadState();
-renderAll();
+// Initialize
+loadState(); renderAll();
 setInterval(() => {
   const now = new Date();
   document.getElementById('nowTime').textContent = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  document.getElementById('hero-date').textContent = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('hero-date').textContent = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 }, 1000);
 </script>
 </body>
