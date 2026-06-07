@@ -1,0 +1,23 @@
+{
+  "name": "wms-scifinity",
+  "version": "1.0.0",
+  "description": "WMS Parfum - Warehouse Management System",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhdpro9-pixel/WMS-Scifinity.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zhdpro9-pixel/WMS-Scifinity/issues"
+  },
+  "homepage": "https://github.com/zhdpro9-pixel/WMS-Scifinity#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
