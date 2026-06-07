@@ -1004,8 +1004,8 @@
     async function loadState() {
       if (!sb) { loadLocalState(); return; }
 
-      // Show skeleton on raw materials cards while loading
-      showSkeletonCards('page-rawmaterials', 6);
+      // Show skeleton only on the stat value elements, not the whole page
+      showStatSkeletons();
 
       try {
         // 1. Inventory
@@ -1506,15 +1506,20 @@
     }
 
     /* ─────────────── SKELETON LOADER ─────────────── */
-    function showSkeletonCards(containerId, count = 4) {
-      const el = document.getElementById(containerId);
-      if (!el) return;
-      el.innerHTML = Array(count).fill(0).map(() => `
-        <div class="card">
-          <div class="skeleton skeleton-text" style="width:60%;"></div>
-          <div class="skeleton skeleton-num" style="margin:8px 0;"></div>
-          <div class="skeleton skeleton-badge"></div>
-        </div>`).join('');
+    // Hanya mengganti elemen angka/stat dengan animasi shimmer,
+    // bukan mengganti seluruh konten halaman.
+    function showStatSkeletons() {
+      const statIds = [
+        'rm-biang-val','rm-botp-val','rm-botl-val',
+        'rm-box-val','rm-kardus-val','rm-bubble-val',
+        'd-biang','d-botp','d-botl','d-box','d-kardus','d-bubble',
+        'd-fp-p','d-fp-l'
+      ];
+      const skeletonHtml = '<span class="skeleton skeleton-num" style="display:inline-block;"></span>';
+      statIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = skeletonHtml;
+      });
     }
 
     /* ─────────────── LAPORAN BULANAN ─────────────── */
