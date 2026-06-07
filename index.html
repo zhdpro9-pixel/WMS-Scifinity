@@ -1347,14 +1347,23 @@
       const ts       = new Date().toISOString();
       const saleItem = { product, qty, channel, tracking, notes, ts };
       if (!S.sales) S.sales = [];
-      S.sales.push(saleItem);
-      if (S.sales.length > 200) S.sales = S.sales.slice(-200);
 
       if (sb) {
+        // Jika pakai Supabase: JANGAN push ke S.sales di sini.
+        // Realtime listener yang akan push setelah INSERT berhasil.
         try {
           const { error } = await sb.from('wms_sales').insert(saleItem);
           if (error) throw error;
-        } catch(e) { console.error('recordSale supabase error:', e); }
+        } catch(e) {
+          console.error('recordSale supabase error:', e);
+          // Fallback: kalau INSERT gagal, push manual
+          S.sales.push(saleItem);
+          if (S.sales.length > 200) S.sales = S.sales.slice(-200);
+        }
+      } else {
+        // Mode offline (localStorage): push langsung
+        S.sales.push(saleItem);
+        if (S.sales.length > 200) S.sales = S.sales.slice(-200);
       }
 
       await saveState(); // ✅ Fix: properly awaited
@@ -1409,13 +1418,23 @@
     async function addLog(type, description) {
       const ts      = new Date().toISOString();
       const logItem = { type, description, ts };
-      S.log.push(logItem);
-      if (S.log.length > 200) S.log = S.log.slice(-200);
 
       if (sb) {
+        // Jika pakai Supabase: JANGAN push ke S.log di sini.
+        // Realtime listener yang akan menerima INSERT dan push ke S.log,
+        // sehingga tidak terjadi duplikasi.
         try {
           await sb.from('wms_logs').insert(logItem);
-        } catch(e) { console.error('addLog supabase error:', e); }
+        } catch(e) {
+          console.error('addLog supabase error:', e);
+          // Fallback: kalau INSERT gagal, push manual agar UI tetap update
+          S.log.push(logItem);
+          if (S.log.length > 200) S.log = S.log.slice(-200);
+        }
+      } else {
+        // Mode offline (localStorage): push langsung
+        S.log.push(logItem);
+        if (S.log.length > 200) S.log = S.log.slice(-200);
       }
     }
 
