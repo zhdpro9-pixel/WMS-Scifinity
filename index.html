@@ -692,17 +692,23 @@
                     <input type="text" id="sale-tracking" class="form-input" placeholder="Contoh: JT1234567890ID"
                       onkeydown="if(event.key==='Enter') recordSale()">
                   </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div>
+                      <label>Kardus Terpakai (pcs) <span style="color:#991B1B;font-weight:600;text-transform:none;font-size:11px;letter-spacing:0;"> — Wajib</span></label>
+                      <input type="number" id="sale-kardus" class="form-input" min="0" step="1" value="0" placeholder="0"
+                        onkeydown="if(event.key==='Enter') recordSale()">
+                    </div>
+                    <div>
+                      <label>Bubble Wrap Terpakai (m) <span style="color:#991B1B;font-weight:600;text-transform:none;font-size:11px;letter-spacing:0;"> — Wajib</span></label>
+                      <input type="number" id="sale-bubble" class="form-input" min="0" step="0.1" value="0" placeholder="0"
+                        onkeydown="if(event.key==='Enter') recordSale()">
+                    </div>
+                  </div>
                   <div>
                     <label>Catatan Tambahan (Opsional)</label>
-                    <input type="text" id="sale-notes" class="form-input" placeholder="Contoh: Customer minta gift wrap"
+                    <input type="text" id="sale-notes" class="form-input" placeholder="Contoh: 3 botol dalam 1 bubble wrap"
                       onkeydown="if(event.key==='Enter') recordSale()">
                   </div>
-                </div>
-
-                <div style="margin-top:16px;padding:12px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;font-size:12px;color:#92400E;">
-                  <strong>📦 Estimasi Packing per Order:</strong><br>
-                  • 1 Kardus per botol yang dijual<br>
-                  • 0.5 meter Bubble Wrap per botol
                 </div>
 
                 <button class="btn-primary" style="width:100%;margin-top:18px;" onclick="recordSale()">
@@ -745,10 +751,12 @@
                         <th>Qty</th>
                         <th>Channel</th>
                         <th>Resi</th>
+                        <th>Kardus</th>
+                        <th>Bubble Wrap</th>
                       </tr>
                     </thead>
                     <tbody id="sales-tbody">
-                      <tr><td colspan="5" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data penjualan</td></tr>
+                      <tr><td colspan="7" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data penjualan</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -1218,7 +1226,7 @@
 
       const tbody = document.getElementById('sales-tbody');
       if (!sales || !sales.length) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data penjualan</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data penjualan</td></tr>';
         return;
       }
       tbody.innerHTML = [...sales].reverse().map(s => {
@@ -1226,6 +1234,8 @@
         const ch = s.channel === 'Shopee'
           ? '<span class="ch-shopee">🛒 Shopee</span>'
           : '<span class="ch-ebay">🌍 eBay</span>';
+        const kardusStr = (s.kardus != null && s.kardus > 0) ? `${fmt(s.kardus)} pcs` : '—';
+        const bubbleStr = (s.bubble != null && s.bubble > 0) ? `${fmt(s.bubble)} m`   : '—';
         return `
           <tr>
             <td style="white-space:nowrap;">${fmtDateShort(s.ts)}</td>
@@ -1233,6 +1243,8 @@
             <td style="font-weight:600;">${s.qty}</td>
             <td>${ch}</td>
             <td style="font-family:monospace;font-size:12px;color:#5C4A3C;">${s.tracking || '—'}</td>
+            <td style="font-size:12px;color:#5C4A3C;">${kardusStr}</td>
+            <td style="font-size:12px;color:#5C4A3C;">${bubbleStr}</td>
           </tr>`;
       }).join('');
     }
@@ -1315,6 +1327,8 @@
       const qty      = parseInt(document.getElementById('sale-qty').value)      || 0;
       const channel  = document.getElementById('sale-channel').value;
       const tracking = document.getElementById('sale-tracking').value.trim();
+      const kardus   = parseFloat(document.getElementById('sale-kardus').value) || 0;
+      const bubble   = parseFloat(document.getElementById('sale-bubble').value) || 0;
       const notes    = document.getElementById('sale-notes').value.trim();
 
       if (qty <= 0) { toast('⚠️ Jumlah harus lebih dari 0', 'error'); return; }
@@ -1323,65 +1337,72 @@
         document.getElementById('sale-tracking').focus();
         return;
       }
+      if (kardus < 0) { toast('⚠️ Kardus tidak boleh negatif', 'error'); return; }
+      if (bubble < 0) { toast('⚠️ Bubble Wrap tidak boleh negatif', 'error'); return; }
 
       const errors = [];
       if (product === 'perempuan' && S.fp.parfumP < qty) errors.push(`Stok Parfum ♀ hanya ${S.fp.parfumP} pcs`);
       if (product === 'lakiLaki'  && S.fp.parfumL < qty) errors.push(`Stok Parfum ♂ hanya ${S.fp.parfumL} pcs`);
-      if (S.rm.kardus < qty)  errors.push(`Kardus hanya ${S.rm.kardus} pcs`);
-      // ✅ Fix: bubble wrap validation added
-      const bubbleNeeded = +(qty * 0.5).toFixed(2);
-      if (S.rm.bubble < bubbleNeeded) errors.push(`Bubble Wrap hanya ${fmt(S.rm.bubble)}m (butuh ${fmt(bubbleNeeded)}m)`);
+      if (kardus > 0 && S.rm.kardus < kardus) errors.push(`Kardus hanya ${fmt(S.rm.kardus)} pcs (butuh ${fmt(kardus)})`);
+      if (bubble > 0 && S.rm.bubble < bubble) errors.push(`Bubble Wrap hanya ${fmt(S.rm.bubble)}m (butuh ${fmt(bubble)}m)`);
 
       if (errors.length) { toast('❌ Stok tidak cukup:\n' + errors.join('\n'), 'error', 5000); return; }
 
       if (product === 'perempuan') S.fp.parfumP -= qty;
       else                         S.fp.parfumL -= qty;
 
-      S.rm.kardus -= qty;
-      S.rm.bubble  = +(Math.max(0, S.rm.bubble - bubbleNeeded)).toFixed(2);
+      // Potong packing sesuai input aktual
+      if (kardus > 0) S.rm.kardus = +(Math.max(0, S.rm.kardus - kardus)).toFixed(2);
+      if (bubble > 0) S.rm.bubble = +(Math.max(0, S.rm.bubble - bubble)).toFixed(2);
 
       const prodLabel = product === 'perempuan' ? '♀ Parfum Perempuan' : '♂ Parfum Laki-laki';
       const chLabel   = channel === 'Shopee' ? 'Shopee (Lokal)' : 'eBay (Internasional)';
-      await addLog('outbound', `Jual ${qty}x ${prodLabel} via ${chLabel}${tracking ? ' [' + tracking + ']' : ''}${notes ? ' — ' + notes : ''}`);
+
+      const packingInfo = [];
+      if (kardus > 0) packingInfo.push(`${fmt(kardus)} kardus`);
+      if (bubble > 0) packingInfo.push(`${fmt(bubble)}m bubble wrap`);
+      const packingStr = packingInfo.length ? ` | Packing: ${packingInfo.join(', ')}` : '';
+
+      await addLog('outbound', `Jual ${qty}x ${prodLabel} via ${chLabel}${packingStr}${tracking ? ' [' + tracking + ']' : ''}${notes ? ' — ' + notes : ''}`);
 
       const ts       = new Date().toISOString();
-      const saleItem = { product, qty, channel, tracking, notes, ts };
+      const saleItem = { product, qty, channel, tracking, kardus, bubble, notes, ts };
       if (!S.sales) S.sales = [];
 
       if (sb) {
-        // Jika pakai Supabase: JANGAN push ke S.sales di sini.
-        // Realtime listener yang akan push setelah INSERT berhasil.
         try {
           const { error } = await sb.from('wms_sales').insert(saleItem);
           if (error) throw error;
         } catch(e) {
           console.error('recordSale supabase error:', e);
-          // Fallback: kalau INSERT gagal, push manual
           S.sales.push(saleItem);
           if (S.sales.length > 200) S.sales = S.sales.slice(-200);
         }
       } else {
-        // Mode offline (localStorage): push langsung
         S.sales.push(saleItem);
         if (S.sales.length > 200) S.sales = S.sales.slice(-200);
       }
 
-      await saveState(); // ✅ Fix: properly awaited
+      await saveState();
       renderAll();
 
       document.getElementById('sale-qty').value      = '1';
       document.getElementById('sale-tracking').value = '';
+      document.getElementById('sale-kardus').value   = '0';
+      document.getElementById('sale-bubble').value   = '0';
       document.getElementById('sale-notes').value    = '';
       toast(`✅ Penjualan tercatat!\n${qty}x ${prodLabel} via ${chLabel}`, 'success');
     }
 
     function exportCSV() {
       if (!S.sales || !S.sales.length) { toast('⚠️ Belum ada data penjualan untuk di-export', 'warn'); return; }
-      const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Catatan'];
+      const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble Wrap (m)', 'Catatan'];
       const rows   = S.sales.map(s => [
         fmtDate(s.ts),
         s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
-        s.qty, s.channel, s.tracking || '', s.notes || ''
+        s.qty, s.channel, s.tracking || '',
+        s.kardus ?? '', s.bubble ?? '',
+        s.notes || ''
       ]);
       const csv  = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -1688,11 +1709,13 @@
       const salesThisMonth = (S.sales || []).filter(s => s.ts && s.ts.startsWith(reportMonth));
       if (!salesThisMonth.length) { toast('⚠️ Tidak ada data penjualan bulan ini', 'warn'); return; }
 
-      const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Catatan'];
+      const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble Wrap (m)', 'Catatan'];
       const rows   = salesThisMonth.map(s => [
         fmtDate(s.ts),
         s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
-        s.qty, s.channel, s.tracking || '', s.notes || ''
+        s.qty, s.channel, s.tracking || '',
+        s.kardus ?? '', s.bubble ?? '',
+        s.notes || ''
       ]);
       const csv  = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
