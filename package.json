@@ -1,0 +1,21 @@
+{
+  "name": "wms-scifinity",
+  "version": "1.0.0",
+  "description": "WMS Parfum - Warehouse Management System",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'No build step required for vanilla JS project'",
+    "lint": "echo 'No linter configured'"
+  },
+  "keywords": [
+    "wms",
+    "warehouse",
+    "management"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/speed-insights": "^1.1.0"
+  }
+}
