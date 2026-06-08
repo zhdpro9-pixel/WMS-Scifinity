@@ -366,7 +366,7 @@ function renderSales() {
       ? '<span class="ch-shopee">🛒 Shopee</span>'
       : '<span class="ch-ebay">🌍 eBay</span>';
     const kardusStr = (s.kardus != null && s.kardus > 0) ? `${fmt(s.kardus)} pcs` : '—';
-    const bubbleStr = (s.bubble != null && s.bubble > 0) ? `${fmt(s.bubble)} m`   : '—';
+    const bubbleStr = (s.bubble != null && s.bubble > 0) ? `${fmt(s.bubble)} cm`  : '—';
     return `
       <tr>
         <td style="white-space:nowrap;">${fmtDateShort(s.ts)}</td>
@@ -458,8 +458,9 @@ async function recordSale() {
   const qty      = parseInt(document.getElementById('sale-qty').value)      || 0;
   const channel  = document.getElementById('sale-channel').value;
   const tracking = document.getElementById('sale-tracking').value.trim();
-  const kardus   = parseFloat(document.getElementById('sale-kardus').value) || 0;
-  const bubble   = parseFloat(document.getElementById('sale-bubble').value) || 0;
+  const kardus      = parseFloat(document.getElementById('sale-kardus').value) || 0;
+  const bubbleCm    = parseFloat(document.getElementById('sale-bubble').value) || 0;
+  const bubble      = +(bubbleCm / 100).toFixed(4); // simpan dalam meter untuk stok
   const notes    = document.getElementById('sale-notes').value.trim();
 
   if (qty <= 0) { toast('⚠️ Jumlah harus lebih dari 0', 'error'); return; }
@@ -469,13 +470,13 @@ async function recordSale() {
     return;
   }
   if (kardus < 0) { toast('⚠️ Kardus tidak boleh negatif', 'error'); return; }
-  if (bubble < 0) { toast('⚠️ Bubble Wrap tidak boleh negatif', 'error'); return; }
+  if (bubbleCm < 0) { toast('⚠️ Bubble Wrap tidak boleh negatif', 'error'); return; }
 
   const errors = [];
   if (product === 'perempuan' && S.fp.parfumP < qty) errors.push(`Stok Parfum ♀ hanya ${S.fp.parfumP} pcs`);
   if (product === 'lakiLaki'  && S.fp.parfumL < qty) errors.push(`Stok Parfum ♂ hanya ${S.fp.parfumL} pcs`);
   if (kardus > 0 && S.rm.kardus < kardus) errors.push(`Kardus hanya ${fmt(S.rm.kardus)} pcs (butuh ${fmt(kardus)})`);
-  if (bubble > 0 && S.rm.bubble < bubble) errors.push(`Bubble Wrap hanya ${fmt(S.rm.bubble)}m (butuh ${fmt(bubble)}m)`);
+  if (bubble > 0 && S.rm.bubble < bubble) errors.push(`Bubble Wrap hanya ${fmt(S.rm.bubble * 100)}cm (butuh ${fmt(bubbleCm)}cm)`);
 
   if (errors.length) { toast('❌ Stok tidak cukup:\n' + errors.join('\n'), 'error', 5000); return; }
 
@@ -490,13 +491,13 @@ async function recordSale() {
 
   const packingInfo = [];
   if (kardus > 0) packingInfo.push(`${fmt(kardus)} kardus`);
-  if (bubble > 0) packingInfo.push(`${fmt(bubble)}m bubble wrap`);
+  if (bubbleCm > 0) packingInfo.push(`${fmt(bubbleCm)}cm bubble wrap`);
   const packingStr = packingInfo.length ? ` | Packing: ${packingInfo.join(', ')}` : '';
 
   await addLog('outbound', `Jual ${qty}x ${prodLabel} via ${chLabel}${packingStr}${tracking ? ' [' + tracking + ']' : ''}${notes ? ' — ' + notes : ''}`);
 
   const ts       = new Date().toISOString();
-  const saleItem = { product, qty, channel, tracking, kardus, bubble, notes, ts };
+  const saleItem = { product, qty, channel, tracking, kardus, bubble: bubbleCm, notes, ts };
   if (!S.sales) S.sales = [];
 
   if (sb) {
