@@ -58,7 +58,12 @@ body { background: #FAF7F2; color: #2D1F17; min-height: 100vh; }
 }
 .nav-link:hover { background: #F2EAE0; color: #5C4A3C; }
 .nav-link.active { background: #5C4A3C; color: #fff; }
-.nav-link .icon { font-size: 16px; width: 20px; text-align: center; }
+.nav-link .icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; flex-shrink: 0;
+}
+.nav-link .icon .ico { width: 18px; height: 18px; }
+.nav-link.active .ico { color: #fff; }
 
 /* Pages */
 .page { display: none; }
@@ -134,6 +139,7 @@ label {
 /* Stats */
 .stat-num   { font-size: 28px; font-weight: 700; line-height: 1.1; }
 .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #8B6F5E; }
+.stat-label.label-with-icon { text-transform: none; letter-spacing: 0.02em; }
 .stat-unit  { font-size: 13px; font-weight: 400; color: #B08A62; margin-left: 3px; }
 
 /* Table */
@@ -147,8 +153,70 @@ label {
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tbody tr:hover { background: #FAF7F2; }
 
-.section-title { font-size: 18px; font-weight: 700; color: #2D1F17; margin-bottom: 4px; }
+.section-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 18px; font-weight: 700; color: #2D1F17; margin-bottom: 4px;
+}
 .section-sub   { font-size: 13px; color: #8B6F5E; margin-bottom: 20px; }
+
+/* ── ICON SYSTEM ── */
+.ico {
+  width: 1.125rem; height: 1.125rem; flex-shrink: 0;
+  stroke: currentColor; fill: none;
+}
+.ico-xs  { width: 14px; height: 14px; }
+.ico-sm  { width: 16px; height: 16px; }
+.ico-lg  { width: 22px; height: 22px; }
+.ico-title { width: 22px; height: 22px; color: #5C4A3C; }
+
+.ico-accent-f { color: #BE185D; }
+.ico-accent-l { color: #1D4ED8; }
+
+.label-with-icon,
+.title-with-icon,
+.card-heading {
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.card-heading {
+  font-size: 15px; font-weight: 700; color: #2D1F17; margin-bottom: 4px;
+}
+.preview-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; color: #5C4A3C;
+  margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+.btn-with-icon {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-with-icon .ico { width: 16px; height: 16px; }
+
+.sidebar-action-btn {
+  font-size: 12px; color: #991B1B; background: none; border: none;
+  cursor: pointer; padding: 6px; border-radius: 6px; transition: background 0.15s;
+  display: flex; align-items: center; gap: 6px; justify-content: center; width: 100%;
+}
+
+.prod-label {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.prod-label-center { justify-content: center; }
+.prod-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.prod-dot-f { background: #BE185D; }
+.prod-dot-l { background: #1D4ED8; }
+
+.ch-badge { display: inline-flex; align-items: center; gap: 4px; }
+
+.log-entry-icon {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+}
+.log-entry-icon.inbound    { background: #ECFDF5; color: #065F46; }
+.log-entry-icon.production { background: #EFF6FF; color: #1E40AF; }
+.log-entry-icon.outbound   { background: #FFF7ED; color: #9A3412; }
+
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: #FAF7F2; }
@@ -245,4 +313,62 @@ label {
 }
 .channel-bar .bar-fill {
   height: 100%; border-radius: 4px; transition: width 0.5s ease;
+}
+
+/* ── REVISI: KATEGORI BAHAN BAKU ── */
+.rm-section { margin-bottom: 20px; }
+.rm-section-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid #E4D3BD;
+}
+.rm-section-icon {
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  background: #F2EAE0; border-radius: 10px; flex-shrink: 0; color: #5C4A3C;
+}
+.rm-section-title { font-size: 15px; font-weight: 700; color: #2D1F17; }
+.rm-section-desc  { font-size: 12px; color: #8B6F5E; margin-top: 2px; }
+.rm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+.vendor-hint {
+  display: flex; align-items: flex-start; gap: 6px;
+  margin-top: 8px; font-size: 10px; line-height: 1.4;
+  color: #92400E; background: #FFFBEB; border: 1px solid #FDE68A;
+  border-radius: 6px; padding: 5px 8px;
+}
+.vendor-hint[hidden] { display: none !important; }
+
+/* ── REVISI: TRACKING / RESI ── */
+.tracking-row {
+  display: flex; gap: 8px; align-items: stretch;
+}
+.tracking-row .form-input { flex: 1; min-width: 0; }
+.btn-gen-resi {
+  white-space: nowrap; flex-shrink: 0;
+  font-size: 12px !important; padding: 8px 12px !important;
+}
+.tracking-hint {
+  font-size: 11px; color: #B08A62; margin-top: 6px; line-height: 1.4;
+}
+.tracking-loading {
+  opacity: 0.6;
+  background: linear-gradient(90deg, #FAF7F2 25%, #F2EAE0 50%, #FAF7F2 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1s infinite;
+}
+.btn-spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid #C9A882; border-top-color: #5C4A3C;
+  border-radius: 50%; animation: spin 0.6s linear infinite;
+  vertical-align: middle; margin-right: 4px;
+}
+
+/* ── REVISI: VENDOR TABLE ── */
+.lead-badge {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE;
+  border-radius: 20px; padding: 2px 10px;
 }
