@@ -372,3 +372,10 @@ label {
   background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE;
   border-radius: 20px; padding: 2px 10px;
 }
+
+/* ── FINANCIAL PROJECTION ── */
+.fin-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}

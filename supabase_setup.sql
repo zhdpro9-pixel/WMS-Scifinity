@@ -1,9 +1,9 @@
--- ═══════════════════════════════════════════════════════
---  WMS Scifinity · Supabase RLS Setup
+-- ════════════════════════════════════════════════════════
+--  WMS Scifinity · Supabase RLS Setup + Audit Trail
 --  Jalankan script ini di: Supabase Dashboard → SQL Editor
--- ═══════════════════════════════════════════════════════
+-- ════════════════════════════════════════════════════════
 
--- ─── 0. TABEL VENDOR (REVISI 3) ───────────────────────
+-- ─── 0. TABEL VENDOR (REVISI 3) ────────────────────────
 
 CREATE TABLE IF NOT EXISTS wms_vendors (
   id              SERIAL PRIMARY KEY,
@@ -35,19 +35,31 @@ CREATE POLICY "allow_authenticated_vendors"
 
 REVOKE ALL ON wms_vendors FROM anon;
 
--- ─── 1. AKTIFKAN ROW LEVEL SECURITY ───────────────────
+-- ─── 1. TAMBAHKAN KOLUM AUDIT TRAIL (user_id, user_email) ───────────────────
+
+-- Add audit columns to wms_logs
+ALTER TABLE wms_logs 
+ADD COLUMN IF NOT EXISTS user_id TEXT,
+ADD COLUMN IF NOT EXISTS user_email TEXT;
+
+-- Add audit columns to wms_sales
+ALTER TABLE wms_sales 
+ADD COLUMN IF NOT EXISTS user_id TEXT,
+ADD COLUMN IF NOT EXISTS user_email TEXT;
+
+-- ─── 2. AKTIFKAN ROW LEVEL SECURITY ───────────────────
 
 ALTER TABLE wms_inventory ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wms_logs      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wms_sales     ENABLE ROW LEVEL SECURITY;
 
--- ─── 2. HAPUS POLICY LAMA (kalau ada) ─────────────────
+-- ─── 3. HAPUS POLICY LAMA (kalau ada) ─────────────────
 
 DROP POLICY IF EXISTS "allow_authenticated_inventory" ON wms_inventory;
 DROP POLICY IF EXISTS "allow_authenticated_logs"      ON wms_logs;
 DROP POLICY IF EXISTS "allow_authenticated_sales"     ON wms_sales;
 
--- ─── 3. BUAT POLICY BARU ──────────────────────────────
+-- ─── 4. BUAT POLICY BARU ──────────────────────────────
 -- Hanya user yang sudah login (authenticated) yang boleh
 -- membaca, menulis, mengubah, dan menghapus data.
 
@@ -75,14 +87,14 @@ CREATE POLICY "allow_authenticated_sales"
   USING (true)
   WITH CHECK (true);
 
--- ─── 4. BLOKIR AKSES ANONYMOUS ────────────────────────
+-- ─── 5. BLOKIR AKSES ANONYMOUS ────────────────────────
 -- Pastikan role "anon" tidak bisa akses tanpa login.
 
 REVOKE ALL ON wms_inventory FROM anon;
 REVOKE ALL ON wms_logs      FROM anon;
 REVOKE ALL ON wms_sales     FROM anon;
 
--- ─── 5. VERIFIKASI ────────────────────────────────────
+-- ─── 6. VERIFIKASI ────────────────────────────────────
 -- Jalankan query ini untuk cek RLS sudah aktif:
 -- SELECT tablename, rowsecurity FROM pg_tables
 -- WHERE tablename IN ('wms_inventory', 'wms_logs', 'wms_sales', 'wms_vendors');
