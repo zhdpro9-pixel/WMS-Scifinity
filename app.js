@@ -1,7 +1,7 @@
 'use strict';
 
 /* ─────────────── SUPABASE ─────────────── */
-const SUPABASE_URL      = 'https://zspyfjcqbuehbfqcbcax.supabase.co';
+const SUPABASE_URL = 'https://zspyfjcqbuehbfqcbcax.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHlmamNxYnVlaGJmcWNiY2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDM3MDEsImV4cCI6MjA5NjIxOTcwMX0.khoftJXX6sDM5vTA4pKZXWlrUhwFipA3jDHt1mRWlUE';
 
 const sb = window.supabase
@@ -10,22 +10,22 @@ const sb = window.supabase
 
 /* ─────────────── CONSTANTS ─────────────── */
 const MATERIAL_UTAMA = {
-  biang:  { label: 'Biang Parfum',    unit: 'mL',  warnAt: 100, lowAt: 30,  optionLabel: 'Biang Parfum (mL)' },
-  botolP: { label: 'Botol Perempuan', unit: 'pcs', warnAt: 5,   lowAt: 2,   optionLabel: 'Botol Perempuan (pcs)' },
-  botolL: { label: 'Botol Laki-laki', unit: 'pcs', warnAt: 5,   lowAt: 2,   optionLabel: 'Botol Laki-laki (pcs)' }
+  biang: { label: 'Biang Parfum', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Biang Parfum (mL)' },
+  botolP: { label: 'Botol Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Perempuan (pcs)' },
+  botolL: { label: 'Botol Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Laki-laki (pcs)' }
 };
 
 const MATERIAL_PENOLONG = {
-  box:    { label: 'Box Parfum Jadi', unit: 'pcs', warnAt: 5, lowAt: 2,   optionLabel: 'Box Parfum Jadi (pcs)' },
-  kardus: { label: 'Kardus Luar',     unit: 'pcs', warnAt: 5, lowAt: 2,   optionLabel: 'Kardus Luar (pcs)' },
-  bubble: { label: 'Bubble Wrap',     unit: 'm',   warnAt: 2, lowAt: 0.5, optionLabel: 'Bubble Wrap (meter)' }
+  box: { label: 'Box Parfum Jadi', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Parfum Jadi (pcs)' },
+  kardus: { label: 'Kardus Luar', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Kardus Luar (pcs)' },
+  bubble: { label: 'Bubble Wrap', unit: 'm', warnAt: 2, lowAt: 0.5, optionLabel: 'Bubble Wrap (meter)' }
 };
 
 const MATERIAL_META = { ...MATERIAL_UTAMA, ...MATERIAL_PENOLONG };
 
 const VENDORS_DEFAULT = [
-  { id: 1, name: 'PT Aroma Nusantara',    material: 'biang',             leadTimeDays: 3, contact: '0812-xxxx-xxxx' },
-  { id: 2, name: 'CV Botol Kaca Jaya',    material: 'botolP,botolL',     leadTimeDays: 5, contact: '0813-xxxx-xxxx' },
+  { id: 1, name: 'PT Aroma Nusantara', material: 'biang', leadTimeDays: 3, contact: '0812-xxxx-xxxx' },
+  { id: 2, name: 'CV Botol Kaca Jaya', material: 'botolP,botolL', leadTimeDays: 5, contact: '0813-xxxx-xxxx' },
   { id: 3, name: 'PT PackIndo Sejahtera', material: 'box,kardus,bubble', leadTimeDays: 2, contact: '0819-xxxx-xxxx' }
 ];
 
@@ -34,8 +34,8 @@ let VENDORS = VENDORS_DEFAULT.map(v => ({ ...v }));
 const CHANNEL_CODES = { Shopee: 'SHP', eBay: 'EBY' };
 
 const DEFAULT_STATE = {
-  rm:    { biang: 0, botolP: 0, botolL: 0, box: 0, kardus: 0, bubble: 0 },
-  log:   [],
+  rm: { biang: 0, botolP: 0, botolL: 0, box: 0, kardus: 0, bubble: 0 },
+  log: [],
   sales: []
 };
 
@@ -84,8 +84,8 @@ async function doLogin() {
   if (!sb) { toast('Supabase belum dikonfigurasi.', 'error'); return; }
 
   const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-pass').value;
-  const btn   = document.getElementById('login-btn');
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.getElementById('login-btn');
   const errEl = document.getElementById('login-error');
 
   errEl.style.display = 'none';
@@ -139,7 +139,7 @@ function showLogin() {
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('app-shell').classList.remove('visible');
   document.getElementById('login-email').value = '';
-  document.getElementById('login-pass').value  = '';
+  document.getElementById('login-pass').value = '';
   document.getElementById('login-error').style.display = 'none';
 }
 
@@ -163,7 +163,7 @@ function loadLocalState() {
   try {
     const raw = localStorage.getItem('wmsParfum_v2');
     if (raw) S = { ...deepClone(DEFAULT_STATE), ...JSON.parse(raw) };
-  } catch(e) { console.warn('loadLocalState error', e); }
+  } catch (e) { console.warn('loadLocalState error', e); }
   setupFormListeners();
   renderAll();
   startClock();
@@ -185,12 +185,12 @@ async function loadState() {
 
     if (inv) {
       S.rm = {
-        biang:  inv.biang   || 0,
+        biang: inv.biang || 0,
         botolP: inv.botol_p || 0,
         botolL: inv.botol_l || 0,
-        box:    inv.box     || 0,
-        kardus: inv.kardus  || 0,
-        bubble: inv.bubble  || 0
+        box: inv.box || 0,
+        kardus: inv.kardus || 0,
+        bubble: inv.bubble || 0
       };
     } else {
       await sb.from('wms_inventory').insert({
@@ -200,14 +200,14 @@ async function loadState() {
     }
 
     const { data: dbLogs, error: logsErr } = await sb
-      .from('wms_logs').select('*').order('id', { ascending: true }).limit(200);
+      .from('wms_logs').select('*').order('id', { ascending: false }).limit(5000);
     if (logsErr) throw logsErr;
-    if (dbLogs) S.log = dbLogs;
+    if (dbLogs) S.log = dbLogs.reverse();
 
     const { data: dbSales, error: salesErr } = await sb
-      .from('wms_sales').select('*').order('id', { ascending: true }).limit(200);
+      .from('wms_sales').select('*').order('id', { ascending: false }).limit(5000);
     if (salesErr) throw salesErr;
-    if (dbSales) S.sales = dbSales;
+    if (dbSales) S.sales = dbSales.reverse();
 
     const { data: dbVendors, error: vendorsErr } = await sb
       .from('wms_vendors').select('*').order('id', { ascending: true });
@@ -221,7 +221,7 @@ async function loadState() {
       }));
     }
 
-  } catch(e) {
+  } catch (e) {
     console.error('loadState error:', e);
     toast('Gagal memuat data dari cloud. Cek koneksi internet.', 'warn', 4000);
   }
@@ -234,16 +234,16 @@ async function syncInventory() {
   if (!sb) return;
   try {
     const { error } = await sb.from('wms_inventory').update({
-      biang:      S.rm.biang,
-      botol_p:    S.rm.botolP,
-      botol_l:    S.rm.botolL,
-      box:        S.rm.box,
-      kardus:     S.rm.kardus,
-      bubble:     S.rm.bubble,
+      biang: S.rm.biang,
+      botol_p: S.rm.botolP,
+      botol_l: S.rm.botolL,
+      box: S.rm.box,
+      kardus: S.rm.kardus,
+      bubble: S.rm.bubble,
       updated_at: new Date().toISOString()
     }).eq('id', 1);
     if (error) throw error;
-  } catch(e) {
+  } catch (e) {
     console.error('syncInventory error:', e);
     toast('Gagal sinkronisasi stok ke cloud', 'error');
   }
@@ -251,7 +251,7 @@ async function syncInventory() {
 
 async function saveState() {
   if (!sb) {
-    try { localStorage.setItem('wmsParfum_v2', JSON.stringify(S)); } catch(e) {}
+    try { localStorage.setItem('wmsParfum_v2', JSON.stringify(S)); } catch (e) { }
   } else {
     await syncInventory();
   }
@@ -259,12 +259,12 @@ async function saveState() {
 
 /* ─────────────── NAVIGATION ─────────────── */
 const PAGE_TITLES = {
-  dashboard:    'Dashboard',
+  dashboard: 'Dashboard',
   rawmaterials: 'Stok Bahan Baku',
-  sales:        'Penjualan & Outbound',
-  financial:    'Proyeksi Keuangan',
-  vendors:      'Manajemen Vendor',
-  report:       'Laporan Bulanan'
+  sales: 'Penjualan & Outbound',
+  financial: 'Proyeksi Keuangan',
+  vendors: 'Manajemen Vendor',
+  report: 'Laporan Bulanan'
 };
 
 function navigateTo(pageKey) {
@@ -300,17 +300,17 @@ function renderDashboard() {
   const { rm, log, sales } = S;
   const maxes = { biang: 500, botolP: 50, botolL: 50, box: 50 };
 
-  set('d-biang',  fmt(rm.biang)  + '<span class="stat-unit">mL</span>');
-  set('d-botp',   fmt(rm.botolP) + '<span class="stat-unit">pcs</span>');
-  set('d-botl',   fmt(rm.botolL) + '<span class="stat-unit">pcs</span>');
-  set('d-box',    fmt(rm.box)    + '<span class="stat-unit">pcs</span>');
+  set('d-biang', fmt(rm.biang) + '<span class="stat-unit">mL</span>');
+  set('d-botp', fmt(rm.botolP) + '<span class="stat-unit">pcs</span>');
+  set('d-botl', fmt(rm.botolL) + '<span class="stat-unit">pcs</span>');
+  set('d-box', fmt(rm.box) + '<span class="stat-unit">pcs</span>');
   set('d-kardus', fmt(rm.kardus) + '<span class="stat-unit">pcs</span>');
   set('d-bubble', fmt(rm.bubble) + '<span class="stat-unit">m</span>');
 
-  setStyle('d-biang-fill', 'width', Math.min(100, (rm.biang  / maxes.biang)  * 100) + '%');
-  setStyle('d-botp-fill',  'width', Math.min(100, (rm.botolP / maxes.botolP) * 100) + '%');
-  setStyle('d-botl-fill',  'width', Math.min(100, (rm.botolL / maxes.botolL) * 100) + '%');
-  setStyle('d-box-fill',   'width', Math.min(100, (rm.box    / maxes.box)    * 100) + '%');
+  setStyle('d-biang-fill', 'width', Math.min(100, (rm.biang / maxes.biang) * 100) + '%');
+  setStyle('d-botp-fill', 'width', Math.min(100, (rm.botolP / maxes.botolP) * 100) + '%');
+  setStyle('d-botl-fill', 'width', Math.min(100, (rm.botolL / maxes.botolL) * 100) + '%');
+  setStyle('d-box-fill', 'width', Math.min(100, (rm.box / maxes.box) * 100) + '%');
 
   // Render sales chart
   renderSalesChart(sales);
@@ -321,8 +321,8 @@ function renderDashboard() {
     el.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:32px 0;">Belum ada aktivitas yang tercatat</div>';
     return;
   }
-  const BADGE        = { inbound: 'log-in', production: 'log-prod', outbound: 'log-out' };
-  const BADGE_LABEL  = { inbound: 'INBOUND', production: 'PRODUKSI', outbound: 'OUTBOUND' };
+  const BADGE = { inbound: 'log-in', production: 'log-prod', outbound: 'log-out' };
+  const BADGE_LABEL = { inbound: 'INBOUND', production: 'PRODUKSI', outbound: 'OUTBOUND' };
   el.innerHTML = entries.map(e => `
     <div style="display:flex;align-items:start;gap:12px;padding:10px 12px;border-radius:10px;background:#FAF7F2;">
       <span class="log-entry-icon ${e.type || ''}">${logTypeIcon(e.type)}</span>
@@ -379,18 +379,18 @@ function renderSalesChart(sales) {
 
 function renderRawMaterials() {
   const { rm, log } = S;
-  setTxt('rm-biang-val',  fmt(rm.biang)  + '<span class="stat-unit">mL</span>');
-  setTxt('rm-botp-val',   fmt(rm.botolP) + '<span class="stat-unit">pcs</span>');
-  setTxt('rm-botl-val',   fmt(rm.botolL) + '<span class="stat-unit">pcs</span>');
-  setTxt('rm-box-val',    fmt(rm.box)    + '<span class="stat-unit">pcs</span>');
+  setTxt('rm-biang-val', fmt(rm.biang) + '<span class="stat-unit">mL</span>');
+  setTxt('rm-botp-val', fmt(rm.botolP) + '<span class="stat-unit">pcs</span>');
+  setTxt('rm-botl-val', fmt(rm.botolL) + '<span class="stat-unit">pcs</span>');
+  setTxt('rm-box-val', fmt(rm.box) + '<span class="stat-unit">pcs</span>');
   setTxt('rm-kardus-val', fmt(rm.kardus) + '<span class="stat-unit">pcs</span>');
   setTxt('rm-bubble-val', fmt(rm.bubble) + '<span class="stat-unit">m</span>');
 
   const badgeKeys = [
-    ['rm-biang-badge',  'rm-biang-hint',  rm.biang,  'biang'],
-    ['rm-botp-badge',   'rm-botp-hint',   rm.botolP, 'botolP'],
-    ['rm-botl-badge',   'rm-botl-hint',   rm.botolL, 'botolL'],
-    ['rm-box-badge',    'rm-box-hint',    rm.box,    'box'],
+    ['rm-biang-badge', 'rm-biang-hint', rm.biang, 'biang'],
+    ['rm-botp-badge', 'rm-botp-hint', rm.botolP, 'botolP'],
+    ['rm-botl-badge', 'rm-botl-hint', rm.botolL, 'botolL'],
+    ['rm-box-badge', 'rm-box-hint', rm.box, 'box'],
     ['rm-kardus-badge', 'rm-kardus-hint', rm.kardus, 'kardus'],
     ['rm-bubble-badge', 'rm-bubble-hint', rm.bubble, 'bubble']
   ];
@@ -413,21 +413,21 @@ function renderRawMaterials() {
 }
 
 function updateSalePreview() {
-  const qty  = parseInt(document.getElementById('sale-qty').value) || 0;
+  const qty = parseInt(document.getElementById('sale-qty').value) || 0;
   const size = parseInt(document.getElementById('sale-size').value) || 30;
   const totBiang = qty * size;
   setTxt('sale-prev-biang', `${fmt(totBiang)} mL`);
-  setTxt('sale-prev-box',   `${fmt(qty)} pcs`);
+  setTxt('sale-prev-box', `${fmt(qty)} pcs`);
 }
 
 function renderSales() {
   const { rm, sales } = S;
-  setTxt('s-biang',  fmt(rm.biang)  + ' mL');
-  setTxt('s-botp',   fmt(rm.botolP) + ' pcs');
-  setTxt('s-botl',   fmt(rm.botolL) + ' pcs');
-  setTxt('s-box',    fmt(rm.box)    + ' pcs');
-  setTxt('s-kardus', fmt(rm.kardus)  + ' pcs');
-  setTxt('s-bubble', fmt(rm.bubble)  + ' m');
+  setTxt('s-biang', fmt(rm.biang) + ' mL');
+  setTxt('s-botp', fmt(rm.botolP) + ' pcs');
+  setTxt('s-botl', fmt(rm.botolL) + ' pcs');
+  setTxt('s-box', fmt(rm.box) + ' pcs');
+  setTxt('s-kardus', fmt(rm.kardus) + ' pcs');
+  setTxt('s-bubble', fmt(rm.bubble) + ' m');
 
   // Get filter values
   const searchInput = document.getElementById('sales-search');
@@ -438,7 +438,7 @@ function renderSales() {
   // Filter sales
   let filteredSales = [...sales].reverse();
   if (searchTerm) {
-    filteredSales = filteredSales.filter(s => 
+    filteredSales = filteredSales.filter(s =>
       (s.tracking && s.tracking.toLowerCase().includes(searchTerm)) ||
       (s.product && s.product.toLowerCase().includes(searchTerm)) ||
       (s.notes && s.notes.toLowerCase().includes(searchTerm))
@@ -457,7 +457,7 @@ function renderSales() {
     const prod = prodLabelHtml(s.product);
     const ch = channelBadgeHtml(s.channel);
     const kardusStr = (s.kardus != null && s.kardus > 0) ? `${fmt(s.kardus)} pcs` : '—';
-    const bubbleStr = (s.bubble != null && s.bubble > 0) ? `${fmt(s.bubble)} cm`  : '—';
+    const bubbleStr = (s.bubble != null && s.bubble > 0) ? `${fmt(s.bubble)} cm` : '—';
     const userEmail = s.user_email || '—';
     return `
       <tr>
@@ -476,15 +476,15 @@ function renderSales() {
 /* ─────────────── ACTIONS ─────────────── */
 async function addStock() {
   const typeEl = document.getElementById('rm-type');
-  const qtyEl  = document.getElementById('rm-qty');
+  const qtyEl = document.getElementById('rm-qty');
   const vendorEl = document.getElementById('rm-vendor');
 
-  const type   = typeEl.value;
-  const qty    = validateQuantity(qtyEl.value, true);
+  const type = typeEl.value;
+  const qty = validateQuantity(qtyEl.value, true);
   const vendor = vendorEl.value.trim();
 
   if (!qty) return;
-  
+
   if (!vendor) {
     toast('Pilih vendor sebelum menambah stok!\nData ini penting untuk traceability.', 'warn', 4000);
     vendorEl.focus();
@@ -493,7 +493,7 @@ async function addStock() {
 
   S.rm[type] = +(S.rm[type] + qty).toFixed(2);
   const m = MATERIAL_META[type];
-  
+
   await addLog('inbound', `+${fmt(qty)} ${m.unit} ${m.label} — ${vendor}`);
   await saveState();
   renderAll();
@@ -507,54 +507,54 @@ function updateProdPreview() { /* deprecated - now uses updateSalePreview */ }
 async function processProduction() { /* deprecated - production merged into sales */ }
 
 async function recordSale() {
-  const productEl  = document.getElementById('sale-product');
-  const qtyEl      = document.getElementById('sale-qty');
-  const sizeEl     = document.getElementById('sale-size');
-  const channelEl  = document.getElementById('sale-channel');
+  const productEl = document.getElementById('sale-product');
+  const qtyEl = document.getElementById('sale-qty');
+  const sizeEl = document.getElementById('sale-size');
+  const channelEl = document.getElementById('sale-channel');
   const trackingEl = document.getElementById('sale-tracking');
-  const kardusEl   = document.getElementById('sale-kardus');
-  const bubbleEl   = document.getElementById('sale-bubble');
-  const notesEl    = document.getElementById('sale-notes');
+  const kardusEl = document.getElementById('sale-kardus');
+  const bubbleEl = document.getElementById('sale-bubble');
+  const notesEl = document.getElementById('sale-notes');
 
-  const product  = productEl.value;
-  const qty      = validateQuantity(qtyEl.value, false);
-  const size     = parseInt(sizeEl.value) || 30;
-  const channel  = channelEl.value;
+  const product = productEl.value;
+  const qty = validateQuantity(qtyEl.value, false);
+  const size = parseInt(sizeEl.value) || 30;
+  const channel = channelEl.value;
   const tracking = validateTracking(trackingEl.value);
-  let kardus     = parseFloat(kardusEl.value) || 0;
-  let bubbleCm   = parseFloat(bubbleEl.value) || 0;
-  const bubble   = +(bubbleCm / 100).toFixed(4); // simpan dalam meter untuk stok
-  const notes    = notesEl.value.trim();
+  let kardus = parseFloat(kardusEl.value) || 0;
+  let bubbleCm = parseFloat(bubbleEl.value) || 0;
+  const bubble = +(bubbleCm / 100).toFixed(4); // simpan dalam meter untuk stok
+  const notes = notesEl.value.trim();
 
   if (!qty || !tracking) return;
-  
+
   // Validate kardus and bubble wrap can't be negative
-  if (kardus < 0) { 
-    toast('Jumlah kardus tidak boleh negatif!', 'error'); 
+  if (kardus < 0) {
+    toast('Jumlah kardus tidak boleh negatif!', 'error');
     kardusEl.focus();
-    return; 
+    return;
   }
-  if (bubbleCm < 0) { 
-    toast('Jumlah bubble wrap tidak boleh negatif!', 'error'); 
+  if (bubbleCm < 0) {
+    toast('Jumlah bubble wrap tidak boleh negatif!', 'error');
     bubbleEl.focus();
-    return; 
+    return;
   }
 
   // Auto-deduct: biang = qty * size, botol = qty (sesuai jenis), box = qty
   const biangNeeded = qty * size;
-  const bottleKey   = product === 'perempuan' ? 'botolP' : 'botolL';
+  const bottleKey = product === 'perempuan' ? 'botolP' : 'botolL';
   const bottleLabel = product === 'perempuan' ? 'Botol Perempuan' : 'Botol Laki-laki';
 
   const errors = [];
   if (S.rm.biang < biangNeeded) errors.push(`Biang kurang: butuh ${fmt(biangNeeded)}mL, stok ${fmt(S.rm.biang)}mL`);
-  if (S.rm[bottleKey] < qty)    errors.push(`${bottleLabel} kurang: butuh ${qty}, stok ${S.rm[bottleKey]}`);
-  if (S.rm.box < qty)           errors.push(`Box kurang: butuh ${qty}, stok ${S.rm.box}`);
+  if (S.rm[bottleKey] < qty) errors.push(`${bottleLabel} kurang: butuh ${qty}, stok ${S.rm[bottleKey]}`);
+  if (S.rm.box < qty) errors.push(`Box kurang: butuh ${qty}, stok ${S.rm.box}`);
   if (kardus > 0 && S.rm.kardus < kardus) errors.push(`Kardus hanya ${fmt(S.rm.kardus)} pcs (butuh ${fmt(kardus)})`);
   if (bubble > 0 && S.rm.bubble < bubble) errors.push(`Bubble Wrap hanya ${fmt(S.rm.bubble * 100)}cm (butuh ${fmt(bubbleCm)}cm)`);
 
-  if (errors.length) { 
-    toast('Stok tidak cukup:\n' + errors.join('\n'), 'error', 5000); 
-    return; 
+  if (errors.length) {
+    toast('Stok tidak cukup:\n' + errors.join('\n'), 'error', 5000);
+    return;
   }
 
   // Auto-cut stok bahan baku
@@ -566,7 +566,7 @@ async function recordSale() {
   if (bubble > 0) S.rm.bubble = +(Math.max(0, S.rm.bubble - bubble)).toFixed(2);
 
   const prodLabel = product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki';
-  const chLabel   = channel === 'Shopee' ? 'Shopee (Lokal)' : 'eBay (Internasional)';
+  const chLabel = channel === 'Shopee' ? 'Shopee (Lokal)' : 'eBay (Internasional)';
 
   const packingInfo = [];
   if (kardus > 0) packingInfo.push(`${fmt(kardus)} kardus`);
@@ -575,16 +575,16 @@ async function recordSale() {
 
   await addLog('outbound', `Jual ${qty}x ${prodLabel} @ ${size}mL via ${chLabel}${packingStr}${tracking ? ' [' + tracking + ']' : ''} | Auto: -${fmt(biangNeeded)}mL biang, -${qty} ${bottleLabel}, -${qty} box${notes ? ' — ' + notes : ''}`);
 
-  const ts       = new Date().toISOString();
-  const saleItem = { 
-    product, 
-    qty, 
-    size, 
-    channel, 
-    tracking, 
-    kardus, 
-    bubble: bubbleCm, 
-    notes, 
+  const ts = new Date().toISOString();
+  const saleItem = {
+    product,
+    qty,
+    size,
+    channel,
+    tracking,
+    kardus,
+    bubble: bubbleCm,
+    notes,
     ts,
     user_id: currentUser?.id || 'local',
     user_email: currentUser?.email || 'local_user'
@@ -593,26 +593,32 @@ async function recordSale() {
 
   if (sb) {
     try {
-      const { error } = await sb.from('wms_sales').insert(saleItem);
+      const { data, error } = await sb.from('wms_sales').insert(saleItem).select('*');
       if (error) throw error;
-    } catch(e) {
+      // If insert successful, use the returned data (includes auto-generated id)
+      if (data && data.length > 0) {
+        S.sales.push(data[0]);
+      } else {
+        S.sales.push(saleItem);
+      }
+    } catch (e) {
       console.error('recordSale supabase error:', e);
       toast('Gagal menyimpan ke cloud, tapi disimpan lokal: ' + e.message, 'warn', 4000);
       S.sales.push(saleItem);
-      if (S.sales.length > 200) S.sales = S.sales.slice(-200);
     }
   } else {
     S.sales.push(saleItem);
-    if (S.sales.length > 200) S.sales = S.sales.slice(-200);
   }
+  // Limit sales to last 5000 items (always)
+  if (S.sales.length > 5000) S.sales = S.sales.slice(-5000);
 
   await saveState();
   renderAll();
 
-  qtyEl.value      = '1';
-  kardusEl.value   = '0';
-  bubbleEl.value   = '0';
-  notesEl.value    = '';
+  qtyEl.value = '1';
+  kardusEl.value = '0';
+  bubbleEl.value = '0';
+  notesEl.value = '';
   onSaleChannelChange();
   updateSalePreview();
   toast(`Penjualan tercatat.\n${qty}x ${prodLabel} @ ${size}mL via ${chLabel}\nAuto-cut: ${fmt(biangNeeded)}mL biang, ${qty} ${bottleLabel}, ${qty} box`, 'success', 4000);
@@ -621,17 +627,17 @@ async function recordSale() {
 function exportCSV() {
   if (!S.sales || !S.sales.length) { toast('Belum ada data penjualan untuk di-export', 'warn'); return; }
   const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble Wrap (cm)', 'Catatan'];
-  const rows   = S.sales.map(s => [
+  const rows = S.sales.map(s => [
     fmtDate(s.ts),
     s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
     s.qty, s.channel, s.tracking || '',
     s.kardus ?? '', s.bubble ?? '',
     s.notes || ''
   ]);
-  const csv  = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href: url, download: `outbound_${todayStr()}.csv` });
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), { href: url, download: `outbound_${todayStr()}.csv` });
   a.click();
   URL.revokeObjectURL(url);
   toast('CSV berhasil di-export.', 'success');
@@ -663,8 +669,8 @@ async function resetData() {
         kardus: 0, bubble: 0,
         updated_at: new Date().toISOString()
       }).eq('id', 1);
-    } catch(e) { 
-      console.error('resetData supabase error:', e); 
+    } catch (e) {
+      console.error('resetData supabase error:', e);
       toast('Gagal mereset data di cloud: ' + e.message, 'error', 5000);
     }
   }
@@ -704,10 +710,10 @@ function validateTracking(tracking) {
 }
 
 async function addLog(type, description) {
-  const ts      = new Date().toISOString();
-  const logItem = { 
-    type, 
-    description, 
+  const ts = new Date().toISOString();
+  const logItem = {
+    type,
+    description,
     ts,
     user_id: currentUser?.id || 'local',
     user_email: currentUser?.email || 'local_user'
@@ -717,30 +723,30 @@ async function addLog(type, description) {
     try {
       const { error } = await sb.from('wms_logs').insert(logItem);
       if (error) throw error;
-    } catch(e) {
+    } catch (e) {
       console.error('addLog supabase error:', e);
       // Don't show error to user for logs - just log to console
     }
   }
-  
+
   // Always keep local copy up to date
   S.log.push(logItem);
-  if (S.log.length > 200) S.log = S.log.slice(-200);
+  if (S.log.length > 5000) S.log = S.log.slice(-5000);
 }
 
 function setupRealtime() {
   if (!sb) return;
-  
+
   // Cleanup existing channel if it exists
   if (realtimeChannel) {
     realtimeChannel.unsubscribe();
   }
-  
+
   realtimeChannel = sb.channel('schema-db-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'wms_inventory' }, payload => {
       const inv = payload.new;
       if (inv && inv.id === 1) {
-        S.rm = { biang: inv.biang||0, botolP: inv.botol_p||0, botolL: inv.botol_l||0, box: inv.box||0, kardus: inv.kardus||0, bubble: inv.bubble||0 };
+        S.rm = { biang: inv.biang || 0, botolP: inv.botol_p || 0, botolL: inv.botol_l || 0, box: inv.box || 0, kardus: inv.kardus || 0, bubble: inv.bubble || 0 };
         renderAll();
       }
     })
@@ -748,7 +754,7 @@ function setupRealtime() {
       const n = payload.new;
       if (n && !S.log.some(l => l.id === n.id || (l.description === n.description && l.ts === n.ts))) {
         S.log.push(n);
-        if (S.log.length > 200) S.log = S.log.slice(-200);
+        if (S.log.length > 5000) S.log = S.log.slice(-5000);
         renderAll();
       }
     })
@@ -756,11 +762,11 @@ function setupRealtime() {
       const n = payload.new;
       if (n && !S.sales.some(s => s.id === n.id || (s.tracking === n.tracking && s.ts === n.ts))) {
         S.sales.push(n);
-        if (S.sales.length > 200) S.sales = S.sales.slice(-200);
+        if (S.sales.length > 5000) S.sales = S.sales.slice(-5000);
         renderAll();
       }
     })
-    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'wms_logs' },  () => { S.log   = []; renderAll(); })
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'wms_logs' }, () => { S.log = []; renderAll(); })
     .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'wms_sales' }, () => { S.sales = []; renderAll(); })
     .subscribe();
 }
@@ -773,16 +779,22 @@ function fmt(n) {
 function fmtDate(iso) {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' })
-    + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+    + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 }
 function fmtDateShort(iso) {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.toLocaleDateString('id-ID', { day:'numeric', month:'short' })
-    + ' ' + d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+    + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+function getYearMonthLocal(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
 
 function getVendorsForMaterial(materialKey) {
   return VENDORS.filter(v =>
@@ -796,13 +808,13 @@ function getPrimaryVendorForMaterial(materialKey) {
 }
 
 function populateRmTypeOptions() {
-  const catEl  = document.getElementById('rm-category');
+  const catEl = document.getElementById('rm-category');
   const typeEl = document.getElementById('rm-type');
   if (!catEl || !typeEl) return;
 
   const category = catEl.value;
-  const metaMap  = category === 'utama' ? MATERIAL_UTAMA : MATERIAL_PENOLONG;
-  const prev     = typeEl.value;
+  const metaMap = category === 'utama' ? MATERIAL_UTAMA : MATERIAL_PENOLONG;
+  const prev = typeEl.value;
 
   typeEl.innerHTML = Object.entries(metaMap).map(([k, m]) =>
     `<option value="${k}">${m.optionLabel}</option>`
@@ -814,12 +826,12 @@ function populateRmTypeOptions() {
 }
 
 function populateRmVendorSelect() {
-  const typeEl   = document.getElementById('rm-type');
+  const typeEl = document.getElementById('rm-type');
   const vendorEl = document.getElementById('rm-vendor');
   if (!typeEl || !vendorEl) return;
 
   const materialKey = typeEl.value;
-  const vendors     = getVendorsForMaterial(materialKey);
+  const vendors = getVendorsForMaterial(materialKey);
 
   if (!vendors.length) {
     vendorEl.innerHTML = '<option value="">— Tidak ada vendor terdaftar —</option>';
@@ -905,42 +917,42 @@ function renderVendors() {
 
 function generateInternalTrackingId(channel) {
   const code = CHANNEL_CODES[channel] || 'WMS';
-  const now  = new Date();
-  const ymd  = now.getFullYear().toString()
+  const now = new Date();
+  const ymd = now.getFullYear().toString()
     + String(now.getMonth() + 1).padStart(2, '0')
     + String(now.getDate()).padStart(2, '0');
-  
+
   // Generate unique ID - check for collision with existing sales
   let trackingId;
   let attempts = 0;
   const maxAttempts = 100;
-  
+
   do {
     const rand = String(Math.floor(Math.random() * 10000)).padStart(4, '0'); // 4 digits instead of 3
-    const timestamp = String(now.getHours()).padStart(2, '0') 
+    const timestamp = String(now.getHours()).padStart(2, '0')
       + String(now.getMinutes()).padStart(2, '0')
       + String(now.getSeconds()).padStart(2, '0');
     trackingId = `${code}-${ymd}-${timestamp}-${rand}`;
     attempts++;
   } while (S.sales.some(s => s.tracking === trackingId) && attempts < maxAttempts);
-  
+
   return trackingId;
 }
 
 function onSaleChannelChange() {
   const channel = document.getElementById('sale-channel').value;
-  const input   = document.getElementById('sale-tracking');
+  const input = document.getElementById('sale-tracking');
   if (input) input.value = generateInternalTrackingId(channel);
 }
 
 function simulateCourierTracking() {
   const channel = document.getElementById('sale-channel').value;
-  const input   = document.getElementById('sale-tracking');
-  const btn     = document.getElementById('btn-gen-resi');
+  const input = document.getElementById('sale-tracking');
+  const btn = document.getElementById('btn-gen-resi');
   if (!input || !btn) return;
 
   btn.disabled = true;
-    btn.innerHTML = '<span class="btn-spinner"></span><span class="btn-label">Memuat…</span>';
+  btn.innerHTML = '<span class="btn-spinner"></span><span class="btn-label">Memuat…</span>';
   input.classList.add('tracking-loading');
 
   setTimeout(() => {
@@ -961,15 +973,15 @@ let formListenersReady = false;
 function setupFormListeners() {
   if (!formListenersReady) {
     const rmCategory = document.getElementById('rm-category');
-    const rmType     = document.getElementById('rm-type');
-    const saleCh     = document.getElementById('sale-channel');
+    const rmType = document.getElementById('rm-type');
+    const saleCh = document.getElementById('sale-channel');
     const genResiBtn = document.getElementById('btn-gen-resi');
 
     if (rmCategory) rmCategory.addEventListener('change', populateRmTypeOptions);
-    if (rmType)     rmType.addEventListener('change', populateRmVendorSelect);
-    if (saleCh)     saleCh.addEventListener('change', onSaleChannelChange);
-    if (saleCh)     document.getElementById('sale-product')?.addEventListener('change', updateSalePreview);
-    if (saleCh)     document.getElementById('sale-size')?.addEventListener('change', updateSalePreview);
+    if (rmType) rmType.addEventListener('change', populateRmVendorSelect);
+    if (saleCh) saleCh.addEventListener('change', onSaleChannelChange);
+    if (saleCh) document.getElementById('sale-product')?.addEventListener('change', updateSalePreview);
+    if (saleCh) document.getElementById('sale-size')?.addEventListener('change', updateSalePreview);
     if (genResiBtn) genResiBtn.addEventListener('click', simulateCourierTracking);
     formListenersReady = true;
   }
@@ -979,14 +991,14 @@ function setupFormListeners() {
   updateSalePreview();
 }
 
-function set(id, html)           { const el = document.getElementById(id); if (el) el.innerHTML = html; }
-function setTxt(id, txt)         { const el = document.getElementById(id); if (el) el.innerHTML = txt; }
+function set(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+function setTxt(id, txt) { const el = document.getElementById(id); if (el) el.innerHTML = txt; }
 function setStyle(id, prop, val) { const el = document.getElementById(id); if (el) el.style[prop] = val; }
 
 function toast(msg, type = 'info', duration = 3000) {
   const cls = type === 'success' ? 'toast-success' : type === 'error' ? 'toast-error' : 'toast-warn';
-  const el  = document.createElement('div');
-  el.className   = `toast ${cls}`;
+  const el = document.createElement('div');
+  el.className = `toast ${cls}`;
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), duration);
@@ -997,13 +1009,13 @@ function startClock() {
   if (clockInterval) {
     clearInterval(clockInterval);
   }
-  
+
   const tick = () => {
     const now = new Date();
     const timeEl = document.getElementById('nowTime');
     const heroEl = document.getElementById('hero-date');
-    if (timeEl) timeEl.textContent = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-    if (heroEl) heroEl.textContent = now.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    if (heroEl) heroEl.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   };
   tick();
   clockInterval = setInterval(tick, 1000);
@@ -1012,9 +1024,9 @@ function startClock() {
 /* ─────────────── SKELETON LOADER ─────────────── */
 function showStatSkeletons() {
   const statIds = [
-    'rm-biang-val','rm-botp-val','rm-botl-val',
-    'rm-box-val','rm-kardus-val','rm-bubble-val',
-    'd-biang','d-botp','d-botl','d-box','d-kardus','d-bubble'
+    'rm-biang-val', 'rm-botp-val', 'rm-botl-val',
+    'rm-box-val', 'rm-kardus-val', 'rm-bubble-val',
+    'd-biang', 'd-botp', 'd-botl', 'd-box', 'd-kardus', 'd-bubble'
   ];
   const skeletonHtml = '<span class="skeleton skeleton-num" style="display:inline-block;"></span>';
   statIds.forEach(id => {
@@ -1029,10 +1041,10 @@ let reportMonth = null; // 'YYYY-MM'
 function getAvailableMonths() {
   const months = new Set();
   (S.sales || []).forEach(s => {
-    if (s.ts) months.add(s.ts.slice(0, 7));
+    if (s.ts) months.add(getYearMonthLocal(s.ts));
   });
   (S.log || []).filter(l => l.type === 'production').forEach(l => {
-    if (l.ts) months.add(l.ts.slice(0, 7));
+    if (l.ts) months.add(getYearMonthLocal(l.ts));
   });
   return [...months].sort().reverse();
 }
@@ -1064,7 +1076,7 @@ function selectReportMonth(m) {
 
 function fmtMonth(ym) {
   const [y, mo] = ym.split('-');
-  const names = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  const names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
   return `${names[parseInt(mo, 10) - 1]} ${y}`;
 }
 
@@ -1072,38 +1084,38 @@ function renderReport() {
   renderMonthTabs();
   if (!reportMonth) return;
 
-  const salesThisMonth    = (S.sales || []).filter(s => s.ts && s.ts.startsWith(reportMonth));
+  const salesThisMonth = (S.sales || []).filter(s => s.ts && getYearMonthLocal(s.ts) === reportMonth);
 
-  const totalQty    = salesThisMonth.reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
-  const qtyP        = salesThisMonth.filter(s => s.product === 'perempuan').reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
-  const qtyL        = salesThisMonth.filter(s => s.product === 'lakiLaki').reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
+  const totalQty = salesThisMonth.reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
+  const qtyP = salesThisMonth.filter(s => s.product === 'perempuan').reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
+  const qtyL = salesThisMonth.filter(s => s.product === 'lakiLaki').reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
   const orderShopee = salesThisMonth.filter(s => s.channel === 'Shopee').length;
-  const orderEbay   = salesThisMonth.filter(s => s.channel === 'eBay').length;
+  const orderEbay = salesThisMonth.filter(s => s.channel === 'eBay').length;
 
   const avgOrderSize = salesThisMonth.length > 0 ? (totalQty / salesThisMonth.length).toFixed(1) : 0;
 
-  setTxt('rpt-total',  fmt(totalQty));
-  setTxt('rpt-p',      fmt(qtyP));
-  setTxt('rpt-l',      fmt(qtyL));
+  setTxt('rpt-total', fmt(totalQty));
+  setTxt('rpt-p', fmt(qtyP));
+  setTxt('rpt-l', fmt(qtyL));
   setTxt('rpt-shopee', fmt(orderShopee));
-  setTxt('rpt-ebay',   fmt(orderEbay));
-  setTxt('rpt-prod',   avgOrderSize);
+  setTxt('rpt-ebay', fmt(orderEbay));
+  setTxt('rpt-prod', avgOrderSize);
 
   const shopeeQty = salesThisMonth.filter(s => s.channel === 'Shopee').reduce((a, s) => a + (parseInt(s.qty) || 0), 0);
-  const ebayQty   = salesThisMonth.filter(s => s.channel === 'eBay').reduce((a, s) => a + (parseInt(s.qty) || 0), 0);
-  const maxQty    = Math.max(shopeeQty, ebayQty, 1);
+  const ebayQty = salesThisMonth.filter(s => s.channel === 'eBay').reduce((a, s) => a + (parseInt(s.qty) || 0), 0);
+  const maxQty = Math.max(shopeeQty, ebayQty, 1);
 
   const chartEl = document.getElementById('rpt-channel-chart');
   if (chartEl) {
     chartEl.innerHTML = `
       <div class="channel-bar">
         <span class="label-with-icon" style="width:72px;font-size:12px;color:#9A3412;font-weight:600;">${icon('shop', 'ico ico-xs')} Shopee</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${(shopeeQty/maxQty*100).toFixed(1)}%;background:linear-gradient(90deg,#EA580C,#FED7AA);"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(shopeeQty / maxQty * 100).toFixed(1)}%;background:linear-gradient(90deg,#EA580C,#FED7AA);"></div></div>
         <span style="width:32px;text-align:right;font-weight:700;font-size:13px;color:#9A3412;">${shopeeQty}</span>
       </div>
       <div class="channel-bar">
         <span class="label-with-icon" style="width:72px;font-size:12px;color:#1E40AF;font-weight:600;">${icon('globe', 'ico ico-xs')} eBay</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${(ebayQty/maxQty*100).toFixed(1)}%;background:linear-gradient(90deg,#1D4ED8,#BFDBFE);"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(ebayQty / maxQty * 100).toFixed(1)}%;background:linear-gradient(90deg,#1D4ED8,#BFDBFE);"></div></div>
         <span style="width:32px;text-align:right;font-weight:700;font-size:13px;color:#1D4ED8;">${ebayQty}</span>
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid #F2EAE0;display:flex;justify-content:space-between;font-size:12px;color:#8B6F5E;">
@@ -1123,14 +1135,14 @@ function renderReport() {
           <span style="color:#BE185D;font-weight:600;">${prodLabelHtml('perempuan')}</span>
           <span style="font-weight:700;">${qtyP} pcs</span>
         </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${(qtyP/maxProd*100).toFixed(1)}%;background:linear-gradient(90deg,#BE185D,#F9A8D4);"></div></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${(qtyP / maxProd * 100).toFixed(1)}%;background:linear-gradient(90deg,#BE185D,#F9A8D4);"></div></div>
       </div>
       <div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
           <span style="color:#1D4ED8;font-weight:600;">${prodLabelHtml('lakiLaki')}</span>
           <span style="font-weight:700;">${qtyL} pcs</span>
         </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${(qtyL/maxProd*100).toFixed(1)}%;background:linear-gradient(90deg,#1D4ED8,#93C5FD);"></div></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${(qtyL / maxProd * 100).toFixed(1)}%;background:linear-gradient(90deg,#1D4ED8,#93C5FD);"></div></div>
       </div>`;
   }
 
@@ -1141,7 +1153,7 @@ function renderReport() {
     } else {
       tbody.innerHTML = [...salesThisMonth].reverse().map(s => {
         const prod = prodLabelHtml(s.product);
-        const ch   = channelBadgeHtml(s.channel);
+        const ch = channelBadgeHtml(s.channel);
         return `
           <tr>
             <td style="white-space:nowrap;">${fmtDateShort(s.ts)}</td>
@@ -1158,21 +1170,21 @@ function renderReport() {
 
 function exportReportCSV() {
   if (!reportMonth) { toast('Pilih bulan terlebih dahulu', 'warn'); return; }
-  const salesThisMonth = (S.sales || []).filter(s => s.ts && s.ts.startsWith(reportMonth));
+  const salesThisMonth = (S.sales || []).filter(s => s.ts && getYearMonthLocal(s.ts) === reportMonth);
   if (!salesThisMonth.length) { toast('Tidak ada data penjualan bulan ini', 'warn'); return; }
 
   const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble Wrap (cm)', 'Catatan'];
-  const rows   = salesThisMonth.map(s => [
+  const rows = salesThisMonth.map(s => [
     fmtDate(s.ts),
     s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
     s.qty, s.channel, s.tracking || '',
     s.kardus ?? '', s.bubble ?? '',
     s.notes || ''
   ]);
-  const csv  = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href: url, download: `laporan_${reportMonth}.csv` });
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), { href: url, download: `laporan_${reportMonth}.csv` });
   a.click();
   URL.revokeObjectURL(url);
   toast(`Laporan ${fmtMonth(reportMonth)} berhasil di-export.`, 'success');
@@ -1192,7 +1204,7 @@ function loadFinConfig() {
   try {
     const raw = localStorage.getItem('wmsFinConfig');
     if (raw) finConfig = { ...FIN_CONFIG_DEFAULT, ...JSON.parse(raw) };
-  } catch(e) {}
+  } catch (e) { }
   // Populate fields
   const el = (id, val) => { const e = document.getElementById(id); if (e) e.value = val; };
   el('fin-price-p', finConfig.priceP);
@@ -1216,7 +1228,7 @@ function saveFinConfig() {
     costKardus: v('fin-cost-kardus'), costBubble: v('fin-cost-bubble'),
     feeMarketplace: v('fin-fee-marketplace'), costOverhead: v('fin-cost-overhead')
   };
-  try { localStorage.setItem('wmsFinConfig', JSON.stringify(finConfig)); } catch(e) {}
+  try { localStorage.setItem('wmsFinConfig', JSON.stringify(finConfig)); } catch (e) { }
 }
 
 function fmtRp(n) {
@@ -1229,7 +1241,7 @@ function renderFinancial() {
 
   const now = new Date();
   const thisMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-  const salesThisMonth = (S.sales || []).filter(s => s.ts && s.ts.startsWith(thisMonth));
+  const salesThisMonth = (S.sales || []).filter(s => s.ts && getYearMonthLocal(s.ts) === thisMonth);
 
   // --- 1. Revenue Calculation ---
   let qtyP = 0, qtyL = 0, totalRevenue = 0;
@@ -1246,7 +1258,7 @@ function renderFinancial() {
   // --- 2. COGS & Expenses Calculation ---
   let totalBiangMl = 0, totalBottles = 0, totalBoxes = 0;
   let totalKardusPcs = 0, totalBubbleM = 0;
-  
+
   salesThisMonth.forEach(s => {
     const sz = parseInt(s.size) || 30;
     const qty = parseInt(s.qty) || 0;
@@ -1256,7 +1268,7 @@ function renderFinancial() {
     totalKardusPcs += parseInt(s.kardus) || 0;
     totalBubbleM += (parseFloat(s.bubble) || 0) / 100; // convert cm to m
   });
-  
+
   const costBiang = totalBiangMl * finConfig.costBiang;
   const costBottle = totalBottles * finConfig.costBottle;
   const costBox = totalBoxes * finConfig.costBox;
@@ -1280,8 +1292,8 @@ function renderFinancial() {
   // Calculate average contribution margin per unit
   const avgPrice = (qtyP + qtyL) > 0 ? (revenueP + revenueL) / (qtyP + qtyL) : finConfig.priceP;
   // Average variable cost per unit (simplified - using 30mL as average)
-  const avgVariableCost = (30 * finConfig.costBiang) + finConfig.costBottle + finConfig.costBox + 
-                          (finConfig.costKardus / 2) + (finConfig.costBubble / 2) + (finConfig.costPacking / 2);
+  const avgVariableCost = (30 * finConfig.costBiang) + finConfig.costBottle + finConfig.costBox +
+    (finConfig.costKardus / 2) + (finConfig.costBubble / 2) + (finConfig.costPacking / 2);
   const contributionMarginPerUnit = avgPrice - avgVariableCost - (avgPrice * (finConfig.feeMarketplace / 100));
   const bepUnits = contributionMarginPerUnit > 0 ? Math.ceil(finConfig.costOverhead / contributionMarginPerUnit) : 0;
 
@@ -1308,14 +1320,14 @@ function renderFinancial() {
             <span style="color:#BE185D;font-weight:600;">${prodLabelHtml('perempuan')}</span>
             <span style="font-weight:700;">${qtyP} pcs = ${fmtRp(revenueP)}</span>
           </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:${(revenueP/maxRev*100).toFixed(1)}%;background:linear-gradient(90deg,#BE185D,#F9A8D4);"></div></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${(revenueP / maxRev * 100).toFixed(1)}%;background:linear-gradient(90deg,#BE185D,#F9A8D4);"></div></div>
         </div>
         <div>
           <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
             <span style="color:#1D4ED8;font-weight:600;">${prodLabelHtml('lakiLaki')}</span>
             <span style="font-weight:700;">${qtyL} pcs = ${fmtRp(revenueL)}</span>
           </div>
-          <div class="progress-bar"><div class="progress-fill" style="width:${(revenueL/maxRev*100).toFixed(1)}%;background:linear-gradient(90deg,#1D4ED8,#93C5FD);"></div></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${(revenueL / maxRev * 100).toFixed(1)}%;background:linear-gradient(90deg,#1D4ED8,#93C5FD);"></div></div>
         </div>
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F2EAE0;display:flex;justify-content:space-between;font-size:12px;color:#8B6F5E;">
           <span>Total: <strong style="color:#2D1F17;">${qtyP + qtyL} pcs</strong></span>
@@ -1338,7 +1350,7 @@ function renderFinancial() {
       { label: 'Overhead Bulanan', val: finConfig.costOverhead, detail: '(sewa, gaji, dll)', color: '#1E3A8A', bg: 'linear-gradient(90deg,#1E3A8A,#93C5FD)' }
     ];
     const maxCost = Math.max(...costItems.map(c => c.val), 1);
-    
+
     costEl.innerHTML = costItems.map(c => `
       <div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
@@ -1348,7 +1360,7 @@ function renderFinancial() {
         <div style="display:flex;justify-content:space-between;font-size:11px;color:#8B6F5E;margin-bottom:4px;">
           <span>${c.detail}</span>
         </div>
-        <div class="progress-bar" style="height:4px;"><div class="progress-fill" style="width:${(c.val/maxCost*100).toFixed(1)}%;background:${c.bg};"></div></div>
+        <div class="progress-bar" style="height:4px;"><div class="progress-fill" style="width:${(c.val / maxCost * 100).toFixed(1)}%;background:${c.bg};"></div></div>
       </div>`).join('') + `
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F2EAE0;display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
         <div style="color:#9A3412;">Total HPP: <strong>${fmtRp(totalCOGS)}</strong></div>
@@ -1363,17 +1375,17 @@ function renderFinancial() {
       { label: 'Parfum Perempuan', price: finConfig.priceP, color: '#BE185D', qty: qtyP },
       { label: 'Parfum Laki-laki', price: finConfig.priceL, color: '#1D4ED8', qty: qtyL }
     ];
-    
+
     profEl.innerHTML = products.map(p => {
       // Calculate cost per unit for 30, 50, 100mL (average)
       const costPerUnit30 = (30 * finConfig.costBiang) + finConfig.costBottle + finConfig.costBox;
       const costPerUnit50 = (50 * finConfig.costBiang) + finConfig.costBottle + finConfig.costBox;
       const costPerUnit100 = (100 * finConfig.costBiang) + finConfig.costBottle + finConfig.costBox;
       const avgCostPerUnit = (costPerUnit30 + costPerUnit50 + costPerUnit100) / 3;
-      
+
       const profitPerUnit = p.price - avgCostPerUnit - (p.price * (finConfig.feeMarketplace / 100));
       const margin = p.price > 0 ? ((profitPerUnit / p.price) * 100).toFixed(1) : 0;
-      
+
       return `
         <div style="padding:14px;background:#FAF7F2;border-radius:12px;border:1px solid #F2EAE0;">
           <div style="font-size:14px;font-weight:700;color:${p.color};margin-bottom:8px;">${p.label}</div>
@@ -1399,7 +1411,7 @@ function renderFinancial() {
       const recentMonths = months.slice(0, 3);
       let totalPastRev = 0, totalPastQty = 0, monthCount = 0;
       recentMonths.forEach(m => {
-        const mSales = (S.sales || []).filter(s => s.ts && s.ts.startsWith(m));
+        const mSales = (S.sales || []).filter(s => s.ts && getYearMonthLocal(s.ts) === m);
         if (mSales.length) {
           monthCount++;
           mSales.forEach(s => {
@@ -1447,13 +1459,13 @@ function renderFinancial() {
   const invEl = document.getElementById('fin-inventory-value');
   if (invEl) {
     const { rm } = S;
-    const valBiang  = rm.biang  * finConfig.costBiang;
+    const valBiang = rm.biang * finConfig.costBiang;
     const valBotolP = rm.botolP * finConfig.costBottle;
     const valBotolL = rm.botolL * finConfig.costBottle;
-    const valBox    = rm.box    * finConfig.costBox;
+    const valBox = rm.box * finConfig.costBox;
     const valKardus = rm.kardus * finConfig.costKardus;
     const valBubble = rm.bubble * finConfig.costBubble;
-    const totalVal  = valBiang + valBotolP + valBotolL + valBox + valKardus + valBubble;
+    const totalVal = valBiang + valBotolP + valBotolL + valBox + valKardus + valBubble;
 
     const items = [
       { label: 'Biang Parfum', qty: `${fmt(rm.biang)} mL`, val: valBiang },
