@@ -1,8 +1,8 @@
 'use strict';
 
 /* ─────────────── SUPABASE ─────────────── */
-const SUPABASE_URL = 'https://zspyfjcqbuehbfqcbcax.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHlmamNxYnVlaGJmcWNiY2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDM3MDEsImV4cCI6MjA5NjIxOTcwMX0.khoftJXX6sDM5vTA4pKZXWlrUhwFipA3jDHt1mRWlUE';
+const SUPABASE_URL      = 'https://zspyfjcqbuehbfqcbcax.supabase.co';   // contoh: https://xxxxxxxxxxxx.supabase.co
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHlmamNxYnVlaGJmcWNiY2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDM3MDEsImV4cCI6MjA5NjIxOTcwMX0.khoftJXX6sDM5vTA4pKZXWlrUhwFipA3jDHt1mRWlUE';      // dari: Project Settings → API → anon public
 
 const sb = window.supabase
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -149,6 +149,8 @@ function showApp() {
   if (currentUser) {
     document.getElementById('sidebar-user-email').textContent = currentUser.email;
   }
+  loadFinConfig(); // baca config dari localStorage ke memori
+  populateFinFields(); // isi input form sekali saat pertama load
   setupFormListeners();
   renderAll();
   startClock();
@@ -219,6 +221,28 @@ async function loadState() {
         leadTimeDays: v.lead_time_days,
         contact: v.contact || ''
       }));
+    } else {
+      // Insert default vendors if none exist
+      const defaultVendors = [
+        { name: 'PT Aroma Nusantara', material: 'biang', lead_time_days: 3, contact: '0812-xxxx-xxxx' },
+        { name: 'CV Botol Kaca Jaya', material: 'botolP,botolL', lead_time_days: 5, contact: '0813-xxxx-xxxx' },
+        { name: 'PT PackIndo Sejahtera', material: 'box,kardus,bubble', lead_time_days: 2, contact: '0819-xxxx-xxxx' }
+      ];
+      
+      const { error: insertVendorsErr } = await sb.from('wms_vendors').insert(defaultVendors);
+      if (!insertVendorsErr) {
+        // Reload vendors after insertion
+        const { data: newVendors } = await sb.from('wms_vendors').select('*').order('id', { ascending: true });
+        if (newVendors) {
+          VENDORS = newVendors.map(v => ({
+            id: v.id,
+            name: v.name,
+            material: v.material,
+            leadTimeDays: v.lead_time_days,
+            contact: v.contact || ''
+          }));
+        }
+      }
     }
 
   } catch (e) {
@@ -273,6 +297,9 @@ function navigateTo(pageKey) {
   document.getElementById(`page-${pageKey}`).classList.add('active');
   document.querySelector(`[data-page="${pageKey}"]`).classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[pageKey];
+  // Populate financial input fields hanya saat halaman financial dibuka,
+  // bukan setiap renderAll() agar tidak overwrite input yang sedang diketik
+  if (pageKey === 'financial') populateFinFields();
   renderAll();
   closeSidebar();
 }
@@ -457,7 +484,7 @@ function renderSales() {
     const prod = prodLabelHtml(s.product);
     const ch = channelBadgeHtml(s.channel);
     const kardusStr = (s.kardus != null && s.kardus > 0) ? `${fmt(s.kardus)} pcs` : '—';
-    const bubbleStr = (s.bubble != null && s.bubble > 0) ? `${fmt(s.bubble)} cm` : '—';
+    const bubbleStr = (s.bubble != null && s.bubble > 0) ? `${fmt(normalizeBubbleCm(s.bubble))} cm` : '—';
     const userEmail = s.user_email || '—';
     return `
       <tr>
@@ -593,24 +620,21 @@ async function recordSale() {
 
   if (sb) {
     try {
-      const { data, error } = await sb.from('wms_sales').insert(saleItem).select('*');
+      const { error } = await sb.from('wms_sales').insert(saleItem);
       if (error) throw error;
-      // If insert successful, use the returned data (includes auto-generated id)
-      if (data && data.length > 0) {
-        S.sales.push(data[0]);
-      } else {
-        S.sales.push(saleItem);
-      }
+      // Jangan push manual — realtime listener yang akan push setelah INSERT sukses
+      // agar tidak ada duplikasi data di S.sales
     } catch (e) {
       console.error('recordSale supabase error:', e);
       toast('Gagal menyimpan ke cloud, tapi disimpan lokal: ' + e.message, 'warn', 4000);
+      // Fallback: push manual hanya jika INSERT ke Supabase gagal
       S.sales.push(saleItem);
+      if (S.sales.length > 5000) S.sales = S.sales.slice(-5000);
     }
   } else {
     S.sales.push(saleItem);
+    if (S.sales.length > 5000) S.sales = S.sales.slice(-5000);
   }
-  // Limit sales to last 5000 items (always)
-  if (S.sales.length > 5000) S.sales = S.sales.slice(-5000);
 
   await saveState();
   renderAll();
@@ -631,7 +655,7 @@ function exportCSV() {
     fmtDate(s.ts),
     s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
     s.qty, s.channel, s.tracking || '',
-    s.kardus ?? '', s.bubble ?? '',
+    s.kardus ?? '', normalizeBubbleCm(s.bubble),
     s.notes || ''
   ]);
   const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -723,13 +747,16 @@ async function addLog(type, description) {
     try {
       const { error } = await sb.from('wms_logs').insert(logItem);
       if (error) throw error;
+      // Jangan push manual — realtime listener yang akan push setelah INSERT sukses
+      // agar tidak ada duplikasi. Push lokal hanya sebagai fallback di bawah.
+      return; // sukses → keluar, realtime yang handle
     } catch (e) {
       console.error('addLog supabase error:', e);
-      // Don't show error to user for logs - just log to console
+      // Fallback: push lokal jika INSERT gagal
     }
   }
 
-  // Always keep local copy up to date
+  // Mode offline atau fallback saat INSERT gagal
   S.log.push(logItem);
   if (S.log.length > 5000) S.log = S.log.slice(-5000);
 }
@@ -772,9 +799,11 @@ function setupRealtime() {
 }
 
 function fmt(n) {
-  if (n == null || isNaN(n)) return '0';
-  if (Number.isInteger(n) || n === Math.floor(n)) return n.toLocaleString('id-ID');
-  return parseFloat(n.toFixed(2)).toLocaleString('id-ID');
+  // Ensure n is a number
+  const num = Number(n);
+  if (n == null || isNaN(num)) return '0';
+  if (Number.isInteger(num) || num === Math.floor(num)) return num.toLocaleString('id-ID');
+  return parseFloat(num.toFixed(2)).toLocaleString('id-ID');
 }
 function fmtDate(iso) {
   if (!iso) return '—';
@@ -789,6 +818,20 @@ function fmtDateShort(iso) {
     + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+/**
+ * Normalisasi nilai bubble dari DB ke satuan cm.
+ * Data lama disimpan dalam meter (misal: 1.5), data baru dalam cm (misal: 150).
+ * Heuristik: jika nilai < 20 kemungkinan besar meter (data lama) → kali 100.
+ * Threshold 20 dipilih karena sangat tidak mungkin orang pakai bubble wrap < 20cm
+ * tapi sangat mungkin stok bubble wrap > 20 meter.
+ */
+function normalizeBubbleCm(val) {
+  const n = parseFloat(val) || 0;
+  if (n <= 0) return 0;
+  // Jika nilainya kecil (< 20), hampir pasti data lama dalam meter
+  return n < 20 ? +(n * 100).toFixed(2) : n;
+}
 
 function getYearMonthLocal(iso) {
   if (!iso) return '';
@@ -1043,9 +1086,8 @@ function getAvailableMonths() {
   (S.sales || []).forEach(s => {
     if (s.ts) months.add(getYearMonthLocal(s.ts));
   });
-  (S.log || []).filter(l => l.type === 'production').forEach(l => {
-    if (l.ts) months.add(getYearMonthLocal(l.ts));
-  });
+  // Catatan: filter 'production' dihapus karena alur produksi sudah merged ke sales.
+  // Month selector cukup berdasarkan data sales saja.
   return [...months].sort().reverse();
 }
 
@@ -1178,7 +1220,7 @@ function exportReportCSV() {
     fmtDate(s.ts),
     s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
     s.qty, s.channel, s.tracking || '',
-    s.kardus ?? '', s.bubble ?? '',
+    s.kardus ?? '', normalizeBubbleCm(s.bubble),
     s.notes || ''
   ]);
   const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -1205,18 +1247,21 @@ function loadFinConfig() {
     const raw = localStorage.getItem('wmsFinConfig');
     if (raw) finConfig = { ...FIN_CONFIG_DEFAULT, ...JSON.parse(raw) };
   } catch (e) { }
-  // Populate fields
+}
+
+/** Isi form input dengan nilai finConfig saat ini. Dipanggil sekali saat halaman financial dibuka. */
+function populateFinFields() {
   const el = (id, val) => { const e = document.getElementById(id); if (e) e.value = val; };
-  el('fin-price-p', finConfig.priceP);
-  el('fin-price-l', finConfig.priceL);
-  el('fin-cost-biang', finConfig.costBiang);
-  el('fin-cost-bottle', finConfig.costBottle);
-  el('fin-cost-box', finConfig.costBox);
-  el('fin-cost-packing', finConfig.costPacking);
-  el('fin-cost-kardus', finConfig.costKardus);
-  el('fin-cost-bubble', finConfig.costBubble);
-  el('fin-fee-marketplace', finConfig.feeMarketplace);
-  el('fin-cost-overhead', finConfig.costOverhead);
+  el('fin-price-p',        finConfig.priceP);
+  el('fin-price-l',        finConfig.priceL);
+  el('fin-cost-biang',     finConfig.costBiang);
+  el('fin-cost-bottle',    finConfig.costBottle);
+  el('fin-cost-box',       finConfig.costBox);
+  el('fin-cost-packing',   finConfig.costPacking);
+  el('fin-cost-kardus',    finConfig.costKardus);
+  el('fin-cost-bubble',    finConfig.costBubble);
+  el('fin-fee-marketplace',finConfig.feeMarketplace);
+  el('fin-cost-overhead',  finConfig.costOverhead);
 }
 
 function saveFinConfig() {
@@ -1237,7 +1282,8 @@ function fmtRp(n) {
 }
 
 function renderFinancial() {
-  loadFinConfig();
+  // Hanya baca config dari memori — JANGAN panggil loadFinConfig() di sini
+  // karena itu akan overwrite input yang sedang diketik user.
 
   const now = new Date();
   const thisMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
@@ -1266,7 +1312,7 @@ function renderFinancial() {
     totalBottles += qty;
     totalBoxes += qty;
     totalKardusPcs += parseInt(s.kardus) || 0;
-    totalBubbleM += (parseFloat(s.bubble) || 0) / 100; // convert cm to m
+    totalBubbleM += normalizeBubbleCm(s.bubble) / 100; // normalisasi ke meter untuk kalkulasi biaya
   });
 
   const costBiang = totalBiangMl * finConfig.costBiang;

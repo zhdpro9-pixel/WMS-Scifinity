@@ -17,8 +17,8 @@ function prodLabelHtml(type, short) {
 
 function channelBadgeHtml(channel) {
   const isShopee = channel === 'Shopee';
-  const cls   = isShopee ? 'ch-shopee ch-badge' : 'ch-ebay ch-badge';
-  const ico   = isShopee ? 'shop' : 'globe';
+  const cls = isShopee ? 'ch-shopee ch-badge' : 'ch-ebay ch-badge';
+  const ico = isShopee ? 'shop' : 'globe';
   const label = isShopee ? 'Shopee' : 'eBay';
   return `<span class="${cls}">${icon(ico, 'ico ico-xs')}${label}</span>`;
 }
