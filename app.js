@@ -33,8 +33,18 @@ let VENDORS = VENDORS_DEFAULT.map(v => ({ ...v }));
 
 const CHANNEL_CODES = { Shopee: 'SHP', eBay: 'EBY' };
 
+const FINISHED_GOODS = {
+  parfumP_30: { label: 'Parfum Perempuan 30mL', size: 30, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  parfumP_50: { label: 'Parfum Perempuan 50mL', size: 50, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  parfumP_100: { label: 'Parfum Perempuan 100mL', size: 100, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  parfumL_30: { label: 'Parfum Laki-laki 30mL', size: 30, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  parfumL_50: { label: 'Parfum Laki-laki 50mL', size: 50, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  parfumL_100: { label: 'Parfum Laki-laki 100mL', size: 100, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 }
+};
+
 const DEFAULT_STATE = {
   rm: { biang: 0, botolP: 0, botolL: 0, box: 0, kardus: 0, bubble: 0 },
+  fg: { parfumP_30: 0, parfumP_50: 0, parfumP_100: 0, parfumL_30: 0, parfumL_50: 0, parfumL_100: 0 },
   log: [],
   sales: []
 };
@@ -190,14 +200,37 @@ async function loadState() {
         biang: inv.biang || 0,
         botolP: inv.botol_p || 0,
         botolL: inv.botol_l || 0,
-        box: inv.box || 0,
-        kardus: inv.kardus || 0,
-        bubble: inv.bubble || 0
+        box: inv.box || 0, kardus: inv.kardus || 0, bubble: inv.bubble || 0
       };
     } else {
       await sb.from('wms_inventory').insert({
-        id: 1, biang: 0, botol_p: 0, botol_l: 0,
-        box: 0, kardus: 0, bubble: 0
+        id: 1, biang: 0, botol_p: 0, botol_l: 0, box: 0, kardus: 0, bubble: 0
+      });
+    }
+
+    // Load finished goods
+    const { data: fg, error: fgErr } = await sb
+      .from('wms_finished_goods')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+
+    if (fgErr) throw fgErr;
+
+    if (fg) {
+      S.fg = {
+        parfumP_30: fg.parfum_p_30 || 0,
+        parfumP_50: fg.parfum_p_50 || 0,
+        parfumP_100: fg.parfum_p_100 || 0,
+        parfumL_30: fg.parfum_l_30 || 0,
+        parfumL_50: fg.parfum_l_50 || 0,
+        parfumL_100: fg.parfum_l_100 || 0
+      };
+    } else {
+      await sb.from('wms_finished_goods').insert({
+        id: 1,
+        parfum_p_30: 0, parfum_p_50: 0, parfum_p_100: 0,
+        parfum_l_30: 0, parfum_l_50: 0, parfum_l_100: 0
       });
     }
 
@@ -257,7 +290,8 @@ async function loadState() {
 async function syncInventory() {
   if (!sb) return;
   try {
-    const { error } = await sb.from('wms_inventory').update({
+    // Sync raw materials
+    const { error: invErr } = await sb.from('wms_inventory').update({
       biang: S.rm.biang,
       botol_p: S.rm.botolP,
       botol_l: S.rm.botolL,
@@ -266,7 +300,19 @@ async function syncInventory() {
       bubble: S.rm.bubble,
       updated_at: new Date().toISOString()
     }).eq('id', 1);
-    if (error) throw error;
+    if (invErr) throw invErr;
+
+    // Sync finished goods
+    const { error: fgErr } = await sb.from('wms_finished_goods').update({
+      parfum_p_30: S.fg.parfumP_30,
+      parfum_p_50: S.fg.parfumP_50,
+      parfum_p_100: S.fg.parfumP_100,
+      parfum_l_30: S.fg.parfumL_30,
+      parfum_l_50: S.fg.parfumL_50,
+      parfum_l_100: S.fg.parfumL_100,
+      updated_at: new Date().toISOString()
+    }).eq('id', 1);
+    if (fgErr) throw fgErr;
   } catch (e) {
     console.error('syncInventory error:', e);
     toast('Gagal sinkronisasi stok ke cloud', 'error');
@@ -285,6 +331,7 @@ async function saveState() {
 const PAGE_TITLES = {
   dashboard: 'Dashboard',
   rawmaterials: 'Stok Bahan Baku',
+  production: 'Produksi',
   sales: 'Penjualan & Outbound',
   financial: 'Proyeksi Keuangan',
   vendors: 'Manajemen Vendor',
@@ -317,6 +364,7 @@ function closeSidebar() {
 function renderAll() {
   renderDashboard();
   renderRawMaterials();
+  renderProduction();
   renderSales();
   renderFinancial();
   renderVendors();
@@ -447,14 +495,116 @@ function updateSalePreview() {
   setTxt('sale-prev-box', `${fmt(qty)} pcs`);
 }
 
+function updateProdPreview() {
+  const qty = parseInt(document.getElementById('prod-qty').value) || 0;
+  const size = parseInt(document.getElementById('prod-size').value) || 30;
+  const totBiang = qty * size;
+  setTxt('prod-prev-biang', `${fmt(totBiang)} mL`);
+  setTxt('prod-prev-bottle', `${fmt(qty)} pcs`);
+  setTxt('prod-prev-box', `${fmt(qty)} pcs`);
+}
+
+async function recordProduction() {
+  const product = document.getElementById('prod-product').value;
+  const size = parseInt(document.getElementById('prod-size').value) || 30;
+  const qty = validateQuantity(document.getElementById('prod-qty').value, true);
+
+  if (!qty) return;
+
+  // Calculate required raw materials
+  const biangNeeded = qty * size;
+  const bottleNeeded = qty;
+  const boxNeeded = qty;
+
+  // Check stock availability
+  const requiredBottleKey = product === 'perempuan' ? 'botolP' : 'botolL';
+  if (S.rm.biang < biangNeeded) {
+    toast(`Stok biang parfum tidak cukup! Perlu ${biangNeeded} mL, hanya tersedia ${fmt(S.rm.biang)} mL.`, 'error');
+    return;
+  }
+  if (S.rm[requiredBottleKey] < bottleNeeded) {
+    toast(`Stok botol ${product === 'perempuan' ? 'perempuan' : 'laki-laki'} tidak cukup! Perlu ${bottleNeeded} pcs, hanya tersedia ${fmt(S.rm[requiredBottleKey])} pcs.`, 'error');
+    return;
+  }
+  if (S.rm.box < boxNeeded) {
+    toast(`Stok box parfum tidak cukup! Perlu ${boxNeeded} pcs, hanya tersedia ${fmt(S.rm.box)} pcs.`, 'error');
+    return;
+  }
+
+  // Deduct raw materials
+  S.rm.biang = +(S.rm.biang - biangNeeded).toFixed(2);
+  S.rm[requiredBottleKey] = +(S.rm[requiredBottleKey] - bottleNeeded).toFixed(2);
+  S.rm.box = +(S.rm.box - boxNeeded).toFixed(2);
+
+  // Add finished goods
+  const fgKey = product === 'perempuan' ? `parfumP_${size}` : `parfumL_${size}`;
+  S.fg[fgKey] = +(S.fg[fgKey] + qty).toFixed(2);
+
+  // Add log
+  const prodLabel = FINISHED_GOODS[fgKey].label;
+  addLog('production', `Produksi ${qty} pcs ${prodLabel} berhasil! -${fmt(biangNeeded)} mL biang, -${fmt(bottleNeeded)} botol, -${fmt(boxNeeded)} box`);
+
+  toast(`Produksi berhasil! ${qty} pcs ${prodLabel} ditambahkan ke stok.`, 'success', 3000);
+
+  await saveState();
+  renderAll();
+  updateProdPreview();
+}
+
+function renderProduction() {
+  const { fg, log } = S;
+
+  // Render finished goods stock
+  const fgStockEl = document.getElementById('fg-stock');
+  if (fgStockEl) {
+    const items = Object.entries(FINISHED_GOODS).map(([key, fgItem]) => {
+      const qty = fg[key] || 0;
+      const isLow = qty <= fgItem.lowAt;
+      const isWarn = qty <= fgItem.warnAt && !isLow;
+      const bgClass = isLow ? 'background:#FEF2F2' : isWarn ? 'background:#FFFBEB' : 'background:#FAF7F2';
+      const colorClass = isLow ? 'color:#991B1B' : isWarn ? 'color:#92400E' : 'color:#2D1F17';
+
+      return `
+        <div style="padding:10px 14px;${bgClass};border-radius:9px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#2D1F17;">${fgItem.label}</div>
+            <div style="font-size:11px;color:#8B6F5E;">${qty < fgItem.warnAt ? (qty < fgItem.lowAt ? '⚠️ Stok hampir habis!' : '⚠️ Stok menipis') : 'Stok aman'}</div>
+          </div>
+          <div style="font-size:14px;font-weight:700;${colorClass};">${fmt(qty)} ${fgItem.unit}</div>
+        </div>
+      `;
+    }).join('');
+    fgStockEl.innerHTML = items || '<div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada stok parfum jadi</div>';
+  }
+
+  // Render production log (filter from S.log)
+  const prodLogEl = document.getElementById('prod-log');
+  if (prodLogEl) {
+    const prodLogs = log.filter(l => l.type === 'production').reverse().slice(0, 20);
+    if (!prodLogs.length) {
+      prodLogEl.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada riwayat produksi</div>';
+    } else {
+      prodLogEl.innerHTML = prodLogs.map(l => `
+        <div style="padding:8px 12px;background:#FAF7F2;border-radius:8px;border:1px solid #F2EAE0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:11px;font-weight:600;color:#166534;background:#D1FAE5;padding:2px 8px;border-radius:20px;">PRODUKSI</span>
+            <span style="font-size:11px;color:#8B6F5E;font-family:monospace;">${fmtDateShort(l.ts)}</span>
+          </div>
+          <div style="font-size:12px;color:#5C4A3C;">${sanitizeHtml(l.description)}</div>
+        </div>
+      `).join('');
+    }
+  }
+}
+
 function renderSales() {
-  const { rm, sales } = S;
-  setTxt('s-biang', fmt(rm.biang) + ' mL');
-  setTxt('s-botp', fmt(rm.botolP) + ' pcs');
-  setTxt('s-botl', fmt(rm.botolL) + ' pcs');
-  setTxt('s-box', fmt(rm.box) + ' pcs');
-  setTxt('s-kardus', fmt(rm.kardus) + ' pcs');
-  setTxt('s-bubble', fmt(rm.bubble) + ' m');
+  const { fg, sales } = S;
+  // Show finished goods stock on sales page
+  setTxt('s-biang', `${fmt(fg.parfumP_30 + fg.parfumP_50 + fg.parfumP_100)} pcs (P)`);
+  setTxt('s-botp', `${fmt(fg.parfumL_30 + fg.parfumL_50 + fg.parfumL_100)} pcs (L)`);
+  setTxt('s-box', `Total FG: ${fmt(Object.values(fg).reduce((a, b) => a + b, 0))} pcs`);
+  setTxt('s-kardus', '—');
+  setTxt('s-bubble', '—');
 
   // Get filter values
   const searchInput = document.getElementById('sales-search');
@@ -565,15 +715,12 @@ async function recordSale() {
     return;
   }
 
-  // Auto-deduct: biang = qty * size, botol = qty (sesuai jenis), box = qty
-  const biangNeeded = qty * size;
-  const bottleKey = product === 'perempuan' ? 'botolP' : 'botolL';
-  const bottleLabel = product === 'perempuan' ? 'Botol Perempuan' : 'Botol Laki-laki';
+  // Check finished goods stock
+  const fgKey = product === 'perempuan' ? `parfumP_${size}` : `parfumL_${size}`;
+  const fgLabel = FINISHED_GOODS[fgKey].label;
 
   const errors = [];
-  if (S.rm.biang < biangNeeded) errors.push(`Biang kurang: butuh ${fmt(biangNeeded)}mL, stok ${fmt(S.rm.biang)}mL`);
-  if (S.rm[bottleKey] < qty) errors.push(`${bottleLabel} kurang: butuh ${qty}, stok ${S.rm[bottleKey]}`);
-  if (S.rm.box < qty) errors.push(`Box kurang: butuh ${qty}, stok ${S.rm.box}`);
+  if (S.fg[fgKey] < qty) errors.push(`${fgLabel} kurang: butuh ${fmt(qty)} pcs, stok ${fmt(S.fg[fgKey])} pcs`);
   if (kardus > 0 && S.rm.kardus < kardus) errors.push(`Kardus hanya ${fmt(S.rm.kardus)} pcs (butuh ${fmt(kardus)})`);
   if (bubble > 0 && S.rm.bubble < bubble) errors.push(`Bubble Wrap hanya ${fmt(S.rm.bubble * 100)}cm (butuh ${fmt(bubbleCm)}cm)`);
 
@@ -582,11 +729,8 @@ async function recordSale() {
     return;
   }
 
-  // Auto-cut stok bahan baku
-  S.rm.biang = +(S.rm.biang - biangNeeded).toFixed(2);
-  S.rm[bottleKey] -= qty;
-  S.rm.box -= qty;
-
+  // Auto-cut stok finished goods and packing materials
+  S.fg[fgKey] = +(S.fg[fgKey] - qty).toFixed(2);
   if (kardus > 0) S.rm.kardus = +(Math.max(0, S.rm.kardus - kardus)).toFixed(2);
   if (bubble > 0) S.rm.bubble = +(Math.max(0, S.rm.bubble - bubble)).toFixed(2);
 
@@ -598,7 +742,7 @@ async function recordSale() {
   if (bubbleCm > 0) packingInfo.push(`${fmt(bubbleCm)}cm bubble wrap`);
   const packingStr = packingInfo.length ? ` | Packing: ${packingInfo.join(', ')}` : '';
 
-  await addLog('outbound', `Jual ${qty}x ${prodLabel} @ ${size}mL via ${chLabel}${packingStr}${tracking ? ' [' + tracking + ']' : ''} | Auto: -${fmt(biangNeeded)}mL biang, -${qty} ${bottleLabel}, -${qty} box${notes ? ' — ' + notes : ''}`);
+  await addLog('outbound', `Jual ${qty}x ${fgLabel} via ${chLabel}${packingStr}${tracking ? ' [' + tracking + ']' : ''}${notes ? ' — ' + notes : ''}`);
 
   const ts = new Date().toISOString();
   const saleItem = {

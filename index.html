@@ -296,6 +296,11 @@
               <use href="#ico-inventory" />
             </svg></span> Stok Bahan Baku
         </button>
+        <button class="nav-link" data-page="production" onclick="navigateTo('production')">
+          <span class="icon"><svg class="ico">
+              <use href="#ico-production" />
+            </svg></span> Produksi
+        </button>
         <button class="nav-link" data-page="sales" onclick="navigateTo('sales')">
           <span class="icon"><svg class="ico">
               <use href="#ico-sales" />
@@ -603,6 +608,96 @@
             </div>
           </div>
         </div><!-- /rawmaterials -->
+
+        <!-- ╔══════════════════════════════════════╗ -->
+        <!-- ║  PAGE: PRODUCTION                    ║ -->
+        <!-- ╚══════════════════════════════════════╝ -->
+        <div id="page-production" class="page">
+          <div class="section-title"><svg class="ico ico-title">
+              <use href="#ico-production" />
+            </svg> Produksi Parfum Jadi</div>
+          <div class="section-sub">Konversi bahan baku menjadi parfum jadi, lalu stok parfum jadi siap untuk outbound!</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div class="card">
+                <div class="card-heading"><svg class="ico ico-sm">
+                    <use href="#ico-production" />
+                  </svg> Catat Produksi Baru</div>
+                <div style="font-size:12px;color:#8B6F5E;margin-bottom:18px;">Pilih produk yang akan diproduksi dan jumlahnya. Bahan baku akan otomatis terpotong!</div>
+
+                <div style="display:flex;flex-direction:column;gap:14px;">
+                  <div>
+                    <label>Jenis Produk</label>
+                    <select id="prod-product" class="form-input" onchange="updateProdPreview()">
+                      <option value="perempuan">Parfum Perempuan</option>
+                      <option value="lakiLaki">Parfum Laki-laki</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Ukuran Botol (mL per botol)</label>
+                    <select id="prod-size" class="form-input" onchange="updateProdPreview()">
+                      <option value="30">30 mL</option>
+                      <option value="50">50 mL</option>
+                      <option value="100">100 mL</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Jumlah Produksi (pcs)</label>
+                    <input type="number" id="prod-qty" class="form-input" min="1" value="1"
+                      oninput="updateProdPreview()">
+                  </div>
+                </div>
+
+                <div class="preview-box" style="margin-top:18px;" id="prod-preview">
+                  <div class="preview-label"><svg class="ico ico-xs">
+                      <use href="#ico-list" />
+                    </svg> Kebutuhan Bahan Baku</div>
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;justify-content:space-between;font-size:13px;"><span
+                        class="label-with-icon" style="color:#6B5347;"><svg class="ico ico-xs">
+                          <use href="#ico-flask" />
+                        </svg> Biang Parfum</span><strong id="prod-prev-biang">0 mL</strong></div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;"><span
+                        class="label-with-icon" style="color:#6B5347;"><svg class="ico ico-xs">
+                          <use href="#ico-bottle-f" />
+                        </svg> Botol</span><strong id="prod-prev-bottle">0 pcs</strong></div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;"><span
+                        class="label-with-icon" style="color:#6B5347;"><svg class="ico ico-xs">
+                          <use href="#ico-box" />
+                        </svg> Box Parfum</span><strong id="prod-prev-box">0 pcs</strong></div>
+                  </div>
+                </div>
+
+                <button class="btn-primary btn-with-icon" style="width:100%;margin-top:18px;" onclick="recordProduction()">
+                  <svg class="ico">
+                    <use href="#ico-inbound" />
+                  </svg> Catat Produksi & Tambah Stok
+                </button>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:20px;">
+              <div class="card">
+                <div class="card-heading" style="margin-bottom:16px;"><svg class="ico ico-sm">
+                    <use href="#ico-inventory" />
+                  </svg> Stok Parfum Jadi Saat Ini</div>
+                <div id="fg-stock" style="display:flex;flex-direction:column;gap:10px;">
+                  <div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada stok parfum jadi</div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-heading" style="margin-bottom:16px;"><svg class="ico ico-sm">
+                    <use href="#ico-list" />
+                  </svg> Riwayat Produksi Terakhir</div>
+                <div id="prod-log" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;">
+                  <div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada riwayat produksi</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /production -->
 
         <!-- ╔══════════════════════════════════════╗ -->
         <!-- ║  PAGE: SALES & OUTBOUND              ║ -->
