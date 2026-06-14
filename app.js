@@ -477,15 +477,14 @@ function renderSales() {
 
   const tbody = document.getElementById('sales-tbody');
   if (!filteredSales || !filteredSales.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data penjualan</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data penjualan</td></tr>';
     return;
   }
   tbody.innerHTML = filteredSales.map(s => {
     const prod = prodLabelHtml(s.product);
     const ch = channelBadgeHtml(s.channel);
     const kardusStr = (s.kardus != null && s.kardus > 0) ? `${fmt(s.kardus)} pcs` : '—';
-    const bubbleStr = (s.bubble != null && s.bubble > 0) ? `${fmt(normalizeBubbleCm(s.bubble))} cm` : '—';
-    const userEmail = s.user_email || '—';
+    const bubbleStr = (s.bubble != null && s.bubble > 0) ? `${fmt(s.bubble)} cm` : '—';
     return `
       <tr>
         <td style="white-space:nowrap;">${fmtDateShort(s.ts)}</td>
@@ -495,7 +494,6 @@ function renderSales() {
         <td style="font-family:monospace;font-size:12px;color:#5C4A3C;">${sanitizeHtml(s.tracking || '—')}</td>
         <td style="font-size:12px;color:#5C4A3C;">${sanitizeHtml(kardusStr)}</td>
         <td style="font-size:12px;color:#5C4A3C;">${sanitizeHtml(bubbleStr)}</td>
-        <td style="font-size:11px;color:#8B6F5E;max-width:120px;overflow:hidden;text-overflow:ellipsis;">${sanitizeHtml(userEmail)}</td>
       </tr>`;
   }).join('');
 }
@@ -650,13 +648,12 @@ async function recordSale() {
 
 function exportCSV() {
   if (!S.sales || !S.sales.length) { toast('Belum ada data penjualan untuk di-export', 'warn'); return; }
-  const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble Wrap (cm)', 'Catatan'];
+  const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble (cm)'];
   const rows = S.sales.map(s => [
     fmtDate(s.ts),
     s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
     s.qty, s.channel, s.tracking || '',
-    s.kardus ?? '', normalizeBubbleCm(s.bubble),
-    s.notes || ''
+    s.kardus ?? '', s.bubble ?? ''
   ]);
   const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -1215,13 +1212,12 @@ function exportReportCSV() {
   const salesThisMonth = (S.sales || []).filter(s => s.ts && getYearMonthLocal(s.ts) === reportMonth);
   if (!salesThisMonth.length) { toast('Tidak ada data penjualan bulan ini', 'warn'); return; }
 
-  const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble Wrap (cm)', 'Catatan'];
+  const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble (cm)'];
   const rows = salesThisMonth.map(s => [
     fmtDate(s.ts),
     s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
     s.qty, s.channel, s.tracking || '',
-    s.kardus ?? '', normalizeBubbleCm(s.bubble),
-    s.notes || ''
+    s.kardus ?? '', s.bubble ?? ''
   ]);
   const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
