@@ -488,11 +488,8 @@ function renderRawMaterials() {
 }
 
 function updateSalePreview() {
-  const qty = parseInt(document.getElementById('sale-qty').value) || 0;
-  const size = parseInt(document.getElementById('sale-size').value) || 30;
-  const totBiang = qty * size;
-  setTxt('sale-prev-biang', `${fmt(totBiang)} mL`);
-  setTxt('sale-prev-box', `${fmt(qty)} pcs`);
+  // Sale preview box removed - preview is now shown in production page
+  // Keep function for form listener compatibility
 }
 
 function updateProdPreview() {
@@ -542,7 +539,7 @@ async function recordProduction() {
 
   // Add log
   const prodLabel = FINISHED_GOODS[fgKey].label;
-  addLog('production', `Produksi ${qty} pcs ${prodLabel} berhasil! -${fmt(biangNeeded)} mL biang, -${fmt(bottleNeeded)} botol, -${fmt(boxNeeded)} box`);
+  await addLog('production', `Produksi ${qty} pcs ${prodLabel} berhasil! -${fmt(biangNeeded)} mL biang, -${fmt(bottleNeeded)} botol, -${fmt(boxNeeded)} box`);
 
   toast(`Produksi berhasil! ${qty} pcs ${prodLabel} ditambahkan ke stok.`, 'success', 3000);
 
@@ -552,30 +549,15 @@ async function recordProduction() {
 }
 
 function renderProduction() {
-  const { fg, log } = S;
+  const { rm, fg, log } = S;
 
-  // Render finished goods stock
-  const fgStockEl = document.getElementById('fg-stock');
-  if (fgStockEl) {
-    const items = Object.entries(FINISHED_GOODS).map(([key, fgItem]) => {
-      const qty = fg[key] || 0;
-      const isLow = qty <= fgItem.lowAt;
-      const isWarn = qty <= fgItem.warnAt && !isLow;
-      const bgClass = isLow ? 'background:#FEF2F2' : isWarn ? 'background:#FFFBEB' : 'background:#FAF7F2';
-      const colorClass = isLow ? 'color:#991B1B' : isWarn ? 'color:#92400E' : 'color:#2D1F17';
-
-      return `
-        <div style="padding:10px 14px;${bgClass};border-radius:9px;display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-size:13px;font-weight:600;color:#2D1F17;">${fgItem.label}</div>
-            <div style="font-size:11px;color:#8B6F5E;">${qty < fgItem.warnAt ? (qty < fgItem.lowAt ? '⚠️ Stok hampir habis!' : '⚠️ Stok menipis') : 'Stok aman'}</div>
-          </div>
-          <div style="font-size:14px;font-weight:700;${colorClass};">${fmt(qty)} ${fgItem.unit}</div>
-        </div>
-      `;
-    }).join('');
-    fgStockEl.innerHTML = items || '<div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada stok parfum jadi</div>';
-  }
+  // Render raw materials stock on production page
+  setTxt('p-biang',  fmt(rm.biang)  + ' mL');
+  setTxt('p-botp',   fmt(rm.botolP) + ' pcs');
+  setTxt('p-botl',   fmt(rm.botolL) + ' pcs');
+  setTxt('p-box',    fmt(rm.box)    + ' pcs');
+  setTxt('p-kardus', fmt(rm.kardus) + ' pcs');
+  setTxt('p-bubble', fmt(rm.bubble) + ' m');
 
   // Render production log (filter from S.log)
   const prodLogEl = document.getElementById('prod-log');
@@ -598,13 +580,30 @@ function renderProduction() {
 }
 
 function renderSales() {
-  const { fg, sales } = S;
-  // Show finished goods stock on sales page
-  setTxt('s-biang', `${fmt(fg.parfumP_30 + fg.parfumP_50 + fg.parfumP_100)} pcs (P)`);
-  setTxt('s-botp', `${fmt(fg.parfumL_30 + fg.parfumL_50 + fg.parfumL_100)} pcs (L)`);
-  setTxt('s-box', `Total FG: ${fmt(Object.values(fg).reduce((a, b) => a + b, 0))} pcs`);
-  setTxt('s-kardus', '—');
-  setTxt('s-bubble', '—');
+  const { fg, rm, sales } = S;
+
+  // Render finished goods stock on sales page
+  const fgStockEl = document.getElementById('s-fg-stock');
+  if (fgStockEl) {
+    const items = Object.entries(FINISHED_GOODS).map(([key, fgItem]) => {
+      const qty = fg[key] || 0;
+      const isLow = qty <= fgItem.lowAt;
+      const isWarn = qty <= fgItem.warnAt && !isLow;
+      const bgClass = isLow ? 'background:#FEF2F2' : isWarn ? 'background:#FFFBEB' : 'background:#FAF7F2';
+      const colorClass = isLow ? 'color:#991B1B' : isWarn ? 'color:#92400E' : 'color:#2D1F17';
+
+      return `
+        <div style="padding:10px 14px;${bgClass};border-radius:9px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#2D1F17;">${fgItem.label}</div>
+            <div style="font-size:11px;color:#8B6F5E;">${qty < fgItem.warnAt ? (qty < fgItem.lowAt ? 'Stok hampir habis!' : 'Stok menipis') : 'Stok aman'}</div>
+          </div>
+          <div style="font-size:14px;font-weight:700;${colorClass};">${fmt(qty)} ${fgItem.unit}</div>
+        </div>
+      `;
+    }).join('');
+    fgStockEl.innerHTML = items || '<div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada stok parfum jadi</div>';
+  }
 
   // Get filter values
   const searchInput = document.getElementById('sales-search');
@@ -677,9 +676,7 @@ async function addStock() {
   toast(`${m.label} berhasil ditambah: +${fmt(qty)} ${m.unit}\nDari: ${vendor}`, 'success');
 }
 
-function updateProdPreview() { /* deprecated - now uses updateSalePreview */ }
-
-async function processProduction() { /* deprecated - production merged into sales */ }
+// (processProduction removed - use recordProduction instead)
 
 async function recordSale() {
   const productEl = document.getElementById('sale-product');
@@ -787,7 +784,7 @@ async function recordSale() {
   notesEl.value = '';
   onSaleChannelChange();
   updateSalePreview();
-  toast(`Penjualan tercatat.\n${qty}x ${prodLabel} @ ${size}mL via ${chLabel}\nAuto-cut: ${fmt(biangNeeded)}mL biang, ${qty} ${bottleLabel}, ${qty} box`, 'success', 4000);
+  toast(`Penjualan tercatat.\n${qty}x ${fgLabel} via ${chLabel}`, 'success', 4000);
 }
 
 function exportCSV() {
