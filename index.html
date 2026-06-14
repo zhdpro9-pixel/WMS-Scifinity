@@ -668,14 +668,14 @@
                   </div>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                     <div>
-                      <label>Kardus Terpakai (pcs) <span
+                      <label>Kardus (pcs) <span
                           style="color:#991B1B;font-weight:600;text-transform:none;font-size:11px;letter-spacing:0;"> —
                           Wajib</span></label>
                       <input type="number" id="sale-kardus" class="form-input" min="0" step="1" value="0"
                         placeholder="0" onkeydown="if(event.key==='Enter') recordSale()">
                     </div>
                     <div>
-                      <label>Bubble Wrap Terpakai (cm) <span
+                      <label>Bubble Wrap (cm) <span
                           style="color:#991B1B;font-weight:600;text-transform:none;font-size:11px;letter-spacing:0;"> —
                           Wajib</span></label>
                       <input type="number" id="sale-bubble" class="form-input" min="0" step="1" value="0"
@@ -794,7 +794,7 @@
                         <th>Channel</th>
                         <th>Resi</th>
                         <th>Kardus</th>
-                        <th>Bubble (cm)</th>
+                        <th>Bubble</th>
                       </tr>
                     </thead>
                     <tbody id="sales-tbody">
@@ -948,6 +948,28 @@
                   <use href="#ico-chart" />
                 </svg> Breakdown Biaya (Total)</div>
               <div id="fin-cost-breakdown" style="display:flex;flex-direction:column;gap:10px;">
+                <div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada data</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <!-- Revenue per Channel -->
+            <div class="card">
+              <div class="card-heading" style="margin-bottom:16px;"><svg class="ico ico-sm">
+                  <use href="#ico-chart" />
+                </svg> Pendapatan per Channel</div>
+              <div id="fin-channel-revenue" style="display:flex;flex-direction:column;gap:10px;">
+                <div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada data</div>
+              </div>
+            </div>
+
+            <!-- Trend 3 Bulan -->
+            <div class="card">
+              <div class="card-heading" style="margin-bottom:16px;"><svg class="ico ico-sm">
+                  <use href="#ico-trending" />
+                </svg> Trend Pendapatan 3 Bulan</div>
+              <div id="fin-revenue-trend" style="display:flex;flex-direction:column;gap:10px;">
                 <div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada data</div>
               </div>
             </div>

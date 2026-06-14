@@ -648,12 +648,13 @@ async function recordSale() {
 
 function exportCSV() {
   if (!S.sales || !S.sales.length) { toast('Belum ada data penjualan untuk di-export', 'warn'); return; }
-  const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble (cm)'];
+  const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble'];
   const rows = S.sales.map(s => [
     fmtDate(s.ts),
     s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
     s.qty, s.channel, s.tracking || '',
-    s.kardus ?? '', s.bubble ?? ''
+    s.kardus ? `${s.kardus} pcs` : '',
+    s.bubble ? `${s.bubble} cm` : ''
   ]);
   const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -1212,12 +1213,13 @@ function exportReportCSV() {
   const salesThisMonth = (S.sales || []).filter(s => s.ts && getYearMonthLocal(s.ts) === reportMonth);
   if (!salesThisMonth.length) { toast('Tidak ada data penjualan bulan ini', 'warn'); return; }
 
-  const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble (cm)'];
+  const header = ['Tanggal', 'Produk', 'Qty', 'Channel', 'Resi', 'Kardus (pcs)', 'Bubble'];
   const rows = salesThisMonth.map(s => [
     fmtDate(s.ts),
     s.product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki',
     s.qty, s.channel, s.tracking || '',
-    s.kardus ?? '', s.bubble ?? ''
+    s.kardus ? `${s.kardus} pcs` : '',
+    s.bubble ? `${s.bubble} cm` : ''
   ]);
   const csv = [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -1277,6 +1279,12 @@ function fmtRp(n) {
   return 'Rp ' + Math.round(n).toLocaleString('id-ID');
 }
 
+function normalizeBubbleCm(value) {
+  // Pastikan value dikembalikan sebagai angka (dalam cm)
+  const num = parseFloat(value);
+  return isNaN(num) ? 0 : num;
+}
+
 function renderFinancial() {
   // Hanya baca config dari memori — JANGAN panggil loadFinConfig() di sini
   // karena itu akan overwrite input yang sedang diketik user.
@@ -1287,12 +1295,26 @@ function renderFinancial() {
 
   // --- 1. Revenue Calculation ---
   let qtyP = 0, qtyL = 0, totalRevenue = 0;
+  // Untuk channel revenue
+  let revenueShopee = 0, revenueEbay = 0, qtyShopee = 0, qtyEbay = 0;
+  
   salesThisMonth.forEach(s => {
     const qty = parseInt(s.qty) || 0;
     const price = s.product === 'perempuan' ? finConfig.priceP : finConfig.priceL;
+    const saleRevenue = qty * price;
+    
     if (s.product === 'perempuan') qtyP += qty;
     else qtyL += qty;
-    totalRevenue += qty * price;
+    totalRevenue += saleRevenue;
+    
+    // Hitung per channel
+    if (s.channel === 'Shopee') {
+      revenueShopee += saleRevenue;
+      qtyShopee += qty;
+    } else {
+      revenueEbay += saleRevenue;
+      qtyEbay += qty;
+    }
   });
   const revenueP = qtyP * finConfig.priceP;
   const revenueL = qtyL * finConfig.priceL;
@@ -1408,6 +1430,73 @@ function renderFinancial() {
         <div style="color:#9A3412;">Total HPP: <strong>${fmtRp(totalCOGS)}</strong></div>
         <div style="color:#DC2626;">Total Biaya: <strong>${fmtRp(totalExpenses)}</strong></div>
       </div>`;
+  }
+
+  // --- Revenue per Channel ---
+  const channelEl = document.getElementById('fin-channel-revenue');
+  if (channelEl) {
+    if (!salesThisMonth.length) {
+      channelEl.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada penjualan bulan ini</div>';
+    } else {
+      const maxChRev = Math.max(revenueShopee, revenueEbay, 1);
+      channelEl.innerHTML = `
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+            <span style="color:#F97316;font-weight:600;">Shopee</span>
+            <span style="font-weight:700;">${qtyShopee} pcs = ${fmtRp(revenueShopee)}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${(revenueShopee / maxChRev * 100).toFixed(1)}%;background:linear-gradient(90deg,#F97316,#FDBA74);"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+            <span style="color:#8B5CF6;font-weight:600;">eBay</span>
+            <span style="font-weight:700;">${qtyEbay} pcs = ${fmtRp(revenueEbay)}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${(revenueEbay / maxChRev * 100).toFixed(1)}%;background:linear-gradient(90deg,#8B5CF6,#C4B5FD);"></div></div>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F2EAE0;display:flex;justify-content:space-between;font-size:12px;color:#8B6F5E;">
+          <span>Total: <strong style="color:#2D1F17;">${qtyShopee + qtyEbay} pcs</strong></span>
+          <span>Pendapatan: <strong style="color:#166534;">${fmtRp(totalRevenue)}</strong></span>
+        </div>`;
+    }
+  }
+
+  // --- Revenue Trend 3 Months ---
+  const trendEl = document.getElementById('fin-revenue-trend');
+  if (trendEl) {
+    const months = [];
+    for (let i = 2; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const yearMonth = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+      const monthName = date.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+      
+      const salesInMonth = (S.sales || []).filter(s => s.ts && getYearMonthLocal(s.ts) === yearMonth);
+      
+      let rev = 0;
+      salesInMonth.forEach(s => {
+        const qty = parseInt(s.qty) || 0;
+        const price = s.product === 'perempuan' ? finConfig.priceP : finConfig.priceL;
+        rev += qty * price;
+      });
+      
+      months.push({ name: monthName, rev: rev, count: salesInMonth.length });
+    }
+
+    const maxTrendRev = Math.max(...months.map(m => m.rev), 1);
+    trendEl.innerHTML = months.map(m => {
+      const percent = maxTrendRev > 0 ? (m.rev / maxTrendRev * 100) : 0;
+      return `
+        <div style="padding:10px;background:${m.rev > 0 ? '#F0FDF4' : '#FAF7F2'};border-radius:9px;border:1px solid ${m.rev > 0 ? '#BBF7D0' : '#F2EAE0'};">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span style="font-size:13px;font-weight:700;color:#2D1F17;">${m.name}</span>
+            <span style="font-size:12px;font-weight:600;color:${m.rev > 0 ? '#166534' : '#8B6F5E'};">${m.rev > 0 ? fmtRp(m.rev) : 'Tidak ada penjualan'}</span>
+          </div>
+          ${m.rev > 0 ? `
+            <div class="progress-bar" style="height:6px;"><div class="progress-fill" style="width:${percent.toFixed(1)}%;background:linear-gradient(90deg,#166534,#86EFAC);"></div></div>
+            <div style="font-size:11px;color:#8B6F5E;margin-top:4px;">${m.count} transaksi</div>
+          ` : ''}
+        </div>`;
+    }).join('');
   }
 
   // --- Product Profitability ---
