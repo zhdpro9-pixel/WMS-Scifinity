@@ -158,6 +158,7 @@ function showApp() {
   document.getElementById('app-shell').classList.add('visible');
   if (currentUser) {
     document.getElementById('sidebar-user-email').textContent = currentUser.email;
+    window._userEmail = currentUser.email;
   }
   loadFinConfig(); // baca config dari localStorage ke memori
   populateFinFields(); // isi input form sekali saat pertama load
@@ -248,32 +249,22 @@ async function loadState() {
       .from('wms_vendors').select('*').order('id', { ascending: true });
     if (!vendorsErr && dbVendors && dbVendors.length) {
       VENDORS = dbVendors.map(v => ({
-        id: v.id,
-        name: v.name,
-        material: v.material,
-        leadTimeDays: v.lead_time_days,
-        contact: v.contact || ''
+        ...v,
+        leadTimeDays: v.lead_time_days || 3
       }));
     } else {
       // Insert default vendors if none exist
       const defaultVendors = [
-        { name: 'PT Aroma Nusantara', material: 'biang', lead_time_days: 3, contact: '0812-xxxx-xxxx' },
-        { name: 'CV Botol Kaca Jaya', material: 'botolP,botolL', lead_time_days: 5, contact: '0813-xxxx-xxxx' },
-        { name: 'PT PackIndo Sejahtera', material: 'box,kardus,bubble', lead_time_days: 2, contact: '0819-xxxx-xxxx' }
+        { name: 'PT Aroma Nusantara', material: 'biang', lead_time_days: 3, contact: '0812-xxxx-xxxx', vendor_type: 'biang_parfum' },
+        { name: 'CV Botol Kaca Jaya', material: 'botolP,botolL', lead_time_days: 5, contact: '0813-xxxx-xxxx', vendor_type: 'botol_parfum' },
+        { name: 'PT PackIndo Sejahtera', material: 'box,kardus,bubble', lead_time_days: 2, contact: '0819-xxxx-xxxx', vendor_type: 'packaging' }
       ];
       
       const { error: insertVendorsErr } = await sb.from('wms_vendors').insert(defaultVendors);
       if (!insertVendorsErr) {
-        // Reload vendors after insertion
         const { data: newVendors } = await sb.from('wms_vendors').select('*').order('id', { ascending: true });
         if (newVendors) {
-          VENDORS = newVendors.map(v => ({
-            id: v.id,
-            name: v.name,
-            material: v.material,
-            leadTimeDays: v.lead_time_days,
-            contact: v.contact || ''
-          }));
+          VENDORS = newVendors.map(v => ({ ...v, leadTimeDays: v.lead_time_days || 3 }));
         }
       }
     }
@@ -285,6 +276,9 @@ async function loadState() {
 
   renderAll();
   populateRmVendorSelect();
+
+  // Load SKUs, POs, and PnL cache after main state is loaded
+  if (window._postLoginInit) window._postLoginInit();
 }
 
 async function syncInventory() {
@@ -331,6 +325,7 @@ async function saveState() {
 const PAGE_TITLES = {
   dashboard: 'Dashboard',
   rawmaterials: 'Stok Bahan Baku',
+  warehouse: 'Gudang & SKU',
   production: 'Produksi',
   sales: 'Penjualan & Outbound',
   financial: 'Proyeksi Keuangan',
@@ -344,9 +339,9 @@ function navigateTo(pageKey) {
   document.getElementById(`page-${pageKey}`).classList.add('active');
   document.querySelector(`[data-page="${pageKey}"]`).classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[pageKey];
-  // Populate financial input fields hanya saat halaman financial dibuka,
-  // bukan setiap renderAll() agar tidak overwrite input yang sedang diketik
   if (pageKey === 'financial') populateFinFields();
+  if (pageKey === 'vendors') { renderVendors(); renderPoHistory(); populatePoVendorSelect(); }
+  if (pageKey === 'warehouse') renderWarehouse();
   renderAll();
   closeSidebar();
 }
@@ -1073,28 +1068,126 @@ function updateBadge(id, val, key) {
 }
 
 function renderVendors() {
-  const tbody = document.getElementById('vendors-tbody');
-  if (!tbody) return;
+  const container = document.getElementById('vendors-cards');
+  if (!container) return;
 
-  if (!VENDORS.length) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#B08A62;padding:24px;">Belum ada vendor terdaftar</td></tr>';
+  const activeFilter = document.querySelector('.vendor-tab-panel.active')?.id;
+
+  // Populate PO vendor filter
+  populatePoVendorSelect();
+
+  const activeChip = document.querySelector('#vpanel-list .chip.active');
+  const filterType = activeChip?.dataset?.filter || 'all';
+
+  let filtered = VENDORS;
+  if (filterType !== 'all') {
+    filtered = VENDORS.filter(v => (v.vendor_type || '') === filterType);
+  }
+
+  if (!filtered.length) {
+    container.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:40px 0;">Tidak ada vendor dengan kategori ini</div>';
     return;
   }
 
-  tbody.innerHTML = VENDORS.map(v => {
-    const materials = v.material.split(',').map(k => k.trim()).map(k => {
-      const m = MATERIAL_META[k];
-      return m ? m.label : k;
+  container.innerHTML = filtered.map(v => {
+    const materials = (v.material || '').split(',').map(k => {
+      const m = MATERIAL_META[k.trim()];
+      return m ? m.label : k.trim();
     }).join(', ');
+
+    const rating = parseFloat(v.rating) || 5;
+    const stars = renderStars(rating);
+    const otif  = parseFloat(v.otif_rate) || 100;
+    const otifCls = otif >= 90 ? 'otif-good' : otif >= 75 ? 'otif-ok' : 'otif-poor';
+    const top   = v.term_of_payment || 'CBD';
+    const topCls = top === 'CBD' || top === 'COD' ? 'top-cbd' : 'top-net';
+    const vtCls = vtypeCls(v.vendor_type);
+    const totalPaid = v.total_paid || 0;
+
     return `
-      <tr>
-        <td style="font-weight:600;color:#2D1F17;">${v.name}</td>
-        <td>${materials}</td>
-        <td style="text-align:center;"><span class="lead-badge">${v.leadTimeDays} hari</span></td>
-        <td style="font-family:monospace;font-size:12px;color:#5C4A3C;">${v.contact || '—'}</td>
-        <td style="font-size:12px;color:#8B6F5E;">${v.material}</td>
-      </tr>`;
+      <div class="card" style="padding:18px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:15px;font-weight:700;color:#2D1F17;margin-bottom:6px;">${sanitizeHtml(v.name)}</div>
+            <div class="vendor-detail-strip">
+              <span class="vtype-badge ${vtCls}">${vtypeLabel(v.vendor_type)}</span>
+              <span class="top-badge ${topCls}">${sanitizeHtml(top)}</span>
+              <span class="lead-badge">${v.leadTimeDays || v.lead_time_days || '?'} hari</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
+              <div class="star-rating">${stars}</div>
+              <span style="font-size:12px;color:#8B6F5E;">${rating.toFixed(1)}/5</span>
+              <span class="otif-badge ${otifCls}">OTIF ${otif.toFixed(0)}%</span>
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:#8B6F5E;display:flex;flex-wrap:wrap;gap:12px;">
+              ${v.phone || v.contact ? `<span>📞 ${sanitizeHtml(v.phone || v.contact || '')}</span>` : ''}
+              ${v.email ? `<span>✉️ ${sanitizeHtml(v.email)}</span>` : ''}
+            </div>
+            <div style="margin-top:6px;font-size:12px;color:#8B6F5E;">Material: <strong style="color:#5C4A3C;">${sanitizeHtml(materials)}</strong></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:10px;font-weight:600;color:#8B6F5E;text-transform:uppercase;letter-spacing:0.04em;">Total Terbayar</div>
+            <div style="font-size:18px;font-weight:700;color:#166534;">${fmtRp(totalPaid)}</div>
+            <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;">
+              <button class="btn-secondary" style="padding:5px 12px;font-size:12px;" onclick="openEditVendorModal(${v.id})">Edit</button>
+              <button class="btn-primary btn-with-icon" style="padding:5px 12px;font-size:12px;" onclick="switchVendorTab('po')">
+                <svg class="ico ico-xs"><use href="#ico-plus"/></svg> PO
+              </button>
+            </div>
+          </div>
+        </div>
+        ${v.bank_info ? `<div style="margin-top:10px;padding:8px 12px;background:#FAF7F2;border-radius:8px;font-size:12px;color:#5C4A3C;">🏦 ${sanitizeHtml(v.bank_info)}</div>` : ''}
+      </div>`;
   }).join('');
+}
+
+function renderStars(rating) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    html += `<span class="star ${i <= rating ? 'filled' : ''}">★</span>`;
+  }
+  return html;
+}
+
+function vtypeCls(t) {
+  const map = { biang_parfum:'vtype-biang', botol_parfum:'vtype-botol', packaging:'vtype-packaging', deodorant:'vtype-deodorant', hairmist:'vtype-hairmist' };
+  return map[t] || 'vtype-default';
+}
+
+function vtypeLabel(t) {
+  const map = { biang_parfum:'Biang Parfum', botol_parfum:'Botol Parfum', packaging:'Packaging', deodorant:'Deodorant', hairmist:'Hair Mist' };
+  return map[t] || (t || 'Umum');
+}
+
+function filterVendors(type) {
+  document.querySelectorAll('#vpanel-list .chip').forEach(c => {
+    const isActive = (type === 'all' && !c.dataset.filter) ||
+      c.id === `vf-${type}` || (type === 'all' && c.id === 'vf-all');
+    c.classList.toggle('active', isActive);
+  });
+  // Store filter in active chip via data attribute trick
+  const chip = document.getElementById(type === 'all' ? 'vf-all' : `vf-${type}`) ||
+               document.getElementById(`vf-${type.replace('_parfum','').replace('_','')}`);
+  if (chip) chip.dataset.filter = type;
+  // Set all chips data-filter
+  const chipMap = { all:'all', biang:'biang_parfum', botol:'botol_parfum', deo:'deodorant', hair:'hairmist', pack:'packaging' };
+  Object.entries(chipMap).forEach(([k, v]) => {
+    const el = document.getElementById(`vf-${k}`);
+    if (el) el.dataset.filter = v;
+  });
+  renderVendors();
+}
+
+function switchVendorTab(tab) {
+  ['list','po','history'].forEach(t => {
+    const btn = document.getElementById(`vtab-${t}`);
+    const panel = document.getElementById(`vpanel-${t}`);
+    const isActive = t === tab;
+    if (btn) btn.classList.toggle('active', isActive);
+    if (panel) panel.classList.toggle('active', isActive);
+  });
+  if (tab === 'po') { populatePoVendorSelect(); renderPendingPOs(); }
+  if (tab === 'history') { renderPoHistory(); }
 }
 
 function generateInternalTrackingId(channel) {
@@ -1768,3 +1861,691 @@ function renderFinancial() {
 
 /* ─────────────── INIT ─────────────── */
 initAuth();
+
+/* ═══════════════════════════════════════════════════════
+   WAREHOUSE / SKU MANAGEMENT
+   ═══════════════════════════════════════════════════════ */
+
+let ALL_SKUS = [];
+let WH_FILTER = 'all';
+
+async function loadSkus() {
+  if (!sb) return;
+  const { data, error } = await sb.from('wms_products_sku').select('*').order('category').order('sku');
+  if (!error && data) ALL_SKUS = data;
+}
+
+function renderWarehouse() {
+  if (!ALL_SKUS.length) loadSkus().then(() => _renderWarehouse());
+  else _renderWarehouse();
+}
+
+function _renderWarehouse() {
+  const search = (document.getElementById('sku-search')?.value || '').toLowerCase();
+  let skus = ALL_SKUS.filter(s => s.is_active !== false);
+
+  if (WH_FILTER !== 'all') skus = skus.filter(s => s.category === WH_FILTER);
+  if (search) skus = skus.filter(s =>
+    s.sku.toLowerCase().includes(search) || s.name.toLowerCase().includes(search)
+  );
+
+  // Summary cards
+  const totalSkus = ALL_SKUS.filter(s => s.is_active !== false).length;
+  const lowSkus = ALL_SKUS.filter(s => s.is_active !== false && s.current_stock <= s.min_stock).length;
+  const totalVal = ALL_SKUS.reduce((sum, s) => sum + (s.current_stock || 0) * (s.cost_price || 0), 0);
+  const cats = [...new Set(ALL_SKUS.map(s => s.category))].length;
+
+  const el = (id) => document.getElementById(id);
+  if (el('wh-total-sku')) el('wh-total-sku').textContent = totalSkus;
+  if (el('wh-low-sku'))   el('wh-low-sku').textContent   = lowSkus;
+  if (el('wh-total-value')) el('wh-total-value').textContent = fmtRp(totalVal);
+  if (el('wh-categories'))  el('wh-categories').textContent  = cats;
+
+  // Grid cards
+  const grid = document.getElementById('sku-grid');
+  if (grid) {
+    if (!skus.length) {
+      grid.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:40px 0;grid-column:1/-1;">Tidak ada produk ditemukan</div>';
+    } else {
+      grid.innerHTML = skus.map(s => {
+        const stock = s.current_stock || 0;
+        const min = s.min_stock || 5;
+        const max = s.max_stock || 100;
+        const isLow = stock <= min;
+        const isWarn = stock <= min * 1.5 && !isLow;
+        const pct = Math.min(100, (stock / (max || 1)) * 100);
+        const catCls = { parfum:'sku-parfum', deodorant:'sku-deodorant', hairmist:'sku-hairmist', bahan_baku:'sku-bahan' }[s.category] || 'sku-bahan';
+        const statusCls = isLow ? 'low-stock' : isWarn ? 'warn-stock' : '';
+        const statusLabel = isLow ? '<span class="sku-stock-indicator otif-poor">⚠ Restock Segera</span>' :
+                           isWarn ? '<span class="sku-stock-indicator otif-ok">⚡ Stok Menipis</span>' :
+                                    '<span class="sku-stock-indicator otif-good">✓ Aman</span>';
+
+        return `
+          <div class="sku-card ${statusCls}">
+            <div class="sku-card-sku">${sanitizeHtml(s.sku)}</div>
+            <div class="sku-card-name">${sanitizeHtml(s.name)}</div>
+            <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+              <span class="sku-cat ${catCls}">${skuCatLabel(s.category)}</span>
+              ${s.size_ml ? `<span style="font-size:10px;color:#8B6F5E;border:1px solid #E4D3BD;border-radius:4px;padding:1px 6px;">${s.size_ml}mL</span>` : ''}
+            </div>
+            <div class="sku-card-stock">${stock} <span style="font-size:13px;font-weight:400;color:#B08A62;">${s.unit || 'pcs'}</span></div>
+            ${statusLabel}
+            <div style="margin:10px 0 4px;height:4px;background:#E4D3BD;border-radius:2px;overflow:hidden;">
+              <div style="height:100%;width:${pct}%;background:${isLow ? '#EF4444' : isWarn ? '#F59E0B' : '#22C55E'};border-radius:2px;transition:width 0.4s;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:#B08A62;margin-bottom:10px;">
+              <span>Min: ${min}</span><span>Max: ${max}</span>
+            </div>
+            <div style="display:flex;gap:6px;justify-content:space-between;align-items:center;">
+              <div style="font-size:11px;color:#8B6F5E;">HPP: <strong style="color:#5C4A3C;">${fmtRp(s.cost_price||0)}</strong></div>
+              <button class="btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="openEditSkuModal(${s.id})">Edit</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  // Table
+  const tbody = document.getElementById('sku-tbody');
+  if (tbody) {
+    if (!skus.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#B08A62;padding:24px;">Tidak ada produk ditemukan</td></tr>';
+    } else {
+      tbody.innerHTML = skus.map(s => {
+        const stock = s.current_stock || 0;
+        const isLow = stock <= (s.min_stock || 5);
+        const catCls = { parfum:'sku-parfum', deodorant:'sku-deodorant', hairmist:'sku-hairmist', bahan_baku:'sku-bahan' }[s.category] || 'sku-bahan';
+        return `
+          <tr>
+            <td style="font-family:monospace;font-size:12px;font-weight:600;color:#5C4A3C;">${sanitizeHtml(s.sku)}</td>
+            <td style="font-weight:600;color:#2D1F17;">${sanitizeHtml(s.name)}</td>
+            <td><span class="sku-cat ${catCls}">${skuCatLabel(s.category)}</span></td>
+            <td style="text-align:center;font-weight:700;color:${isLow?'#991B1B':'#166534'};">${stock}</td>
+            <td style="text-align:center;color:#8B6F5E;">${s.min_stock||5}</td>
+            <td style="text-align:center;color:#8B6F5E;">${s.max_stock||100}</td>
+            <td style="color:#5C4A3C;">${fmtRp(s.cost_price||0)}</td>
+            <td style="color:#5C4A3C;">${fmtRp(s.sell_price||0)}</td>
+            <td>${isLow ? '<span class="badge-low" style="font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid;">⚠ Low</span>' : '<span class="badge-ok" style="font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid;">✓ OK</span>'}</td>
+          </tr>`;
+      }).join('');
+    }
+  }
+}
+
+function skuCatLabel(cat) {
+  return { parfum:'🌸 Parfum', deodorant:'🧴 Deodorant', hairmist:'💨 Hair Mist', bahan_baku:'⚗️ Bahan Baku' }[cat] || cat;
+}
+
+function filterWarehouse(cat) {
+  WH_FILTER = cat;
+  document.querySelectorAll('#wh-filter-chips .chip').forEach(c => c.classList.remove('active'));
+  const active = { all:'wh-chip-all', parfum:'wh-chip-parfum', deodorant:'wh-chip-deodorant', hairmist:'wh-chip-hairmist', bahan_baku:'wh-chip-bahan' }[cat];
+  if (active) document.getElementById(active)?.classList.add('active');
+  _renderWarehouse();
+}
+
+function openAddSkuModal() {
+  document.getElementById('modal-sku-title').textContent = 'Tambah Produk SKU';
+  document.getElementById('sku-code').value = '';
+  document.getElementById('sku-name-input').value = '';
+  document.getElementById('sku-category').value = 'parfum';
+  document.getElementById('sku-type').value = 'unisex';
+  document.getElementById('sku-size').value = '';
+  document.getElementById('sku-stock').value = '0';
+  document.getElementById('sku-min').value = '5';
+  document.getElementById('sku-max').value = '100';
+  document.getElementById('sku-cost').value = '0';
+  document.getElementById('sku-sell').value = '0';
+  document.getElementById('sku-edit-id').value = '';
+  openModal('modal-sku');
+}
+
+function openEditSkuModal(id) {
+  const s = ALL_SKUS.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('modal-sku-title').textContent = 'Edit Produk SKU';
+  document.getElementById('sku-code').value = s.sku;
+  document.getElementById('sku-name-input').value = s.name;
+  document.getElementById('sku-category').value = s.category;
+  document.getElementById('sku-type').value = s.product_type || 'unisex';
+  document.getElementById('sku-size').value = s.size_ml || '';
+  document.getElementById('sku-stock').value = s.current_stock || 0;
+  document.getElementById('sku-min').value = s.min_stock || 5;
+  document.getElementById('sku-max').value = s.max_stock || 100;
+  document.getElementById('sku-cost').value = s.cost_price || 0;
+  document.getElementById('sku-sell').value = s.sell_price || 0;
+  document.getElementById('sku-edit-id').value = id;
+  openModal('modal-sku');
+}
+
+async function saveSku() {
+  const code = document.getElementById('sku-code').value.trim();
+  const name = document.getElementById('sku-name-input').value.trim();
+  if (!code || !name) return showToast('Kode SKU dan nama wajib diisi', 'error');
+
+  const payload = {
+    sku: code,
+    name,
+    category: document.getElementById('sku-category').value,
+    product_type: document.getElementById('sku-type').value,
+    size_ml: parseInt(document.getElementById('sku-size').value) || null,
+    current_stock: parseFloat(document.getElementById('sku-stock').value) || 0,
+    min_stock: parseFloat(document.getElementById('sku-min').value) || 5,
+    max_stock: parseFloat(document.getElementById('sku-max').value) || 100,
+    cost_price: parseFloat(document.getElementById('sku-cost').value) || 0,
+    sell_price: parseFloat(document.getElementById('sku-sell').value) || 0,
+    updated_at: new Date().toISOString()
+  };
+
+  const editId = document.getElementById('sku-edit-id').value;
+  let error;
+
+  if (editId) {
+    ({ error } = await sb.from('wms_products_sku').update(payload).eq('id', editId));
+  } else {
+    ({ error } = await sb.from('wms_products_sku').insert([payload]));
+  }
+
+  if (error) return showToast('Gagal menyimpan SKU: ' + error.message, 'error');
+
+  showToast('SKU berhasil disimpan ✓', 'success');
+  closeModal('modal-sku');
+  await loadSkus();
+  _renderWarehouse();
+}
+
+/* ═══════════════════════════════════════════════════════
+   VENDOR MANAGEMENT (Modal + Save + Edit)
+   ═══════════════════════════════════════════════════════ */
+
+function openAddVendorModal() {
+  document.getElementById('modal-vendor-title').textContent = 'Tambah Vendor Baru';
+  ['v-name','v-material','v-phone','v-email','v-address','v-bank','v-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('v-type').value = 'biang_parfum';
+  document.getElementById('v-leadtime').value = '3';
+  document.getElementById('v-rating').value = '5';
+  document.getElementById('v-top').value = 'CBD';
+  document.getElementById('v-edit-id').value = '';
+  openModal('modal-vendor');
+}
+
+function openEditVendorModal(id) {
+  const v = VENDORS.find(x => x.id === id);
+  if (!v) return;
+  document.getElementById('modal-vendor-title').textContent = 'Edit Vendor';
+  document.getElementById('v-name').value = v.name || '';
+  document.getElementById('v-type').value = v.vendor_type || 'biang_parfum';
+  document.getElementById('v-material').value = v.material || '';
+  document.getElementById('v-leadtime').value = v.leadTimeDays || v.lead_time_days || '3';
+  document.getElementById('v-rating').value = v.rating || '5';
+  document.getElementById('v-top').value = v.term_of_payment || 'CBD';
+  document.getElementById('v-phone').value = v.phone || v.contact || '';
+  document.getElementById('v-email').value = v.email || '';
+  document.getElementById('v-address').value = v.address || '';
+  document.getElementById('v-bank').value = v.bank_info || '';
+  document.getElementById('v-notes').value = v.notes || '';
+  document.getElementById('v-edit-id').value = id;
+  openModal('modal-vendor');
+}
+
+async function saveVendor() {
+  const name = document.getElementById('v-name').value.trim();
+  if (!name) return showToast('Nama vendor wajib diisi', 'error');
+
+  const payload = {
+    name,
+    vendor_type: document.getElementById('v-type').value,
+    material: document.getElementById('v-material').value.trim(),
+    lead_time_days: parseInt(document.getElementById('v-leadtime').value) || 3,
+    rating: parseFloat(document.getElementById('v-rating').value) || 5,
+    term_of_payment: document.getElementById('v-top').value,
+    phone: document.getElementById('v-phone').value.trim(),
+    email: document.getElementById('v-email').value.trim(),
+    address: document.getElementById('v-address').value.trim(),
+    bank_info: document.getElementById('v-bank').value.trim(),
+    notes: document.getElementById('v-notes').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+
+  const editId = document.getElementById('v-edit-id').value;
+  let error, data;
+
+  if (editId) {
+    ({ error } = await sb.from('wms_vendors').update(payload).eq('id', editId));
+  } else {
+    ({ data, error } = await sb.from('wms_vendors').insert([payload]).select());
+  }
+
+  if (error) return showToast('Gagal menyimpan vendor: ' + error.message, 'error');
+
+  showToast('Vendor berhasil disimpan ✓', 'success');
+  closeModal('modal-vendor');
+
+  // Reload vendors
+  const { data: vdata } = await sb.from('wms_vendors').select('*').order('name');
+  if (vdata) {
+    VENDORS = vdata.map(v => ({ ...v, leadTimeDays: v.lead_time_days || 3 }));
+  }
+  renderVendors();
+}
+
+/* ═══════════════════════════════════════════════════════
+   PURCHASE ORDER (PO) MANAGEMENT
+   ═══════════════════════════════════════════════════════ */
+
+let ALL_POS = [];
+
+async function loadPOs() {
+  if (!sb) return;
+  const { data, error } = await sb.from('wms_vendor_po').select('*, wms_vendors(name, vendor_type)').order('created_at', { ascending: false });
+  if (!error && data) ALL_POS = data;
+}
+
+function populatePoVendorSelect() {
+  const selects = ['po-vendor', 'po-vendor-filter'];
+  selects.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    const extra = id === 'po-vendor-filter' ? '<option value="">Semua Vendor</option>' : '';
+    sel.innerHTML = extra + VENDORS.map(v => `<option value="${v.id}">${sanitizeHtml(v.name)}</option>`).join('');
+    if (cur) sel.value = cur;
+  });
+}
+
+function updatePoTotal() {
+  const qty = parseFloat(document.getElementById('po-qty')?.value) || 0;
+  const price = parseFloat(document.getElementById('po-unit-price')?.value) || 0;
+  const total = document.getElementById('po-total');
+  if (total) total.value = qty * price;
+}
+
+function updatePoMaterialOptions() {
+  const vendorId = parseInt(document.getElementById('po-vendor')?.value);
+  const vendor = VENDORS.find(v => v.id === vendorId);
+  if (vendor && document.getElementById('po-material')) {
+    document.getElementById('po-material').placeholder = vendor.material || 'Contoh: Biang parfum';
+  }
+}
+
+async function savePurchaseOrder() {
+  const vendorId = parseInt(document.getElementById('po-vendor')?.value);
+  const poNumber = document.getElementById('po-number')?.value.trim();
+  const material = document.getElementById('po-material')?.value.trim();
+  const qty = parseFloat(document.getElementById('po-qty')?.value) || 0;
+  const unitPrice = parseFloat(document.getElementById('po-unit-price')?.value) || 0;
+  const expectedDate = document.getElementById('po-expected-date')?.value;
+
+  if (!vendorId || !poNumber || !material || qty <= 0) {
+    return showToast('Vendor, No. PO, material, dan qty wajib diisi', 'error');
+  }
+
+  const payload = {
+    vendor_id: vendorId,
+    po_number: poNumber,
+    material,
+    qty,
+    unit: document.getElementById('po-unit')?.value || 'pcs',
+    unit_price: unitPrice,
+    total_amount: qty * unitPrice,
+    expected_date: expectedDate || null,
+    payment_status: 'unpaid',
+    paid_amount: 0,
+    notes: document.getElementById('po-notes')?.value.trim() || null,
+    user_email: window._userEmail || null
+  };
+
+  const { error } = await sb.from('wms_vendor_po').insert([payload]);
+  if (error) return showToast('Gagal simpan PO: ' + error.message, 'error');
+
+  showToast(`PO ${poNumber} berhasil disimpan ✓`, 'success');
+
+  // Reset form
+  ['po-number','po-material','po-qty','po-unit-price','po-total','po-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  await loadPOs();
+  renderPendingPOs();
+  renderPoHistory();
+}
+
+function renderPendingPOs() {
+  const container = document.getElementById('po-pending-list');
+  if (!container) return;
+
+  const pending = ALL_POS.filter(p => !p.actual_date);
+  if (!pending.length) {
+    container.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Semua PO sudah diterima</div>';
+    return;
+  }
+
+  container.innerHTML = pending.map(p => {
+    const vendorName = p.wms_vendors?.name || `Vendor #${p.vendor_id}`;
+    const expected = p.expected_date ? new Date(p.expected_date).toLocaleDateString('id-ID') : '—';
+    const today = new Date();
+    const expDate = p.expected_date ? new Date(p.expected_date) : null;
+    const isLate = expDate && today > expDate;
+
+    return `
+      <div style="padding:12px;background:${isLate?'#FEF2F2':'#F9F7F4'};border:1px solid ${isLate?'#FECACA':'#E4D3BD'};border-radius:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#2D1F17;">${sanitizeHtml(p.po_number)}</div>
+            <div style="font-size:12px;color:#5C4A3C;">${sanitizeHtml(vendorName)} · ${sanitizeHtml(p.material)}</div>
+            <div style="font-size:11px;color:#8B6F5E;margin-top:2px;">${p.qty} ${p.unit} · ${fmtRp(p.total_amount)}</div>
+            <div style="font-size:11px;color:${isLate?'#991B1B':'#8B6F5E'};margin-top:2px;">
+              ${isLate ? '⚠ Terlambat! ' : ''}Estimasi tiba: ${expected}
+            </div>
+          </div>
+          <button class="btn-secondary" style="font-size:11px;padding:5px 10px;white-space:nowrap;flex-shrink:0;" onclick="openReceivePoModal(${p.id})">Terima</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openReceivePoModal(poId) {
+  document.getElementById('rpo-po-id').value = poId;
+  document.getElementById('rpo-actual-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('rpo-in-full').value = 'true';
+  document.getElementById('rpo-payment-status').value = 'paid';
+  document.getElementById('rpo-paid-amount').value = '0';
+  openModal('modal-receive-po');
+}
+
+async function confirmReceivePO() {
+  const poId = parseInt(document.getElementById('rpo-po-id').value);
+  const actualDate = document.getElementById('rpo-actual-date').value;
+  const isInFull = document.getElementById('rpo-in-full').value === 'true';
+  const payStatus = document.getElementById('rpo-payment-status').value;
+  const paidAmt = parseFloat(document.getElementById('rpo-paid-amount').value) || 0;
+
+  const po = ALL_POS.find(p => p.id === poId);
+  if (!po) return;
+
+  // Calculate OTIF
+  const isOnTime = po.expected_date ? new Date(actualDate) <= new Date(po.expected_date) : true;
+
+  const { error } = await sb.from('wms_vendor_po').update({
+    actual_date: actualDate,
+    is_on_time: isOnTime,
+    is_in_full: isInFull,
+    payment_status: payStatus,
+    paid_amount: paidAmt
+  }).eq('id', poId);
+
+  if (error) return showToast('Gagal memperbarui PO: ' + error.message, 'error');
+
+  // Recalculate vendor OTIF rate
+  await recalculateVendorOTIF(po.vendor_id);
+
+  // Update vendor total_paid
+  const vendorPos = ALL_POS.filter(p => p.vendor_id === po.vendor_id);
+  const totalPaid = vendorPos.reduce((s, p) => s + (p.paid_amount || 0), 0) + paidAmt;
+  await sb.from('wms_vendors').update({ total_paid: totalPaid }).eq('id', po.vendor_id);
+
+  showToast(`PO diterima! OTIF: ${isOnTime ? '✓ On Time' : '✗ Terlambat'}`, isOnTime ? 'success' : 'warn');
+  closeModal('modal-receive-po');
+
+  await loadPOs();
+  renderPendingPOs();
+  renderPoHistory();
+
+  // Reload vendors to show updated OTIF
+  const { data: vdata } = await sb.from('wms_vendors').select('*').order('name');
+  if (vdata) VENDORS = vdata.map(v => ({ ...v, leadTimeDays: v.lead_time_days || 3 }));
+  renderVendors();
+}
+
+async function recalculateVendorOTIF(vendorId) {
+  const vendorPos = ALL_POS.filter(p => p.vendor_id === vendorId && p.actual_date);
+  if (!vendorPos.length) return;
+
+  const onTimeFull = vendorPos.filter(p => p.is_on_time && p.is_in_full).length;
+  const otifRate = (onTimeFull / vendorPos.length) * 100;
+
+  await sb.from('wms_vendors').update({ otif_rate: Math.round(otifRate * 10) / 10 }).eq('id', vendorId);
+}
+
+function renderPoHistory() {
+  const tbody = document.getElementById('po-history-tbody');
+  if (!tbody) return;
+
+  if (!ALL_POS.length) loadPOs().then(() => _renderPoHistory());
+  else _renderPoHistory();
+}
+
+function _renderPoHistory() {
+  const tbody = document.getElementById('po-history-tbody');
+  if (!tbody) return;
+
+  const vendorFilter = document.getElementById('po-vendor-filter')?.value || '';
+  const statusFilter = document.getElementById('po-status-filter')?.value || '';
+
+  let pos = [...ALL_POS];
+  if (vendorFilter) pos = pos.filter(p => String(p.vendor_id) === String(vendorFilter));
+  if (statusFilter) pos = pos.filter(p => p.payment_status === statusFilter);
+
+  // Summary totals
+  const totalUnpaid  = ALL_POS.filter(p => p.payment_status === 'unpaid').reduce((s,p) => s + (p.total_amount||0), 0);
+  const totalPartial = ALL_POS.filter(p => p.payment_status === 'partial').reduce((s,p) => s + (p.total_amount||0), 0);
+  const totalPaidAll = ALL_POS.reduce((s,p) => s + (p.paid_amount||0), 0);
+  const totalAll = ALL_POS.reduce((s,p) => s + (p.total_amount||0), 0);
+
+  const el = id => document.getElementById(id);
+  if (el('po-total-unpaid'))  el('po-total-unpaid').textContent  = fmtRp(totalUnpaid);
+  if (el('po-total-partial')) el('po-total-partial').textContent = fmtRp(totalPartial);
+  if (el('po-total-paid'))    el('po-total-paid').textContent    = fmtRp(totalPaidAll);
+  if (el('po-total-all'))     el('po-total-all').textContent     = fmtRp(totalAll);
+
+  // Also update finance menu - vendor costs
+  const finVendorCost = document.getElementById('fin-vendor-cost');
+  if (finVendorCost) finVendorCost.textContent = fmtRp(totalAll);
+
+  if (!pos.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#B08A62;padding:24px;">Belum ada transaksi</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = pos.map(p => {
+    const vendorName = p.wms_vendors?.name || `Vendor #${p.vendor_id}`;
+    const dateStr = new Date(p.created_at).toLocaleDateString('id-ID');
+    const payCls = { paid:'pay-paid', unpaid:'pay-unpaid', partial:'pay-partial' }[p.payment_status] || 'pay-unpaid';
+    const payLabel = { paid:'Lunas', unpaid:'Belum Bayar', partial:'Sebagian' }[p.payment_status] || p.payment_status;
+
+    let otifHtml = '—';
+    if (p.actual_date) {
+      const ok = p.is_on_time && p.is_in_full;
+      const partialOk = p.is_on_time || p.is_in_full;
+      otifHtml = `<span class="otif-badge ${ok?'otif-good':partialOk?'otif-ok':'otif-poor'}">${ok?'✓ OTIF':partialOk?'⚡ Partial':'✗ Gagal'}</span>`;
+    } else {
+      otifHtml = '<span style="font-size:11px;color:#B08A62;">Pending</span>';
+    }
+
+    return `
+      <tr>
+        <td style="font-size:12px;color:#8B6F5E;">${dateStr}</td>
+        <td style="font-size:12px;font-weight:600;color:#5C4A3C;">${sanitizeHtml(p.po_number)}</td>
+        <td style="font-size:12px;">${sanitizeHtml(vendorName)}</td>
+        <td style="font-size:12px;">${sanitizeHtml(p.material)}</td>
+        <td style="text-align:right;font-weight:600;color:#2D1F17;">${fmtRp(p.total_amount||0)}</td>
+        <td style="text-align:center;">${otifHtml}</td>
+        <td style="text-align:center;"><span class="pay-badge ${payCls}">${payLabel}</span></td>
+        <td>
+          ${!p.actual_date ? `<button class="btn-secondary" style="font-size:11px;padding:3px 8px;" onclick="openReceivePoModal(${p.id})">Terima</button>` : '<span style="font-size:11px;color:#8B6F5E;">Selesai</span>'}
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   GOOGLE SHEETS PnL INTEGRATION
+   ═══════════════════════════════════════════════════════ */
+
+const GSHEETS_ID = '1_TGa5MOoW0q7b8RX3jN6NnpXU-2gJr5FkztSYG3HrHw';
+const GSHEETS_SHEET = 'PnL Fix';
+let PNL_DATA = null; // Parsed PnL data array (3 years x 12 months)
+
+async function fetchGoogleSheetsPnL() {
+  const btn = document.getElementById('pnl-sync-btn');
+  const lbl = document.getElementById('pnl-sync-label');
+  if (btn) btn.classList.add('loading');
+  if (lbl) lbl.textContent = 'Menyinkronkan…';
+
+  const url = `https://docs.google.com/spreadsheets/d/${GSHEETS_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(GSHEETS_SHEET)}`;
+
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const csv = await resp.text();
+    PNL_DATA = parsePnLCSV(csv);
+
+    if (lbl) lbl.textContent = 'Sinkronisasi Sheets';
+    if (btn) btn.classList.remove('loading');
+
+    const now = new Date().toLocaleString('id-ID');
+    const syncEl = document.getElementById('pnl-last-sync');
+    if (syncEl) syncEl.textContent = `Diperbarui: ${now}`;
+
+    // Cache in localStorage
+    localStorage.setItem('pnl_data', JSON.stringify(PNL_DATA));
+    localStorage.setItem('pnl_sync', now);
+
+    renderPnLMetrics();
+    showToast('Data PnL berhasil disinkronkan ✓', 'success');
+  } catch (e) {
+    if (btn) btn.classList.remove('loading');
+    if (lbl) lbl.textContent = 'Sinkronisasi Sheets';
+    showToast('Gagal ambil data Sheets: ' + e.message, 'error');
+  }
+}
+
+function parsePnLCSV(csv) {
+  // Parse the CSV rows, columns: [label, Y1M1..Y1M12, Y2M1..Y2M12, Y3M1..Y3M12]
+  const rows = csv.trim().split('\n').map(line => {
+    // Parse CSV properly handling quoted fields
+    const cols = [];
+    let inQuote = false, cur = '';
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQuote = !inQuote; }
+      else if (c === ',' && !inQuote) { cols.push(cur.trim()); cur = ''; }
+      else { cur += c; }
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+
+  // Row indices (0-based): row 0=header, 2=revenue, 3=hpp, 4=gm1, 7=gm2, 12=gm3, 16=net, 15=marketing
+  const ROWS = {
+    revenue:   2,  // Total Revenue
+    hpp:       3,  // Total HPP
+    gm1:       4,  // GROSS MARGIN 1
+    marketing: 5,  // Biaya Pemasaran header (empty), so use row 6 = Total Marketing
+    total_mkt: 6,
+    gm2:       7,  // GROSS MARGIN 2
+    gm3:       12, // GROSS MARGIN 3
+    net:       16  // NET PROFIT (row 26 = index 16 in CSV which has no header offset)
+  };
+
+  function parseNum(str) {
+    if (!str) return 0;
+    // Remove Rp, dots (thousands), parentheses (negative), spaces
+    const s = str.replace(/[Rp\s]/g,'').replace(/\./g,'').replace(/\(/g,'-').replace(/\)/g,'');
+    return parseFloat(s) || 0;
+  }
+
+  // The CSV has columns: col0=label, col1..12 = Y1M1..M12, col13..24 = Y2, col25..36 = Y3
+  const result = [];
+
+  for (let year = 0; year < 3; year++) {
+    const yearData = [];
+    for (let month = 0; month < 12; month++) {
+      const colIdx = 1 + year * 12 + month;
+      yearData.push({
+        revenue:   parseNum(rows[ROWS.revenue]?.[colIdx]),
+        hpp:       parseNum(rows[ROWS.hpp]?.[colIdx]),
+        gm1:       parseNum(rows[ROWS.gm1]?.[colIdx]),
+        marketing: parseNum(rows[ROWS.total_mkt]?.[colIdx]),
+        gm2:       parseNum(rows[ROWS.gm2]?.[colIdx]),
+        gm3:       parseNum(rows[ROWS.gm3]?.[colIdx]),
+        net:       parseNum(rows[ROWS.net]?.[colIdx])
+      });
+    }
+    result.push(yearData);
+  }
+  return result;
+}
+
+function renderPnLMetrics() {
+  // Try loading from cache if not yet fetched
+  if (!PNL_DATA) {
+    const cached = localStorage.getItem('pnl_data');
+    if (cached) {
+      PNL_DATA = JSON.parse(cached);
+      const syncTime = localStorage.getItem('pnl_sync');
+      const syncEl = document.getElementById('pnl-last-sync');
+      if (syncEl && syncTime) syncEl.textContent = `Diperbarui: ${syncTime}`;
+    } else {
+      return; // No data yet
+    }
+  }
+
+  const year  = parseInt(document.getElementById('pnl-year-select')?.value  || '0');
+  const month = parseInt(document.getElementById('pnl-month-select')?.value || '0');
+  const d = PNL_DATA[year]?.[month];
+  if (!d) return;
+
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fmtRp(Math.abs(val));
+  };
+
+  set('pnl-gm1', d.gm1);
+  set('pnl-gm2', d.gm2);
+  set('pnl-gm3', d.gm3);
+  set('pnl-net', d.net);
+  set('pnl-revenue', d.revenue);
+  set('pnl-hpp', d.hpp);
+  set('pnl-marketing', Math.abs(d.marketing));
+
+  // Color net profit green if positive, red if negative
+  const netEl = document.getElementById('pnl-net');
+  if (netEl) netEl.style.color = d.net >= 0 ? '#86EFAC' : '#FCA5A5';
+}
+
+/* ═══════════════════════════════════════════════════════
+   MODAL HELPERS
+   ═══════════════════════════════════════════════════════ */
+
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('hidden');
+}
+
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('hidden');
+}
+
+// Close modal on overlay click
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.add('hidden');
+  }
+});
+
+// Load POs and SKUs after auth
+document.addEventListener('wms:ready', async () => {
+  await loadSkus();
+  await loadPOs();
+  renderPnLMetrics(); // Render from cache if available
+});
+
+// Also initialize on DOM ready (called manually after login)
+window._postLoginInit = async () => {
+  await loadSkus();
+  await loadPOs();
+  renderPnLMetrics();
+};

@@ -292,35 +292,26 @@
             </svg></span> Dashboard
         </button>
         <button class="nav-link" data-page="rawmaterials" onclick="navigateTo('rawmaterials')">
-          <span class="icon"><svg class="ico">
-              <use href="#ico-inventory" />
-            </svg></span> Stok Bahan Baku
+          <span class="icon"><svg class="ico"><use href="#ico-inventory" /></svg></span> Stok Bahan Baku
+        </button>
+        <button class="nav-link" data-page="warehouse" onclick="navigateTo('warehouse')">
+          <span class="icon"><svg class="ico"><use href="#ico-box" /></svg></span> Gudang & SKU
         </button>
         <button class="nav-link" data-page="production" onclick="navigateTo('production')">
-          <span class="icon"><svg class="ico">
-              <use href="#ico-production" />
-            </svg></span> Produksi
+          <span class="icon"><svg class="ico"><use href="#ico-production" /></svg></span> Produksi
         </button>
         <button class="nav-link" data-page="sales" onclick="navigateTo('sales')">
-          <span class="icon"><svg class="ico">
-              <use href="#ico-sales" />
-            </svg></span> Penjualan & Outbound
+          <span class="icon"><svg class="ico"><use href="#ico-sales" /></svg></span> Penjualan & Outbound
         </button>
         <button class="nav-link" data-page="vendors" onclick="navigateTo('vendors')">
-          <span class="icon"><svg class="ico">
-              <use href="#ico-vendors" />
-            </svg></span> Manajemen Vendor
+          <span class="icon"><svg class="ico"><use href="#ico-vendors" /></svg></span> Manajemen Vendor
         </button>
         <div style="height:1px;background:#F2EAE0;margin:6px 2px;"></div>
         <button class="nav-link" data-page="financial" onclick="navigateTo('financial')">
-          <span class="icon"><svg class="ico">
-              <use href="#ico-finance" />
-            </svg></span> Proyeksi Keuangan
+          <span class="icon"><svg class="ico"><use href="#ico-finance" /></svg></span> Proyeksi Keuangan
         </button>
         <button class="nav-link" data-page="report" onclick="navigateTo('report')">
-          <span class="icon"><svg class="ico">
-              <use href="#ico-report" />
-            </svg></span> Laporan Bulanan
+          <span class="icon"><svg class="ico"><use href="#ico-report" /></svg></span> Laporan Bulanan
         </button>
       </nav>
 
@@ -1067,49 +1058,322 @@
               <div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada data</div>
             </div>
           </div>
+
+          <!-- PnL Google Sheets Section -->
+          <div class="pnl-sheet-card" style="margin-top:20px;">
+            <div class="pnl-sheet-title">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+              PnL dari Google Sheets
+            </div>
+            <div class="pnl-sheet-sub">Data proyeksi profit langsung dari spreadsheet perencanaan keuangan Anda</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <button class="pnl-sync-btn" id="pnl-sync-btn" onclick="fetchGoogleSheetsPnL()">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                <span id="pnl-sync-label">Sinkronisasi Sheets</span>
+              </button>
+              <select class="pnl-month-select" id="pnl-year-select" onchange="renderPnLMetrics()">
+                <option value="0">Tahun 1</option>
+                <option value="1">Tahun 2</option>
+                <option value="2">Tahun 3</option>
+              </select>
+              <select class="pnl-month-select" id="pnl-month-select" onchange="renderPnLMetrics()">
+                <option value="0">Bulan 1</option><option value="1">Bulan 2</option><option value="2">Bulan 3</option>
+                <option value="3">Bulan 4</option><option value="4">Bulan 5</option><option value="5">Bulan 6</option>
+                <option value="6">Bulan 7</option><option value="7">Bulan 8</option><option value="8">Bulan 9</option>
+                <option value="9">Bulan 10</option><option value="10">Bulan 11</option><option value="11">Bulan 12</option>
+              </select>
+              <span id="pnl-last-sync" style="font-size:11px;opacity:0.6;">Belum disinkronkan</span>
+            </div>
+            <div class="pnl-metric-grid" id="pnl-metrics">
+              <div class="pnl-metric">
+                <div class="pnl-metric-label">Gross Margin 1</div>
+                <div class="pnl-metric-value" id="pnl-gm1">—</div>
+                <div class="pnl-metric-sub">Revenue - HPP</div>
+              </div>
+              <div class="pnl-metric">
+                <div class="pnl-metric-label">Gross Margin 2</div>
+                <div class="pnl-metric-value" id="pnl-gm2">—</div>
+                <div class="pnl-metric-sub">Setelah biaya marketing</div>
+              </div>
+              <div class="pnl-metric">
+                <div class="pnl-metric-label">Gross Margin 3</div>
+                <div class="pnl-metric-value" id="pnl-gm3">—</div>
+                <div class="pnl-metric-sub">Setelah biaya outbound</div>
+              </div>
+              <div class="pnl-metric">
+                <div class="pnl-metric-label">Net Profit</div>
+                <div class="pnl-metric-value" id="pnl-net" style="color:#86EFAC;">—</div>
+                <div class="pnl-metric-sub">Setelah semua biaya</div>
+              </div>
+            </div>
+            <!-- Revenue reference -->
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.1);display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;" id="pnl-ref-row">
+              <div>
+                <div style="font-size:10px;opacity:0.6;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Total Revenue</div>
+                <div style="font-size:13px;font-weight:600;" id="pnl-revenue">—</div>
+              </div>
+              <div>
+                <div style="font-size:10px;opacity:0.6;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Total HPP</div>
+                <div style="font-size:13px;font-weight:600;color:#FCA5A5;" id="pnl-hpp">—</div>
+              </div>
+              <div>
+                <div style="font-size:10px;opacity:0.6;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px;">Total Marketing</div>
+                <div style="font-size:13px;font-weight:600;color:#FCD34D;" id="pnl-marketing">—</div>
+              </div>
+            </div>
+          </div>
         </div><!-- /financial -->
+
+        <!-- ╔══════════════════════════════════════╗ -->
+        <!-- ║  PAGE: GUDANG & SKU                  ║ -->
+        <!-- ╚══════════════════════════════════════╝ -->
+        <div id="page-warehouse" class="page">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px;">
+            <div class="section-title"><svg class="ico ico-title"><use href="#ico-box" /></svg> Gudang & Manajemen SKU</div>
+            <button class="btn-primary btn-with-icon" onclick="openAddSkuModal()">
+              <svg class="ico"><use href="#ico-plus" /></svg> Tambah SKU
+            </button>
+          </div>
+          <div class="section-sub">Informasi stok barang saat ini beserta kode SKU per produk.</div>
+
+          <!-- Summary Cards -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;" id="wh-summary-cards">
+            <div class="report-kpi">
+              <div class="lbl">Total SKU Aktif</div>
+              <div class="num" id="wh-total-sku" style="color:#5C4A3C;">0</div>
+              <div class="unit">produk</div>
+            </div>
+            <div class="report-kpi">
+              <div class="lbl">Stok Di Bawah Min</div>
+              <div class="num" id="wh-low-sku" style="color:#991B1B;">0</div>
+              <div class="unit">SKU perlu restock</div>
+            </div>
+            <div class="report-kpi">
+              <div class="lbl">Total Nilai Stok</div>
+              <div class="num" id="wh-total-value" style="color:#166534;font-size:20px;">Rp 0</div>
+              <div class="unit">estimasi HPP</div>
+            </div>
+            <div class="report-kpi">
+              <div class="lbl">Kategori Produk</div>
+              <div class="num" id="wh-categories" style="color:#6D28D9;">3</div>
+              <div class="unit">parfum / deo / hairmist</div>
+            </div>
+          </div>
+
+          <!-- Filter Chips -->
+          <div class="filter-chips" id="wh-filter-chips">
+            <button class="chip active" onclick="filterWarehouse('all')" id="wh-chip-all">Semua</button>
+            <button class="chip" onclick="filterWarehouse('parfum')" id="wh-chip-parfum">🌸 Parfum</button>
+            <button class="chip" onclick="filterWarehouse('deodorant')" id="wh-chip-deodorant">🧴 Deodorant</button>
+            <button class="chip" onclick="filterWarehouse('hairmist')" id="wh-chip-hairmist">💨 Hair Mist</button>
+            <button class="chip" onclick="filterWarehouse('bahan_baku')" id="wh-chip-bahan">⚗️ Bahan Baku</button>
+          </div>
+
+          <!-- SKU Grid -->
+          <div class="sku-grid" id="sku-grid">
+            <div style="text-align:center;color:#B08A62;font-size:13px;padding:40px 0;grid-column:1/-1;">Memuat data SKU…</div>
+          </div>
+
+          <!-- SKU Table View -->
+          <div class="card" style="margin-top:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+              <div class="card-heading"><svg class="ico ico-sm"><use href="#ico-list" /></svg> Daftar Lengkap SKU</div>
+              <input type="text" id="sku-search" class="form-input" placeholder="Cari SKU atau nama produk…" oninput="renderWarehouse()" style="max-width:220px;">
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Nama Produk</th>
+                    <th>Kategori</th>
+                    <th style="text-align:center;">Stok</th>
+                    <th style="text-align:center;">Min</th>
+                    <th style="text-align:center;">Max</th>
+                    <th>HPP/pcs</th>
+                    <th>Harga Jual</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="sku-tbody">
+                  <tr><td colspan="9" style="text-align:center;color:#B08A62;padding:24px;">Memuat data…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div><!-- /warehouse -->
 
         <!-- ╔══════════════════════════════════════╗ -->
         <!-- ║  PAGE: MANAJEMEN VENDOR              ║ -->
         <!-- ╚══════════════════════════════════════╝ -->
         <div id="page-vendors" class="page">
-          <div class="section-title"><svg class="ico ico-title">
-              <use href="#ico-vendors" />
-            </svg> Manajemen Vendor</div>
-          <div class="section-sub">Data rekanan supplier bahan baku beserta estimasi lead time pengiriman.</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px;">
+            <div class="section-title"><svg class="ico ico-title"><use href="#ico-vendors" /></svg> Manajemen Vendor</div>
+            <button class="btn-primary btn-with-icon" onclick="openAddVendorModal()">
+              <svg class="ico"><use href="#ico-plus" /></svg> Tambah Vendor
+            </button>
+          </div>
+          <div class="section-sub">Kelola rekanan supplier, pantau OTIF rate, dan riwayat transaksi pembelian.</div>
 
-          <div class="card" style="margin-bottom:20px;">
-            <div class="card-heading"><svg class="ico ico-sm">
-                <use href="#ico-alert" />
-              </svg> Mengapa Lead Time Penting?</div>
-            <p style="font-size:12px;color:#8B6F5E;line-height:1.6;margin-top:8px;">
-              Saat stok menipis, sistem akan menampilkan peringatan beserta vendor rekomendasi dan estimasi hari
-              pengiriman,
-              agar tim gudang bisa segera melakukan pemesanan sebelum terjadi kekosongan stok.
-            </p>
+          <!-- Vendor Tabs -->
+          <div class="vendor-tabs">
+            <button class="vendor-tab active" id="vtab-list"    onclick="switchVendorTab('list')">📋 Daftar Vendor</button>
+            <button class="vendor-tab"        id="vtab-po"      onclick="switchVendorTab('po')">📦 Purchase Order</button>
+            <button class="vendor-tab"        id="vtab-history" onclick="switchVendorTab('history')">🕐 Riwayat Transaksi</button>
           </div>
 
-          <div class="card">
-            <div class="card-heading" style="margin-bottom:16px;"><svg class="ico ico-sm">
-                <use href="#ico-list" />
-              </svg> Daftar Vendor Rekanan</div>
-            <div style="overflow-x:auto;">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Nama Vendor</th>
-                    <th>Material Disuplai</th>
-                    <th style="text-align:center;">Lead Time</th>
-                    <th>Kontak</th>
-                    <th>Kode Material</th>
-                  </tr>
-                </thead>
-                <tbody id="vendors-tbody">
-                  <tr>
-                    <td colspan="5" style="text-align:center;color:#B08A62;padding:24px;">Memuat data vendor…</td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- TAB: Daftar Vendor -->
+          <div class="vendor-tab-panel active" id="vpanel-list">
+            <!-- Category filter -->
+            <div class="filter-chips" style="margin-bottom:16px;">
+              <button class="chip active" onclick="filterVendors('all')"  id="vf-all">Semua</button>
+              <button class="chip" onclick="filterVendors('biang_parfum')" id="vf-biang">⚗️ Biang Parfum</button>
+              <button class="chip" onclick="filterVendors('botol_parfum')" id="vf-botol">🧴 Botol Parfum</button>
+              <button class="chip" onclick="filterVendors('deodorant')"    id="vf-deo">🧴 Deodorant</button>
+              <button class="chip" onclick="filterVendors('hairmist')"     id="vf-hair">💨 Hair Mist</button>
+              <button class="chip" onclick="filterVendors('packaging')"    id="vf-pack">📦 Packaging</button>
+            </div>
+
+            <div id="vendors-cards" style="display:flex;flex-direction:column;gap:14px;">
+              <div style="text-align:center;color:#B08A62;font-size:13px;padding:40px 0;">Memuat data vendor…</div>
+            </div>
+          </div>
+
+          <!-- TAB: Purchase Order -->
+          <div class="vendor-tab-panel" id="vpanel-po">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+              <div class="card">
+                <div class="card-heading" style="margin-bottom:16px;"><svg class="ico ico-sm"><use href="#ico-plus" /></svg> Tambah Purchase Order</div>
+                <div style="display:flex;flex-direction:column;gap:14px;">
+                  <div>
+                    <label>Vendor</label>
+                    <select id="po-vendor" class="form-input" onchange="updatePoMaterialOptions()"></select>
+                  </div>
+                  <div>
+                    <label>Nomor PO</label>
+                    <input type="text" id="po-number" class="form-input" placeholder="Contoh: PO-2024-001">
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                      <label>Material</label>
+                      <input type="text" id="po-material" class="form-input" placeholder="Contoh: Biang parfum">
+                    </div>
+                    <div>
+                      <label>Satuan</label>
+                      <select id="po-unit" class="form-input">
+                        <option value="pcs">pcs</option>
+                        <option value="mL">mL</option>
+                        <option value="gram">gram</option>
+                        <option value="meter">meter</option>
+                        <option value="kg">kg</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                      <label>Jumlah (Qty)</label>
+                      <input type="number" id="po-qty" class="form-input" min="1" placeholder="0">
+                    </div>
+                    <div>
+                      <label>Harga Satuan (Rp)</label>
+                      <input type="number" id="po-unit-price" class="form-input" min="0" placeholder="0" oninput="updatePoTotal()">
+                    </div>
+                  </div>
+                  <div>
+                    <label>Total Amount (Rp)</label>
+                    <input type="number" id="po-total" class="form-input" min="0" placeholder="0" readonly style="background:#F2EAE0;">
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                      <label>Tanggal Estimasi Tiba</label>
+                      <input type="date" id="po-expected-date" class="form-input">
+                    </div>
+                    <div>
+                      <label>Term of Payment</label>
+                      <select id="po-top" class="form-input">
+                        <option value="CBD">Cash Before Delivery</option>
+                        <option value="Net30">Net 30</option>
+                        <option value="Net60">Net 60</option>
+                        <option value="COD">Cash on Delivery</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label>Catatan</label>
+                    <input type="text" id="po-notes" class="form-input" placeholder="Opsional">
+                  </div>
+                  <button class="btn-primary btn-with-icon" onclick="savePurchaseOrder()">
+                    <svg class="ico"><use href="#ico-plus" /></svg> Simpan PO
+                  </button>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-heading" style="margin-bottom:16px;"><svg class="ico ico-sm"><use href="#ico-list" /></svg> PO Aktif / Pending</div>
+                <div id="po-pending-list" style="display:flex;flex-direction:column;gap:10px;max-height:500px;overflow-y:auto;">
+                  <div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada PO</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB: Riwayat Transaksi -->
+          <div class="vendor-tab-panel" id="vpanel-history">
+            <div class="card">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                <div class="card-heading"><svg class="ico ico-sm"><use href="#ico-list" /></svg> Riwayat Semua Transaksi</div>
+                <div style="display:flex;gap:8px;">
+                  <select id="po-vendor-filter" class="form-input" style="max-width:200px;" onchange="renderPoHistory()">
+                    <option value="">Semua Vendor</option>
+                  </select>
+                  <select id="po-status-filter" class="form-input" style="max-width:160px;" onchange="renderPoHistory()">
+                    <option value="">Semua Status</option>
+                    <option value="unpaid">Belum Dibayar</option>
+                    <option value="partial">Sebagian</option>
+                    <option value="paid">Lunas</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Total biaya ke vendor -->
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;" id="po-summary-cards">
+                <div style="padding:14px;background:#FEF2F2;border-radius:12px;border:1px solid #FECACA;">
+                  <div style="font-size:10px;font-weight:600;color:#991B1B;text-transform:uppercase;letter-spacing:0.04em;">Belum Dibayar</div>
+                  <div style="font-size:20px;font-weight:700;color:#991B1B;margin-top:4px;" id="po-total-unpaid">Rp 0</div>
+                </div>
+                <div style="padding:14px;background:#FFFBEB;border-radius:12px;border:1px solid #FDE68A;">
+                  <div style="font-size:10px;font-weight:600;color:#92400E;text-transform:uppercase;letter-spacing:0.04em;">Sebagian Bayar</div>
+                  <div style="font-size:20px;font-weight:700;color:#92400E;margin-top:4px;" id="po-total-partial">Rp 0</div>
+                </div>
+                <div style="padding:14px;background:#F0FDF4;border-radius:12px;border:1px solid #BBF7D0;">
+                  <div style="font-size:10px;font-weight:600;color:#166534;text-transform:uppercase;letter-spacing:0.04em;">Total Terbayar</div>
+                  <div style="font-size:20px;font-weight:700;color:#166534;margin-top:4px;" id="po-total-paid">Rp 0</div>
+                </div>
+                <div style="padding:14px;background:#F2EAE0;border-radius:12px;border:1px solid #E4D3BD;">
+                  <div style="font-size:10px;font-weight:600;color:#5C4A3C;text-transform:uppercase;letter-spacing:0.04em;">Total PO</div>
+                  <div style="font-size:20px;font-weight:700;color:#5C4A3C;margin-top:4px;" id="po-total-all">Rp 0</div>
+                </div>
+              </div>
+
+              <div style="overflow-x:auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>No. PO</th>
+                      <th>Vendor</th>
+                      <th>Material</th>
+                      <th style="text-align:right;">Total</th>
+                      <th style="text-align:center;">OTIF</th>
+                      <th style="text-align:center;">Pembayaran</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="po-history-tbody">
+                    <tr><td colspan="8" style="text-align:center;color:#B08A62;padding:24px;">Belum ada transaksi</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div><!-- /vendors -->
@@ -1213,6 +1477,206 @@
       </main>
     </div><!-- /main -->
   </div><!-- /app-shell -->
+
+  <!-- ═══════════════════ MODALS ═══════════════════ -->
+
+  <!-- Modal: Tambah/Edit Vendor -->
+  <div id="modal-vendor" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span id="modal-vendor-title">Tambah Vendor Baru</span>
+        <button class="modal-close" onclick="closeModal('modal-vendor')">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>Nama Vendor</label>
+            <input type="text" id="v-name" class="form-input" placeholder="Contoh: PT Aroma Jaya">
+          </div>
+          <div>
+            <label>Tipe / Kategori Vendor</label>
+            <select id="v-type" class="form-input">
+              <option value="biang_parfum">Biang Parfum</option>
+              <option value="botol_parfum">Botol Parfum</option>
+              <option value="deodorant">Deodorant</option>
+              <option value="hairmist">Hair Mist</option>
+              <option value="packaging">Packaging</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Material yang Disuplai (kode, pisah koma)</label>
+          <input type="text" id="v-material" class="form-input" placeholder="Contoh: biang atau botolP,botolL">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div>
+            <label>Lead Time (hari)</label>
+            <input type="number" id="v-leadtime" class="form-input" min="1" value="3">
+          </div>
+          <div>
+            <label>Rating (1-5)</label>
+            <input type="number" id="v-rating" class="form-input" min="1" max="5" step="0.5" value="5">
+          </div>
+          <div>
+            <label>Term of Payment</label>
+            <select id="v-top" class="form-input">
+              <option value="CBD">Cash Before Delivery</option>
+              <option value="Net30">Net 30</option>
+              <option value="Net60">Net 60</option>
+              <option value="COD">Cash on Delivery</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>No. HP / WA</label>
+            <input type="text" id="v-phone" class="form-input" placeholder="0812-xxxx-xxxx">
+          </div>
+          <div>
+            <label>Email</label>
+            <input type="email" id="v-email" class="form-input" placeholder="vendor@email.com">
+          </div>
+        </div>
+        <div>
+          <label>Alamat</label>
+          <input type="text" id="v-address" class="form-input" placeholder="Jl. Contoh No. 1, Jakarta">
+        </div>
+        <div>
+          <label>Info Bank / Pembayaran</label>
+          <input type="text" id="v-bank" class="form-input" placeholder="BCA - 1234567890 a/n PT Aroma Jaya">
+        </div>
+        <div>
+          <label>Catatan</label>
+          <input type="text" id="v-notes" class="form-input" placeholder="Opsional">
+        </div>
+        <input type="hidden" id="v-edit-id" value="">
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="btn-secondary" onclick="closeModal('modal-vendor')">Batal</button>
+          <button class="btn-primary btn-with-icon" onclick="saveVendor()">
+            <svg class="ico"><use href="#ico-check" /></svg> Simpan Vendor
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Tambah SKU -->
+  <div id="modal-sku" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span id="modal-sku-title">Tambah Produk SKU</span>
+        <button class="modal-close" onclick="closeModal('modal-sku')">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>Kode SKU</label>
+            <input type="text" id="sku-code" class="form-input" placeholder="Contoh: PRF-P-030">
+          </div>
+          <div>
+            <label>Nama Produk</label>
+            <input type="text" id="sku-name-input" class="form-input" placeholder="Contoh: Parfum Perempuan 30mL">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div>
+            <label>Kategori</label>
+            <select id="sku-category" class="form-input">
+              <option value="parfum">Parfum</option>
+              <option value="deodorant">Deodorant</option>
+              <option value="hairmist">Hair Mist</option>
+              <option value="bahan_baku">Bahan Baku</option>
+            </select>
+          </div>
+          <div>
+            <label>Tipe Produk</label>
+            <select id="sku-type" class="form-input">
+              <option value="perempuan">Perempuan</option>
+              <option value="laki-laki">Laki-laki</option>
+              <option value="unisex">Unisex</option>
+            </select>
+          </div>
+          <div>
+            <label>Ukuran (mL)</label>
+            <input type="number" id="sku-size" class="form-input" placeholder="30" min="0">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div>
+            <label>Stok Saat Ini</label>
+            <input type="number" id="sku-stock" class="form-input" value="0" min="0">
+          </div>
+          <div>
+            <label>Stok Min</label>
+            <input type="number" id="sku-min" class="form-input" value="5" min="0">
+          </div>
+          <div>
+            <label>Stok Max</label>
+            <input type="number" id="sku-max" class="form-input" value="100" min="0">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label>HPP / Harga Beli (Rp)</label>
+            <input type="number" id="sku-cost" class="form-input" value="0" min="0">
+          </div>
+          <div>
+            <label>Harga Jual (Rp)</label>
+            <input type="number" id="sku-sell" class="form-input" value="0" min="0">
+          </div>
+        </div>
+        <input type="hidden" id="sku-edit-id" value="">
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="btn-secondary" onclick="closeModal('modal-sku')">Batal</button>
+          <button class="btn-primary btn-with-icon" onclick="saveSku()">
+            <svg class="ico"><use href="#ico-check" /></svg> Simpan SKU
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Terima PO (konfirmasi tanggal aktual) -->
+  <div id="modal-receive-po" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:420px;">
+      <div class="modal-title">
+        <span>Konfirmasi Penerimaan PO</span>
+        <button class="modal-close" onclick="closeModal('modal-receive-po')">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label>Tanggal Aktual Diterima</label>
+          <input type="date" id="rpo-actual-date" class="form-input">
+        </div>
+        <div>
+          <label>Apakah jumlah terpenuhi penuh (In-Full)?</label>
+          <select id="rpo-in-full" class="form-input">
+            <option value="true">Ya, terpenuhi 100%</option>
+            <option value="false">Tidak, sebagian</option>
+          </select>
+        </div>
+        <div>
+          <label>Status Pembayaran</label>
+          <select id="rpo-payment-status" class="form-input">
+            <option value="paid">Lunas</option>
+            <option value="partial">Sebagian Dibayar</option>
+            <option value="unpaid">Belum Dibayar</option>
+          </select>
+        </div>
+        <div id="rpo-paid-amount-row">
+          <label>Jumlah Dibayarkan (Rp)</label>
+          <input type="number" id="rpo-paid-amount" class="form-input" value="0" min="0">
+        </div>
+        <input type="hidden" id="rpo-po-id" value="">
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button class="btn-secondary" onclick="closeModal('modal-receive-po')">Batal</button>
+          <button class="btn-primary btn-with-icon" onclick="confirmReceivePO()">
+            <svg class="ico"><use href="#ico-check" /></svg> Konfirmasi Terima
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="icons.js"></script>
