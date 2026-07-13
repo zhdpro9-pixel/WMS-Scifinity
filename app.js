@@ -1,7 +1,7 @@
 'use strict';
 
 /* ─────────────── SUPABASE ─────────────── */
-const SUPABASE_URL      = 'https://zspyfjcqbuehbfqcbcax.supabase.co';   // contoh: https://xxxxxxxxxxxx.supabase.co
+const SUPABASE_URL = 'https://zspyfjcqbuehbfqcbcax.supabase.co';   // contoh: https://xxxxxxxxxxxx.supabase.co
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzcHlmamNxYnVlaGJmcWNiY2F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDM3MDEsImV4cCI6MjA5NjIxOTcwMX0.khoftJXX6sDM5vTA4pKZXWlrUhwFipA3jDHt1mRWlUE';      // dari: Project Settings → API → anon public
 
 const sb = window.supabase
@@ -9,24 +9,46 @@ const sb = window.supabase
   : null;
 
 /* ─────────────── CONSTANTS ─────────────── */
-const MATERIAL_UTAMA = {
-  biang: { label: 'Biang Parfum', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Biang Parfum (mL)' },
-  botolP: { label: 'Botol Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Perempuan (pcs)' },
-  botolL: { label: 'Botol Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Laki-laki (pcs)' }
+const MATERIAL_PARFUM = {
+  biangP: { label: 'Biang Parfum Perempuan', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Biang Parfum Perempuan (mL)', group: 'parfum' },
+  biangL: { label: 'Biang Parfum Laki-laki', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Biang Parfum Laki-laki (mL)', group: 'parfum' },
+  botolP: { label: 'Botol Parfum Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Parfum Perempuan (pcs)', group: 'parfum' },
+  botolL: { label: 'Botol Parfum Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Parfum Laki-laki (pcs)', group: 'parfum' },
+  boxParfumL: { label: 'Box Parfum Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Parfum Laki-laki (pcs)', group: 'parfum' },
+  boxParfumP: { label: 'Box Parfum Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Parfum Perempuan (pcs)', group: 'parfum' }
 };
 
-const MATERIAL_PENOLONG = {
-  box: { label: 'Box Parfum Jadi', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Parfum Jadi (pcs)' },
-  kardus: { label: 'Kardus Luar', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Kardus Luar (pcs)' },
-  bubble: { label: 'Bubble Wrap', unit: 'm', warnAt: 2, lowAt: 0.5, optionLabel: 'Bubble Wrap (meter)' }
+const MATERIAL_DEODORANT = {
+  cairanDeo: { label: 'Cairan Deodorant', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Cairan Deodorant (mL)', group: 'deodorant' },
+  botolDeo: { label: 'Botol Deodorant', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Deodorant (pcs)', group: 'deodorant' },
+  boxDeo: { label: 'Box Deodorant', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Deodorant (pcs)', group: 'deodorant' }
 };
 
-const MATERIAL_META = { ...MATERIAL_UTAMA, ...MATERIAL_PENOLONG };
+const MATERIAL_HAIRMIST = {
+  cairanHM: { label: 'Cairan Hair Mist', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Cairan Hair Mist (mL)', group: 'hairmist' },
+  botolHM: { label: 'Botol Hair Mist', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Hair Mist (pcs)', group: 'hairmist' }
+};
+
+const MATERIAL_PACKAGING = {
+  boxExclusive: { label: 'Box Exclusive', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Exclusive (pcs)', group: 'packaging' },
+  boxBundlingP: { label: 'Box Bundling Pria', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Bundling Pria (pcs)', group: 'packaging' },
+  boxBundlingW: { label: 'Box Bundling Wanita', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Bundling Wanita (pcs)', group: 'packaging' },
+  bubbleWrap: { label: 'Bubble Wrap', unit: 'm', warnAt: 2, lowAt: 0.5, optionLabel: 'Bubble Wrap (meter)', group: 'packaging' },
+  boxLuar: { label: 'Box Luar', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Luar (pcs)', group: 'packaging' }
+};
+
+// Legacy aliases for backward compatibility with inbound form categories
+const MATERIAL_UTAMA = { ...MATERIAL_PARFUM, ...MATERIAL_DEODORANT, ...MATERIAL_HAIRMIST };
+const MATERIAL_PENOLONG = { ...MATERIAL_PACKAGING };
+
+const MATERIAL_META = { ...MATERIAL_PARFUM, ...MATERIAL_DEODORANT, ...MATERIAL_HAIRMIST, ...MATERIAL_PACKAGING };
 
 const VENDORS_DEFAULT = [
-  { id: 1, name: 'PT Aroma Nusantara', material: 'biang', leadTimeDays: 3, contact: '0812-xxxx-xxxx' },
-  { id: 2, name: 'CV Botol Kaca Jaya', material: 'botolP,botolL', leadTimeDays: 5, contact: '0813-xxxx-xxxx' },
-  { id: 3, name: 'PT PackIndo Sejahtera', material: 'box,kardus,bubble', leadTimeDays: 2, contact: '0819-xxxx-xxxx' }
+  { id: 1, name: 'PT Aroma Nusantara', material: 'biangP,biangL', leadTimeDays: 3, contact: '0812-xxxx-xxxx' },
+  { id: 2, name: 'CV Botol Kaca Jaya', material: 'botolP,botolL,botolDeo,botolHM', leadTimeDays: 5, contact: '0813-xxxx-xxxx' },
+  { id: 3, name: 'PT PackIndo Sejahtera', material: 'boxParfumP,boxParfumL,boxDeo,boxExclusive,boxBundlingP,boxBundlingW,bubbleWrap,boxLuar', leadTimeDays: 2, contact: '0819-xxxx-xxxx' },
+  { id: 4, name: 'CV Deodorant Supply', material: 'cairanDeo', leadTimeDays: 4, contact: '0821-xxxx-xxxx' },
+  { id: 5, name: 'PT Hair Mist Indo', material: 'cairanHM', leadTimeDays: 4, contact: '0822-xxxx-xxxx' }
 ];
 
 let VENDORS = VENDORS_DEFAULT.map(v => ({ ...v }));
@@ -39,12 +61,50 @@ const FINISHED_GOODS = {
   parfumP_100: { label: 'Parfum Perempuan 100mL', size: 100, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
   parfumL_30: { label: 'Parfum Laki-laki 30mL', size: 30, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
   parfumL_50: { label: 'Parfum Laki-laki 50mL', size: 50, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  parfumL_100: { label: 'Parfum Laki-laki 100mL', size: 100, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 }
+  parfumL_100: { label: 'Parfum Laki-laki 100mL', size: 100, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  deodorant: { label: 'Deodorant', size: 50, product: 'deodorant', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  hairMist: { label: 'Hair Mist', size: 100, product: 'hairMist', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  bundlingPria: { label: 'Bundling Pria', size: 0, product: 'bundlingPria', unit: 'set', warnAt: 3, lowAt: 1 },
+  bundlingWanita: { label: 'Bundling Wanita', size: 0, product: 'bundlingWanita', unit: 'set', warnAt: 3, lowAt: 1 }
+};
+
+// Recipe: bahan baku yang dibutuhkan per 1 unit produk jadi
+const PRODUCTION_RECIPES = {
+  parfumP_30: { biangP: 30, botolP: 1, boxParfumP: 1 },
+  parfumP_50: { biangP: 50, botolP: 1, boxParfumP: 1 },
+  parfumP_100: { biangP: 100, botolP: 1, boxParfumP: 1 },
+  parfumL_30: { biangL: 30, botolL: 1, boxParfumL: 1 },
+  parfumL_50: { biangL: 50, botolL: 1, boxParfumL: 1 },
+  parfumL_100: { biangL: 100, botolL: 1, boxParfumL: 1 },
+  deodorant: { cairanDeo: 50, botolDeo: 1, boxDeo: 1 },
+  hairMist: { cairanHM: 100, botolHM: 1, boxExclusive: 1 },
+  // Bundling menggunakan produk jadi (fg) bukan bahan baku langsung
+  bundlingPria: { _fg: { parfumL_30: 1, deodorant: 1 }, boxBundlingP: 1 },
+  bundlingWanita: { _fg: { parfumP_30: 1, deodorant: 1 }, boxBundlingW: 1 }
 };
 
 const DEFAULT_STATE = {
-  rm: { biang: 0, botolP: 0, botolL: 0, box: 0, kardus: 0, bubble: 0 },
-  fg: { parfumP_30: 0, parfumP_50: 0, parfumP_100: 0, parfumL_30: 0, parfumL_50: 0, parfumL_100: 0 },
+  rm: {
+    biangP: 0, biangL: 0, botolP: 0, botolL: 0, boxParfumL: 0, boxParfumP: 0,
+    cairanDeo: 0, botolDeo: 0, boxDeo: 0,
+    cairanHM: 0, botolHM: 0,
+    boxExclusive: 0, boxBundlingP: 0, boxBundlingW: 0, bubbleWrap: 0, boxLuar: 0
+  },
+  fg: {
+    parfumP_30: 0, parfumP_50: 0, parfumP_100: 0,
+    parfumL_30: 0, parfumL_50: 0, parfumL_100: 0,
+    deodorant: 0, hairMist: 0, bundlingPria: 0, bundlingWanita: 0
+  },
+  hr: {
+    errors: [], // { id, ts, staff, type, resi, notes }
+    overtimes: [] // { id, ts, date, staff, hours, notes }
+  },
+  marketing: {
+    budgets: [], // { id, ts, category, month, amount }
+    kpi: { roas: 0, cac: 0, ltv: 0, reach: 0, growth: 0 },
+    calendar: [], // { id, title, type, start, end, pic }
+    pr: [] // { id, name, type, date, notes }
+  },
   log: [],
   sales: []
 };
@@ -198,14 +258,32 @@ async function loadState() {
 
     if (inv) {
       S.rm = {
-        biang: inv.biang || 0,
+        biangP: inv.biang_p || inv.biang || 0,
+        biangL: inv.biang_l || 0,
         botolP: inv.botol_p || 0,
         botolL: inv.botol_l || 0,
-        box: inv.box || 0, kardus: inv.kardus || 0, bubble: inv.bubble || 0
+        boxParfumL: inv.box_parfum_l || 0,
+        boxParfumP: inv.box_parfum_p || inv.box || 0,
+        cairanDeo: inv.cairan_deo || 0,
+        botolDeo: inv.botol_deo || 0,
+        boxDeo: inv.box_deo || 0,
+        cairanHM: inv.cairan_hm || 0,
+        botolHM: inv.botol_hm || 0,
+        boxExclusive: inv.box_exclusive || 0,
+        boxBundlingP: inv.box_bundling_p || 0,
+        boxBundlingW: inv.box_bundling_w || 0,
+        bubbleWrap: inv.bubble_wrap || inv.bubble || 0,
+        boxLuar: inv.box_luar || inv.kardus || 0
       };
     } else {
       await sb.from('wms_inventory').insert({
-        id: 1, biang: 0, botol_p: 0, botol_l: 0, box: 0, kardus: 0, bubble: 0
+        id: 1,
+        biang_p: 0, biang_l: 0, botol_p: 0, botol_l: 0,
+        box_parfum_l: 0, box_parfum_p: 0,
+        cairan_deo: 0, botol_deo: 0, box_deo: 0,
+        cairan_hm: 0, botol_hm: 0,
+        box_exclusive: 0, box_bundling_p: 0, box_bundling_w: 0,
+        bubble_wrap: 0, box_luar: 0
       });
     }
 
@@ -225,13 +303,18 @@ async function loadState() {
         parfumP_100: fg.parfum_p_100 || 0,
         parfumL_30: fg.parfum_l_30 || 0,
         parfumL_50: fg.parfum_l_50 || 0,
-        parfumL_100: fg.parfum_l_100 || 0
+        parfumL_100: fg.parfum_l_100 || 0,
+        deodorant: fg.deodorant || 0,
+        hairMist: fg.hair_mist || 0,
+        bundlingPria: fg.bundling_pria || 0,
+        bundlingWanita: fg.bundling_wanita || 0
       };
     } else {
       await sb.from('wms_finished_goods').insert({
         id: 1,
         parfum_p_30: 0, parfum_p_50: 0, parfum_p_100: 0,
-        parfum_l_30: 0, parfum_l_50: 0, parfum_l_100: 0
+        parfum_l_30: 0, parfum_l_50: 0, parfum_l_100: 0,
+        deodorant: 0, hair_mist: 0, bundling_pria: 0, bundling_wanita: 0
       });
     }
 
@@ -259,7 +342,7 @@ async function loadState() {
         { name: 'CV Botol Kaca Jaya', material: 'botolP,botolL', lead_time_days: 5, contact: '0813-xxxx-xxxx', vendor_type: 'botol_parfum' },
         { name: 'PT PackIndo Sejahtera', material: 'box,kardus,bubble', lead_time_days: 2, contact: '0819-xxxx-xxxx', vendor_type: 'packaging' }
       ];
-      
+
       const { error: insertVendorsErr } = await sb.from('wms_vendors').insert(defaultVendors);
       if (!insertVendorsErr) {
         const { data: newVendors } = await sb.from('wms_vendors').select('*').order('id', { ascending: true });
@@ -284,19 +367,29 @@ async function loadState() {
 async function syncInventory() {
   if (!sb) return;
   try {
-    // Sync raw materials
+    // Sync raw materials (16 bahan baku)
     const { error: invErr } = await sb.from('wms_inventory').update({
-      biang: S.rm.biang,
+      biang_p: S.rm.biangP,
+      biang_l: S.rm.biangL,
       botol_p: S.rm.botolP,
       botol_l: S.rm.botolL,
-      box: S.rm.box,
-      kardus: S.rm.kardus,
-      bubble: S.rm.bubble,
+      box_parfum_l: S.rm.boxParfumL,
+      box_parfum_p: S.rm.boxParfumP,
+      cairan_deo: S.rm.cairanDeo,
+      botol_deo: S.rm.botolDeo,
+      box_deo: S.rm.boxDeo,
+      cairan_hm: S.rm.cairanHM,
+      botol_hm: S.rm.botolHM,
+      box_exclusive: S.rm.boxExclusive,
+      box_bundling_p: S.rm.boxBundlingP,
+      box_bundling_w: S.rm.boxBundlingW,
+      bubble_wrap: S.rm.bubbleWrap,
+      box_luar: S.rm.boxLuar,
       updated_at: new Date().toISOString()
     }).eq('id', 1);
     if (invErr) throw invErr;
 
-    // Sync finished goods
+    // Sync finished goods (10 produk jadi)
     const { error: fgErr } = await sb.from('wms_finished_goods').update({
       parfum_p_30: S.fg.parfumP_30,
       parfum_p_50: S.fg.parfumP_50,
@@ -304,6 +397,10 @@ async function syncInventory() {
       parfum_l_30: S.fg.parfumL_30,
       parfum_l_50: S.fg.parfumL_50,
       parfum_l_100: S.fg.parfumL_100,
+      deodorant: S.fg.deodorant,
+      hair_mist: S.fg.hairMist,
+      bundling_pria: S.fg.bundlingPria,
+      bundling_wanita: S.fg.bundlingWanita,
       updated_at: new Date().toISOString()
     }).eq('id', 1);
     if (fgErr) throw fgErr;
@@ -328,7 +425,9 @@ const PAGE_TITLES = {
   warehouse: 'Gudang & SKU',
   production: 'Produksi',
   sales: 'Penjualan & Outbound',
-  financial: 'Proyeksi Keuangan',
+  hr: 'Human Resources',
+  financial: 'Finance & AP',
+  marketing: 'Marketing',
   vendors: 'Manajemen Vendor',
   report: 'Laporan Bulanan'
 };
@@ -339,7 +438,9 @@ function navigateTo(pageKey) {
   document.getElementById(`page-${pageKey}`).classList.add('active');
   document.querySelector(`[data-page="${pageKey}"]`).classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[pageKey];
+  if (pageKey === 'hr') { renderHr(); populateHrStaff(); }
   if (pageKey === 'financial') populateFinFields();
+  if (pageKey === 'marketing') renderMarketing();
   if (pageKey === 'vendors') { renderVendors(); renderPoHistory(); populatePoVendorSelect(); }
   if (pageKey === 'warehouse') renderWarehouse();
   renderAll();
@@ -361,26 +462,36 @@ function renderAll() {
   renderRawMaterials();
   renderProduction();
   renderSales();
+  renderHr();
   renderFinancial();
+  renderMarketing();
   renderVendors();
   renderReport();
 }
 
 function renderDashboard() {
   const { rm, log, sales } = S;
-  const maxes = { biang: 500, botolP: 50, botolL: 50, box: 50 };
 
-  set('d-biang', fmt(rm.biang) + '<span class="stat-unit">mL</span>');
-  set('d-botp', fmt(rm.botolP) + '<span class="stat-unit">pcs</span>');
-  set('d-botl', fmt(rm.botolL) + '<span class="stat-unit">pcs</span>');
-  set('d-box', fmt(rm.box) + '<span class="stat-unit">pcs</span>');
-  set('d-kardus', fmt(rm.kardus) + '<span class="stat-unit">pcs</span>');
-  set('d-bubble', fmt(rm.bubble) + '<span class="stat-unit">m</span>');
+  // Summary stats for dashboard - grouped counts
+  const parfumBiangTotal = (rm.biangP || 0) + (rm.biangL || 0);
+  const parfumBotolTotal = (rm.botolP || 0) + (rm.botolL || 0);
+  const parfumBoxTotal = (rm.boxParfumP || 0) + (rm.boxParfumL || 0);
+  const deoTotal = (rm.cairanDeo || 0);
+  const hmTotal = (rm.cairanHM || 0);
+  const packTotal = (rm.boxExclusive || 0) + (rm.boxBundlingP || 0) + (rm.boxBundlingW || 0) + (rm.boxLuar || 0);
 
-  setStyle('d-biang-fill', 'width', Math.min(100, (rm.biang / maxes.biang) * 100) + '%');
-  setStyle('d-botp-fill', 'width', Math.min(100, (rm.botolP / maxes.botolP) * 100) + '%');
-  setStyle('d-botl-fill', 'width', Math.min(100, (rm.botolL / maxes.botolL) * 100) + '%');
-  setStyle('d-box-fill', 'width', Math.min(100, (rm.box / maxes.box) * 100) + '%');
+  set('d-biang', fmt(parfumBiangTotal) + '<span class="stat-unit">mL</span>');
+  set('d-botp', fmt(parfumBotolTotal) + '<span class="stat-unit">pcs</span>');
+  set('d-botl', fmt(deoTotal) + '<span class="stat-unit">mL</span>');
+  set('d-box', fmt(hmTotal) + '<span class="stat-unit">mL</span>');
+  set('d-kardus', fmt(rm.boxLuar || 0) + '<span class="stat-unit">pcs</span>');
+  set('d-bubble', fmt(rm.bubbleWrap || 0) + '<span class="stat-unit">m</span>');
+
+  const maxes = { biang: 500, botolP: 50, deo: 500, hm: 500 };
+  setStyle('d-biang-fill', 'width', Math.min(100, (parfumBiangTotal / maxes.biang) * 100) + '%');
+  setStyle('d-botp-fill', 'width', Math.min(100, (parfumBotolTotal / maxes.botolP) * 100) + '%');
+  setStyle('d-botl-fill', 'width', Math.min(100, (deoTotal / maxes.deo) * 100) + '%');
+  setStyle('d-box-fill', 'width', Math.min(100, (hmTotal / maxes.hm) * 100) + '%');
 
   // Render sales chart
   renderSalesChart(sales);
@@ -449,24 +560,16 @@ function renderSalesChart(sales) {
 
 function renderRawMaterials() {
   const { rm, log } = S;
-  setTxt('rm-biang-val', fmt(rm.biang) + '<span class="stat-unit">mL</span>');
-  setTxt('rm-botp-val', fmt(rm.botolP) + '<span class="stat-unit">pcs</span>');
-  setTxt('rm-botl-val', fmt(rm.botolL) + '<span class="stat-unit">pcs</span>');
-  setTxt('rm-box-val', fmt(rm.box) + '<span class="stat-unit">pcs</span>');
-  setTxt('rm-kardus-val', fmt(rm.kardus) + '<span class="stat-unit">pcs</span>');
-  setTxt('rm-bubble-val', fmt(rm.bubble) + '<span class="stat-unit">m</span>');
 
-  const badgeKeys = [
-    ['rm-biang-badge', 'rm-biang-hint', rm.biang, 'biang'],
-    ['rm-botp-badge', 'rm-botp-hint', rm.botolP, 'botolP'],
-    ['rm-botl-badge', 'rm-botl-hint', rm.botolL, 'botolL'],
-    ['rm-box-badge', 'rm-box-hint', rm.box, 'box'],
-    ['rm-kardus-badge', 'rm-kardus-hint', rm.kardus, 'kardus'],
-    ['rm-bubble-badge', 'rm-bubble-hint', rm.bubble, 'bubble']
-  ];
-  badgeKeys.forEach(([badgeId, hintId, val, key]) => {
-    updateBadge(badgeId, val, key);
-    updateVendorHint(hintId, val, key);
+  // Update all material cards dynamically
+  Object.entries(MATERIAL_META).forEach(([key, meta]) => {
+    const valEl = document.getElementById(`rm-${key}-val`);
+    const badgeEl = document.getElementById(`rm-${key}-badge`);
+    const hintEl = document.getElementById(`rm-${key}-hint`);
+    const val = rm[key] || 0;
+    if (valEl) valEl.innerHTML = fmt(val) + `<span class="stat-unit">${meta.unit}</span>`;
+    if (badgeEl) updateBadge(`rm-${key}-badge`, val, key);
+    if (hintEl) updateVendorHint(`rm-${key}-hint`, val, key);
   });
 
   const el = document.getElementById('rm-log');
@@ -488,55 +591,117 @@ function updateSalePreview() {
 }
 
 function updateProdPreview() {
-  const qty = parseInt(document.getElementById('prod-qty').value) || 0;
-  const size = parseInt(document.getElementById('prod-size').value) || 30;
-  const totBiang = qty * size;
-  setTxt('prod-prev-biang', `${fmt(totBiang)} mL`);
-  setTxt('prod-prev-bottle', `${fmt(qty)} pcs`);
-  setTxt('prod-prev-box', `${fmt(qty)} pcs`);
+  const fgKey = document.getElementById('prod-product')?.value;
+  const qty = parseInt(document.getElementById('prod-qty')?.value) || 0;
+  if (!fgKey) return;
+
+  const recipe = PRODUCTION_RECIPES[fgKey];
+  if (!recipe) return;
+
+  const previewEl = document.getElementById('prod-preview-items');
+  if (!previewEl) return;
+
+  let html = '';
+  // Show raw material needs
+  Object.entries(recipe).forEach(([matKey, amount]) => {
+    if (matKey === '_fg') return; // Skip fg requirements display separately
+    const meta = MATERIAL_META[matKey];
+    if (!meta) return;
+    const needed = amount * qty;
+    const available = S.rm[matKey] || 0;
+    const isShort = available < needed;
+    html += `<div style="display:flex;justify-content:space-between;font-size:13px;">
+      <span class="label-with-icon" style="color:#6B5347;">${icon(matIconName(matKey), 'ico ico-xs')} ${meta.label}</span>
+      <strong style="color:${isShort ? '#991B1B' : '#2D1F17'};">${fmt(needed)} ${meta.unit}${isShort ? ' ⚠' : ''}</strong>
+    </div>`;
+  });
+
+  // Show finished goods needs (for bundling)
+  if (recipe._fg) {
+    Object.entries(recipe._fg).forEach(([fgReqKey, amount]) => {
+      const fgMeta = FINISHED_GOODS[fgReqKey];
+      if (!fgMeta) return;
+      const needed = amount * qty;
+      const available = S.fg[fgReqKey] || 0;
+      const isShort = available < needed;
+      html += `<div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span style="color:#6B5347;">📦 ${fgMeta.label} (produk jadi)</span>
+        <strong style="color:${isShort ? '#991B1B' : '#2D1F17'};">${fmt(needed)} ${fgMeta.unit}${isShort ? ' ⚠' : ''}</strong>
+      </div>`;
+    });
+  }
+
+  previewEl.innerHTML = html || '<div style="color:#B08A62;font-size:12px;">Pilih produk terlebih dahulu</div>';
 }
 
 async function recordProduction() {
-  const product = document.getElementById('prod-product').value;
-  const size = parseInt(document.getElementById('prod-size').value) || 30;
+  const fgKey = document.getElementById('prod-product').value;
   const qty = validateQuantity(document.getElementById('prod-qty').value, true);
 
   if (!qty) return;
-
-  // Calculate required raw materials
-  const biangNeeded = qty * size;
-  const bottleNeeded = qty;
-  const boxNeeded = qty;
-
-  // Check stock availability
-  const requiredBottleKey = product === 'perempuan' ? 'botolP' : 'botolL';
-  if (S.rm.biang < biangNeeded) {
-    toast(`Stok biang parfum tidak cukup! Perlu ${biangNeeded} mL, hanya tersedia ${fmt(S.rm.biang)} mL.`, 'error');
+  if (!fgKey || !PRODUCTION_RECIPES[fgKey]) {
+    toast('Pilih jenis produk yang valid!', 'error');
     return;
   }
-  if (S.rm[requiredBottleKey] < bottleNeeded) {
-    toast(`Stok botol ${product === 'perempuan' ? 'perempuan' : 'laki-laki'} tidak cukup! Perlu ${bottleNeeded} pcs, hanya tersedia ${fmt(S.rm[requiredBottleKey])} pcs.`, 'error');
-    return;
+
+  const recipe = PRODUCTION_RECIPES[fgKey];
+  const errors = [];
+
+  // Check raw material stock
+  Object.entries(recipe).forEach(([matKey, amount]) => {
+    if (matKey === '_fg') return;
+    const needed = amount * qty;
+    const available = S.rm[matKey] || 0;
+    const meta = MATERIAL_META[matKey];
+    if (available < needed) {
+      errors.push(`${meta.label}: butuh ${fmt(needed)} ${meta.unit}, tersedia ${fmt(available)} ${meta.unit}`);
+    }
+  });
+
+  // Check finished goods stock (for bundling)
+  if (recipe._fg) {
+    Object.entries(recipe._fg).forEach(([fgReqKey, amount]) => {
+      const needed = amount * qty;
+      const available = S.fg[fgReqKey] || 0;
+      const fgMeta = FINISHED_GOODS[fgReqKey];
+      if (available < needed) {
+        errors.push(`${fgMeta.label} (produk jadi): butuh ${fmt(needed)}, tersedia ${fmt(available)}`);
+      }
+    });
   }
-  if (S.rm.box < boxNeeded) {
-    toast(`Stok box parfum tidak cukup! Perlu ${boxNeeded} pcs, hanya tersedia ${fmt(S.rm.box)} pcs.`, 'error');
+
+  if (errors.length) {
+    toast('Stok tidak cukup!\n' + errors.join('\n'), 'error', 5000);
     return;
   }
 
   // Deduct raw materials
-  S.rm.biang = +(S.rm.biang - biangNeeded).toFixed(2);
-  S.rm[requiredBottleKey] = +(S.rm[requiredBottleKey] - bottleNeeded).toFixed(2);
-  S.rm.box = +(S.rm.box - boxNeeded).toFixed(2);
+  const deductions = [];
+  Object.entries(recipe).forEach(([matKey, amount]) => {
+    if (matKey === '_fg') return;
+    const needed = amount * qty;
+    S.rm[matKey] = +(S.rm[matKey] - needed).toFixed(2);
+    const meta = MATERIAL_META[matKey];
+    deductions.push(`-${fmt(needed)} ${meta.unit} ${meta.label}`);
+  });
+
+  // Deduct finished goods (for bundling)
+  if (recipe._fg) {
+    Object.entries(recipe._fg).forEach(([fgReqKey, amount]) => {
+      const needed = amount * qty;
+      S.fg[fgReqKey] = +(S.fg[fgReqKey] - needed).toFixed(2);
+      const fgMeta = FINISHED_GOODS[fgReqKey];
+      deductions.push(`-${fmt(needed)} ${fgMeta.label}`);
+    });
+  }
 
   // Add finished goods
-  const fgKey = product === 'perempuan' ? `parfumP_${size}` : `parfumL_${size}`;
   S.fg[fgKey] = +(S.fg[fgKey] + qty).toFixed(2);
 
-  // Add log
-  const prodLabel = FINISHED_GOODS[fgKey].label;
-  await addLog('production', `Produksi ${qty} pcs ${prodLabel} berhasil! -${fmt(biangNeeded)} mL biang, -${fmt(bottleNeeded)} botol, -${fmt(boxNeeded)} box`);
+  const fgLabel = FINISHED_GOODS[fgKey].label;
+  await addLog('production', `Produksi ${qty} pcs ${fgLabel} berhasil! ${deductions.join(', ')}`);
 
-  toast(`Produksi berhasil! ${qty} pcs ${prodLabel} ditambahkan ke stok.`, 'success', 3000);
+  toast(`Produksi berhasil! ${qty} pcs ${fgLabel} ditambahkan ke stok.`, 'success', 3000);
 
   await saveState();
   renderAll();
@@ -544,15 +709,30 @@ async function recordProduction() {
 }
 
 function renderProduction() {
-  const { rm, fg, log } = S;
+  const { fg, log } = S;
 
-  // Render raw materials stock on production page
-  setTxt('p-biang',  fmt(rm.biang)  + ' mL');
-  setTxt('p-botp',   fmt(rm.botolP) + ' pcs');
-  setTxt('p-botl',   fmt(rm.botolL) + ' pcs');
-  setTxt('p-box',    fmt(rm.box)    + ' pcs');
-  setTxt('p-kardus', fmt(rm.kardus) + ' pcs');
-  setTxt('p-bubble', fmt(rm.bubble) + ' m');
+  // Render finished goods stock on production page
+  const fgStockEl = document.getElementById('prod-fg-stock');
+  if (fgStockEl) {
+    const items = Object.entries(FINISHED_GOODS).map(([key, fgItem]) => {
+      const qty = fg[key] || 0;
+      const isLow = qty <= fgItem.lowAt;
+      const isWarn = qty <= fgItem.warnAt && !isLow;
+      const bgClass = isLow ? 'background:#FEF2F2' : isWarn ? 'background:#FFFBEB' : 'background:#FAF7F2';
+      const colorClass = isLow ? 'color:#991B1B' : isWarn ? 'color:#92400E' : 'color:#2D1F17';
+
+      return `
+        <div style="padding:10px 14px;${bgClass};border-radius:9px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#2D1F17;">${fgItem.label}</div>
+            <div style="font-size:11px;color:#8B6F5E;">${qty < fgItem.warnAt ? (qty < fgItem.lowAt ? 'Stok hampir habis!' : 'Stok menipis') : 'Stok aman'}</div>
+          </div>
+          <div style="font-size:14px;font-weight:700;${colorClass};">${fmt(qty)} ${fgItem.unit}</div>
+        </div>
+      `;
+    }).join('');
+    fgStockEl.innerHTML = items || '<div style="text-align:center;color:#B08A62;font-size:13px;padding:16px 0;">Belum ada stok produk jadi</div>';
+  }
 
   // Render production log (filter from S.log)
   const prodLogEl = document.getElementById('prod-log');
@@ -676,16 +856,14 @@ async function addStock() {
 async function recordSale() {
   const productEl = document.getElementById('sale-product');
   const qtyEl = document.getElementById('sale-qty');
-  const sizeEl = document.getElementById('sale-size');
   const channelEl = document.getElementById('sale-channel');
   const trackingEl = document.getElementById('sale-tracking');
   const kardusEl = document.getElementById('sale-kardus');
   const bubbleEl = document.getElementById('sale-bubble');
   const notesEl = document.getElementById('sale-notes');
 
-  const product = productEl.value;
+  const fgKey = productEl.value;
   const qty = validateQuantity(qtyEl.value, false);
-  const size = parseInt(sizeEl.value) || 30;
   const channel = channelEl.value;
   const tracking = validateTracking(trackingEl.value);
   let kardus = parseFloat(kardusEl.value) || 0;
@@ -694,6 +872,10 @@ async function recordSale() {
   const notes = notesEl.value.trim();
 
   if (!qty || !tracking) return;
+  if (!fgKey || !FINISHED_GOODS[fgKey]) {
+    toast('Pilih produk yang valid!', 'error');
+    return;
+  }
 
   // Validate kardus and bubble wrap can't be negative
   if (kardus < 0) {
@@ -708,13 +890,12 @@ async function recordSale() {
   }
 
   // Check finished goods stock
-  const fgKey = product === 'perempuan' ? `parfumP_${size}` : `parfumL_${size}`;
   const fgLabel = FINISHED_GOODS[fgKey].label;
 
   const errors = [];
-  if (S.fg[fgKey] < qty) errors.push(`${fgLabel} kurang: butuh ${fmt(qty)} pcs, stok ${fmt(S.fg[fgKey])} pcs`);
-  if (kardus > 0 && S.rm.kardus < kardus) errors.push(`Kardus hanya ${fmt(S.rm.kardus)} pcs (butuh ${fmt(kardus)})`);
-  if (bubble > 0 && S.rm.bubble < bubble) errors.push(`Bubble Wrap hanya ${fmt(S.rm.bubble * 100)}cm (butuh ${fmt(bubbleCm)}cm)`);
+  if ((S.fg[fgKey] || 0) < qty) errors.push(`${fgLabel} kurang: butuh ${fmt(qty)} pcs, stok ${fmt(S.fg[fgKey])} pcs`);
+  if (kardus > 0 && (S.rm.boxLuar || 0) < kardus) errors.push(`Kardus hanya ${fmt(S.rm.boxLuar || 0)} pcs (butuh ${fmt(kardus)})`);
+  if (bubble > 0 && (S.rm.bubbleWrap || 0) < bubble) errors.push(`Bubble Wrap hanya ${fmt((S.rm.bubbleWrap || 0) * 100)}cm (butuh ${fmt(bubbleCm)}cm)`);
 
   if (errors.length) {
     toast('Stok tidak cukup:\n' + errors.join('\n'), 'error', 5000);
@@ -723,10 +904,9 @@ async function recordSale() {
 
   // Auto-cut stok finished goods and packing materials
   S.fg[fgKey] = +(S.fg[fgKey] - qty).toFixed(2);
-  if (kardus > 0) S.rm.kardus = +(Math.max(0, S.rm.kardus - kardus)).toFixed(2);
-  if (bubble > 0) S.rm.bubble = +(Math.max(0, S.rm.bubble - bubble)).toFixed(2);
+  if (kardus > 0) S.rm.boxLuar = +(Math.max(0, (S.rm.boxLuar || 0) - kardus)).toFixed(2);
+  if (bubble > 0) S.rm.bubbleWrap = +(Math.max(0, (S.rm.bubbleWrap || 0) - bubble)).toFixed(2);
 
-  const prodLabel = product === 'perempuan' ? 'Parfum Perempuan' : 'Parfum Laki-laki';
   const chLabel = channel === 'Shopee' ? 'Shopee (Lokal)' : 'eBay (Internasional)';
 
   const packingInfo = [];
@@ -738,9 +918,9 @@ async function recordSale() {
 
   const ts = new Date().toISOString();
   const saleItem = {
-    product,
+    product: fgKey,
+    size: FINISHED_GOODS[fgKey].size || 0,
     qty,
-    size,
     channel,
     tracking,
     kardus,
@@ -1097,9 +1277,9 @@ function renderVendors() {
 
     const rating = parseFloat(v.rating) || 5;
     const stars = renderStars(rating);
-    const otif  = parseFloat(v.otif_rate) || 100;
+    const otif = parseFloat(v.otif_rate) || 100;
     const otifCls = otif >= 90 ? 'otif-good' : otif >= 75 ? 'otif-ok' : 'otif-poor';
-    const top   = v.term_of_payment || 'CBD';
+    const top = v.term_of_payment || 'CBD';
     const topCls = top === 'CBD' || top === 'COD' ? 'top-cbd' : 'top-net';
     const vtCls = vtypeCls(v.vendor_type);
     const totalPaid = v.total_paid || 0;
@@ -1150,12 +1330,12 @@ function renderStars(rating) {
 }
 
 function vtypeCls(t) {
-  const map = { biang_parfum:'vtype-biang', botol_parfum:'vtype-botol', packaging:'vtype-packaging', deodorant:'vtype-deodorant', hairmist:'vtype-hairmist' };
+  const map = { biang_parfum: 'vtype-biang', botol_parfum: 'vtype-botol', packaging: 'vtype-packaging', deodorant: 'vtype-deodorant', hairmist: 'vtype-hairmist' };
   return map[t] || 'vtype-default';
 }
 
 function vtypeLabel(t) {
-  const map = { biang_parfum:'Biang Parfum', botol_parfum:'Botol Parfum', packaging:'Packaging', deodorant:'Deodorant', hairmist:'Hair Mist' };
+  const map = { biang_parfum: 'Biang Parfum', botol_parfum: 'Botol Parfum', packaging: 'Packaging', deodorant: 'Deodorant', hairmist: 'Hair Mist' };
   return map[t] || (t || 'Umum');
 }
 
@@ -1167,10 +1347,10 @@ function filterVendors(type) {
   });
   // Store filter in active chip via data attribute trick
   const chip = document.getElementById(type === 'all' ? 'vf-all' : `vf-${type}`) ||
-               document.getElementById(`vf-${type.replace('_parfum','').replace('_','')}`);
+    document.getElementById(`vf-${type.replace('_parfum', '').replace('_', '')}`);
   if (chip) chip.dataset.filter = type;
   // Set all chips data-filter
-  const chipMap = { all:'all', biang:'biang_parfum', botol:'botol_parfum', deo:'deodorant', hair:'hairmist', pack:'packaging' };
+  const chipMap = { all: 'all', biang: 'biang_parfum', botol: 'botol_parfum', deo: 'deodorant', hair: 'hairmist', pack: 'packaging' };
   Object.entries(chipMap).forEach(([k, v]) => {
     const el = document.getElementById(`vf-${k}`);
     if (el) el.dataset.filter = v;
@@ -1179,7 +1359,7 @@ function filterVendors(type) {
 }
 
 function switchVendorTab(tab) {
-  ['list','po','history'].forEach(t => {
+  ['list', 'po', 'history'].forEach(t => {
     const btn = document.getElementById(`vtab-${t}`);
     const panel = document.getElementById(`vpanel-${t}`);
     const isActive = t === tab;
@@ -1256,8 +1436,15 @@ function setupFormListeners() {
     if (rmType) rmType.addEventListener('change', populateRmVendorSelect);
     if (saleCh) saleCh.addEventListener('change', onSaleChannelChange);
     if (saleCh) document.getElementById('sale-product')?.addEventListener('change', updateSalePreview);
-    if (saleCh) document.getElementById('sale-size')?.addEventListener('change', updateSalePreview);
     if (genResiBtn) genResiBtn.addEventListener('click', simulateCourierTracking);
+
+    // Populate products
+    const prodSelect = document.getElementById('prod-product');
+    const saleSelect = document.getElementById('sale-product');
+    const fgOptions = Object.entries(FINISHED_GOODS).map(([k, m]) => `<option value="${k}">${m.label}</option>`).join('');
+    if (prodSelect) prodSelect.innerHTML = fgOptions;
+    if (saleSelect) saleSelect.innerHTML = fgOptions;
+
     formListenersReady = true;
   }
 
@@ -1484,16 +1671,16 @@ function loadFinConfig() {
 /** Isi form input dengan nilai finConfig saat ini. Dipanggil sekali saat halaman financial dibuka. */
 function populateFinFields() {
   const el = (id, val) => { const e = document.getElementById(id); if (e) e.value = val; };
-  el('fin-price-p',        finConfig.priceP);
-  el('fin-price-l',        finConfig.priceL);
-  el('fin-cost-biang',     finConfig.costBiang);
-  el('fin-cost-bottle',    finConfig.costBottle);
-  el('fin-cost-box',       finConfig.costBox);
-  el('fin-cost-packing',   finConfig.costPacking);
-  el('fin-cost-kardus',    finConfig.costKardus);
-  el('fin-cost-bubble',    finConfig.costBubble);
-  el('fin-fee-marketplace',finConfig.feeMarketplace);
-  el('fin-cost-overhead',  finConfig.costOverhead);
+  el('fin-price-p', finConfig.priceP);
+  el('fin-price-l', finConfig.priceL);
+  el('fin-cost-biang', finConfig.costBiang);
+  el('fin-cost-bottle', finConfig.costBottle);
+  el('fin-cost-box', finConfig.costBox);
+  el('fin-cost-packing', finConfig.costPacking);
+  el('fin-cost-kardus', finConfig.costKardus);
+  el('fin-cost-bubble', finConfig.costBubble);
+  el('fin-fee-marketplace', finConfig.feeMarketplace);
+  el('fin-cost-overhead', finConfig.costOverhead);
 }
 
 function saveFinConfig() {
@@ -1531,16 +1718,16 @@ function renderFinancial() {
   let qtyP = 0, qtyL = 0, totalRevenue = 0;
   // Untuk channel revenue
   let revenueShopee = 0, revenueEbay = 0, qtyShopee = 0, qtyEbay = 0;
-  
+
   salesThisMonth.forEach(s => {
     const qty = parseInt(s.qty) || 0;
     const price = s.product === 'perempuan' ? finConfig.priceP : finConfig.priceL;
     const saleRevenue = qty * price;
-    
+
     if (s.product === 'perempuan') qtyP += qty;
     else qtyL += qty;
     totalRevenue += saleRevenue;
-    
+
     // Hitung per channel
     if (s.channel === 'Shopee') {
       revenueShopee += saleRevenue;
@@ -1703,16 +1890,16 @@ function renderFinancial() {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const yearMonth = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
       const monthName = date.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
-      
+
       const salesInMonth = (S.sales || []).filter(s => s.ts && getYearMonthLocal(s.ts) === yearMonth);
-      
+
       let rev = 0;
       salesInMonth.forEach(s => {
         const qty = parseInt(s.qty) || 0;
         const price = s.product === 'perempuan' ? finConfig.priceP : finConfig.priceL;
         rev += qty * price;
       });
-      
+
       months.push({ name: monthName, rev: rev, count: salesInMonth.length });
     }
 
@@ -1876,69 +2063,74 @@ async function loadSkus() {
 }
 
 function renderWarehouse() {
-  if (!ALL_SKUS.length) loadSkus().then(() => _renderWarehouse());
-  else _renderWarehouse();
-}
-
-function _renderWarehouse() {
+  const { rm } = S;
   const search = (document.getElementById('sku-search')?.value || '').toLowerCase();
-  let skus = ALL_SKUS.filter(s => s.is_active !== false);
 
-  if (WH_FILTER !== 'all') skus = skus.filter(s => s.category === WH_FILTER);
-  if (search) skus = skus.filter(s =>
-    s.sku.toLowerCase().includes(search) || s.name.toLowerCase().includes(search)
-  );
+  let materials = Object.entries(MATERIAL_META).map(([key, meta]) => {
+    return { key, meta, stock: rm[key] || 0 };
+  });
+
+  if (WH_FILTER !== 'all') {
+    const filterGroupMap = {
+      parfum: ['biangP', 'biangL', 'botolP', 'botolL', 'boxParfumL', 'boxParfumP'],
+      deodorant: ['cairanDeo', 'botolDeo', 'boxDeo'],
+      hairmist: ['cairanHM', 'botolHM'],
+      bahan_baku: ['boxExclusive', 'boxBundlingP', 'boxBundlingW', 'bubbleWrap', 'boxLuar']
+    };
+    const allowedKeys = filterGroupMap[WH_FILTER] || [];
+    materials = materials.filter(m => allowedKeys.includes(m.key));
+  }
+
+  if (search) {
+    materials = materials.filter(m => m.meta.label.toLowerCase().includes(search));
+  }
 
   // Summary cards
-  const totalSkus = ALL_SKUS.filter(s => s.is_active !== false).length;
-  const lowSkus = ALL_SKUS.filter(s => s.is_active !== false && s.current_stock <= s.min_stock).length;
-  const totalVal = ALL_SKUS.reduce((sum, s) => sum + (s.current_stock || 0) * (s.cost_price || 0), 0);
-  const cats = [...new Set(ALL_SKUS.map(s => s.category))].length;
+  const totalSkus = materials.length;
+  const lowSkus = materials.filter(m => m.stock <= m.meta.warnAt).length;
+  const cats = new Set(materials.map(m => m.meta.group)).size;
 
   const el = (id) => document.getElementById(id);
   if (el('wh-total-sku')) el('wh-total-sku').textContent = totalSkus;
-  if (el('wh-low-sku'))   el('wh-low-sku').textContent   = lowSkus;
-  if (el('wh-total-value')) el('wh-total-value').textContent = fmtRp(totalVal);
-  if (el('wh-categories'))  el('wh-categories').textContent  = cats;
+  if (el('wh-low-sku')) el('wh-low-sku').textContent = lowSkus;
+  if (el('wh-categories')) el('wh-categories').textContent = cats;
+  if (el('wh-total-value')) el('wh-total-value').textContent = '—'; // Simplified as we don't track cost per RM yet
 
   // Grid cards
   const grid = document.getElementById('sku-grid');
   if (grid) {
-    if (!skus.length) {
-      grid.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:40px 0;grid-column:1/-1;">Tidak ada produk ditemukan</div>';
+    if (!materials.length) {
+      grid.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:40px 0;grid-column:1/-1;">Tidak ada bahan baku ditemukan</div>';
     } else {
-      grid.innerHTML = skus.map(s => {
-        const stock = s.current_stock || 0;
-        const min = s.min_stock || 5;
-        const max = s.max_stock || 100;
+      grid.innerHTML = materials.map(m => {
+        const { key, meta, stock } = m;
+        const min = meta.lowAt;
+        const max = meta.warnAt * 3; // roughly
         const isLow = stock <= min;
-        const isWarn = stock <= min * 1.5 && !isLow;
+        const isWarn = stock <= meta.warnAt && !isLow;
         const pct = Math.min(100, (stock / (max || 1)) * 100);
-        const catCls = { parfum:'sku-parfum', deodorant:'sku-deodorant', hairmist:'sku-hairmist', bahan_baku:'sku-bahan' }[s.category] || 'sku-bahan';
+
+        const groupLabels = { parfum: '🌸 Parfum', deodorant: '🧴 Deodorant', hairmist: '💨 Hair Mist', packaging: '📦 Packaging' };
+        const catCls = { parfum: 'sku-parfum', deodorant: 'sku-deodorant', hairmist: 'sku-hairmist', packaging: 'sku-bahan' }[meta.group] || 'sku-bahan';
         const statusCls = isLow ? 'low-stock' : isWarn ? 'warn-stock' : '';
         const statusLabel = isLow ? '<span class="sku-stock-indicator otif-poor">⚠ Restock Segera</span>' :
-                           isWarn ? '<span class="sku-stock-indicator otif-ok">⚡ Stok Menipis</span>' :
-                                    '<span class="sku-stock-indicator otif-good">✓ Aman</span>';
+          isWarn ? '<span class="sku-stock-indicator otif-ok">⚡ Stok Menipis</span>' :
+            '<span class="sku-stock-indicator otif-good">✓ Aman</span>';
 
         return `
           <div class="sku-card ${statusCls}">
-            <div class="sku-card-sku">${sanitizeHtml(s.sku)}</div>
-            <div class="sku-card-name">${sanitizeHtml(s.name)}</div>
+            <div class="sku-card-sku">${key}</div>
+            <div class="sku-card-name">${meta.label}</div>
             <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-              <span class="sku-cat ${catCls}">${skuCatLabel(s.category)}</span>
-              ${s.size_ml ? `<span style="font-size:10px;color:#8B6F5E;border:1px solid #E4D3BD;border-radius:4px;padding:1px 6px;">${s.size_ml}mL</span>` : ''}
+              <span class="sku-cat ${catCls}">${groupLabels[meta.group] || meta.group}</span>
             </div>
-            <div class="sku-card-stock">${stock} <span style="font-size:13px;font-weight:400;color:#B08A62;">${s.unit || 'pcs'}</span></div>
+            <div class="sku-card-stock">${fmt(stock)} <span style="font-size:13px;font-weight:400;color:#B08A62;">${meta.unit}</span></div>
             ${statusLabel}
             <div style="margin:10px 0 4px;height:4px;background:#E4D3BD;border-radius:2px;overflow:hidden;">
               <div style="height:100%;width:${pct}%;background:${isLow ? '#EF4444' : isWarn ? '#F59E0B' : '#22C55E'};border-radius:2px;transition:width 0.4s;"></div>
             </div>
             <div style="display:flex;justify-content:space-between;font-size:10px;color:#B08A62;margin-bottom:10px;">
-              <span>Min: ${min}</span><span>Max: ${max}</span>
-            </div>
-            <div style="display:flex;gap:6px;justify-content:space-between;align-items:center;">
-              <div style="font-size:11px;color:#8B6F5E;">HPP: <strong style="color:#5C4A3C;">${fmtRp(s.cost_price||0)}</strong></div>
-              <button class="btn-secondary" style="padding:4px 10px;font-size:11px;" onclick="openEditSkuModal(${s.id})">Edit</button>
+              <span>Min: ${meta.warnAt}</span><span>Kritis: ${min}</span>
             </div>
           </div>`;
       }).join('');
@@ -1948,23 +2140,24 @@ function _renderWarehouse() {
   // Table
   const tbody = document.getElementById('sku-tbody');
   if (tbody) {
-    if (!skus.length) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#B08A62;padding:24px;">Tidak ada produk ditemukan</td></tr>';
+    if (!materials.length) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#B08A62;padding:24px;">Tidak ada bahan baku ditemukan</td></tr>';
     } else {
-      tbody.innerHTML = skus.map(s => {
-        const stock = s.current_stock || 0;
-        const isLow = stock <= (s.min_stock || 5);
-        const catCls = { parfum:'sku-parfum', deodorant:'sku-deodorant', hairmist:'sku-hairmist', bahan_baku:'sku-bahan' }[s.category] || 'sku-bahan';
+      tbody.innerHTML = materials.map(m => {
+        const { key, meta, stock } = m;
+        const isLow = stock <= meta.warnAt;
+        const groupLabels = { parfum: '🌸 Parfum', deodorant: '🧴 Deodorant', hairmist: '💨 Hair Mist', packaging: '📦 Packaging' };
+        const catCls = { parfum: 'sku-parfum', deodorant: 'sku-deodorant', hairmist: 'sku-hairmist', packaging: 'sku-bahan' }[meta.group] || 'sku-bahan';
         return `
           <tr>
-            <td style="font-family:monospace;font-size:12px;font-weight:600;color:#5C4A3C;">${sanitizeHtml(s.sku)}</td>
-            <td style="font-weight:600;color:#2D1F17;">${sanitizeHtml(s.name)}</td>
-            <td><span class="sku-cat ${catCls}">${skuCatLabel(s.category)}</span></td>
-            <td style="text-align:center;font-weight:700;color:${isLow?'#991B1B':'#166534'};">${stock}</td>
-            <td style="text-align:center;color:#8B6F5E;">${s.min_stock||5}</td>
-            <td style="text-align:center;color:#8B6F5E;">${s.max_stock||100}</td>
-            <td style="color:#5C4A3C;">${fmtRp(s.cost_price||0)}</td>
-            <td style="color:#5C4A3C;">${fmtRp(s.sell_price||0)}</td>
+            <td style="font-family:monospace;font-size:12px;font-weight:600;color:#5C4A3C;">${key}</td>
+            <td style="font-weight:600;color:#2D1F17;">${meta.label}</td>
+            <td><span class="sku-cat ${catCls}">${groupLabels[meta.group] || meta.group}</span></td>
+            <td style="text-align:center;font-weight:700;color:${isLow ? '#991B1B' : '#166534'};">${fmt(stock)} ${meta.unit}</td>
+            <td style="text-align:center;color:#8B6F5E;">${meta.warnAt}</td>
+            <td style="text-align:center;color:#8B6F5E;">${meta.lowAt}</td>
+            <td style="color:#5C4A3C;">—</td>
+            <td style="color:#5C4A3C;">—</td>
             <td>${isLow ? '<span class="badge-low" style="font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid;">⚠ Low</span>' : '<span class="badge-ok" style="font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid;">✓ OK</span>'}</td>
           </tr>`;
       }).join('');
@@ -1973,13 +2166,13 @@ function _renderWarehouse() {
 }
 
 function skuCatLabel(cat) {
-  return { parfum:'🌸 Parfum', deodorant:'🧴 Deodorant', hairmist:'💨 Hair Mist', bahan_baku:'⚗️ Bahan Baku' }[cat] || cat;
+  return { parfum: '🌸 Parfum', deodorant: '🧴 Deodorant', hairmist: '💨 Hair Mist', bahan_baku: '⚗️ Bahan Baku' }[cat] || cat;
 }
 
 function filterWarehouse(cat) {
   WH_FILTER = cat;
   document.querySelectorAll('#wh-filter-chips .chip').forEach(c => c.classList.remove('active'));
-  const active = { all:'wh-chip-all', parfum:'wh-chip-parfum', deodorant:'wh-chip-deodorant', hairmist:'wh-chip-hairmist', bahan_baku:'wh-chip-bahan' }[cat];
+  const active = { all: 'wh-chip-all', parfum: 'wh-chip-parfum', deodorant: 'wh-chip-deodorant', hairmist: 'wh-chip-hairmist', bahan_baku: 'wh-chip-bahan' }[cat];
   if (active) document.getElementById(active)?.classList.add('active');
   _renderWarehouse();
 }
@@ -2060,7 +2253,7 @@ async function saveSku() {
 
 function openAddVendorModal() {
   document.getElementById('modal-vendor-title').textContent = 'Tambah Vendor Baru';
-  ['v-name','v-material','v-phone','v-email','v-address','v-bank','v-notes'].forEach(id => document.getElementById(id).value = '');
+  ['v-name', 'v-material', 'v-phone', 'v-email', 'v-address', 'v-bank', 'v-notes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('v-type').value = 'biang_parfum';
   document.getElementById('v-leadtime').value = '3';
   document.getElementById('v-rating').value = '5';
@@ -2201,7 +2394,7 @@ async function savePurchaseOrder() {
   showToast(`PO ${poNumber} berhasil disimpan ✓`, 'success');
 
   // Reset form
-  ['po-number','po-material','po-qty','po-unit-price','po-total','po-notes'].forEach(id => {
+  ['po-number', 'po-material', 'po-qty', 'po-unit-price', 'po-total', 'po-notes'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -2229,13 +2422,13 @@ function renderPendingPOs() {
     const isLate = expDate && today > expDate;
 
     return `
-      <div style="padding:12px;background:${isLate?'#FEF2F2':'#F9F7F4'};border:1px solid ${isLate?'#FECACA':'#E4D3BD'};border-radius:10px;">
+      <div style="padding:12px;background:${isLate ? '#FEF2F2' : '#F9F7F4'};border:1px solid ${isLate ? '#FECACA' : '#E4D3BD'};border-radius:10px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
           <div>
             <div style="font-size:13px;font-weight:700;color:#2D1F17;">${sanitizeHtml(p.po_number)}</div>
             <div style="font-size:12px;color:#5C4A3C;">${sanitizeHtml(vendorName)} · ${sanitizeHtml(p.material)}</div>
             <div style="font-size:11px;color:#8B6F5E;margin-top:2px;">${p.qty} ${p.unit} · ${fmtRp(p.total_amount)}</div>
-            <div style="font-size:11px;color:${isLate?'#991B1B':'#8B6F5E'};margin-top:2px;">
+            <div style="font-size:11px;color:${isLate ? '#991B1B' : '#8B6F5E'};margin-top:2px;">
               ${isLate ? '⚠ Terlambat! ' : ''}Estimasi tiba: ${expected}
             </div>
           </div>
@@ -2328,20 +2521,22 @@ function _renderPoHistory() {
   if (statusFilter) pos = pos.filter(p => p.payment_status === statusFilter);
 
   // Summary totals
-  const totalUnpaid  = ALL_POS.filter(p => p.payment_status === 'unpaid').reduce((s,p) => s + (p.total_amount||0), 0);
-  const totalPartial = ALL_POS.filter(p => p.payment_status === 'partial').reduce((s,p) => s + (p.total_amount||0), 0);
-  const totalPaidAll = ALL_POS.reduce((s,p) => s + (p.paid_amount||0), 0);
-  const totalAll = ALL_POS.reduce((s,p) => s + (p.total_amount||0), 0);
+  const totalUnpaid = ALL_POS.filter(p => p.payment_status === 'unpaid').reduce((s, p) => s + (p.total_amount || 0), 0);
+  const totalPartial = ALL_POS.filter(p => p.payment_status === 'partial').reduce((s, p) => s + (p.total_amount || 0), 0);
+  const totalPaidAll = ALL_POS.reduce((s, p) => s + (p.paid_amount || 0), 0);
+  const totalAll = ALL_POS.reduce((s, p) => s + (p.total_amount || 0), 0);
 
   const el = id => document.getElementById(id);
-  if (el('po-total-unpaid'))  el('po-total-unpaid').textContent  = fmtRp(totalUnpaid);
+  if (el('po-total-unpaid')) el('po-total-unpaid').textContent = fmtRp(totalUnpaid);
   if (el('po-total-partial')) el('po-total-partial').textContent = fmtRp(totalPartial);
-  if (el('po-total-paid'))    el('po-total-paid').textContent    = fmtRp(totalPaidAll);
-  if (el('po-total-all'))     el('po-total-all').textContent     = fmtRp(totalAll);
+  if (el('po-total-paid')) el('po-total-paid').textContent = fmtRp(totalPaidAll);
+  if (el('po-total-all')) el('po-total-all').textContent = fmtRp(totalAll);
 
-  // Also update finance menu - vendor costs
-  const finVendorCost = document.getElementById('fin-vendor-cost');
-  if (finVendorCost) finVendorCost.textContent = fmtRp(totalAll);
+  // Also update finance menu - vendor costs & AP
+  if (el('fin-vendor-cost')) el('fin-vendor-cost').textContent = fmtRp(totalAll);
+  if (el('fin-ap-unpaid')) el('fin-ap-unpaid').textContent = fmtRp(totalUnpaid);
+  if (el('fin-ap-partial')) el('fin-ap-partial').textContent = fmtRp(totalPartial);
+  if (el('fin-ap-total')) el('fin-ap-total').textContent = fmtRp(totalAll);
 
   if (!pos.length) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#B08A62;padding:24px;">Belum ada transaksi</td></tr>';
@@ -2351,14 +2546,14 @@ function _renderPoHistory() {
   tbody.innerHTML = pos.map(p => {
     const vendorName = p.wms_vendors?.name || `Vendor #${p.vendor_id}`;
     const dateStr = new Date(p.created_at).toLocaleDateString('id-ID');
-    const payCls = { paid:'pay-paid', unpaid:'pay-unpaid', partial:'pay-partial' }[p.payment_status] || 'pay-unpaid';
-    const payLabel = { paid:'Lunas', unpaid:'Belum Bayar', partial:'Sebagian' }[p.payment_status] || p.payment_status;
+    const payCls = { paid: 'pay-paid', unpaid: 'pay-unpaid', partial: 'pay-partial' }[p.payment_status] || 'pay-unpaid';
+    const payLabel = { paid: 'Lunas', unpaid: 'Belum Bayar', partial: 'Sebagian' }[p.payment_status] || p.payment_status;
 
     let otifHtml = '—';
     if (p.actual_date) {
       const ok = p.is_on_time && p.is_in_full;
       const partialOk = p.is_on_time || p.is_in_full;
-      otifHtml = `<span class="otif-badge ${ok?'otif-good':partialOk?'otif-ok':'otif-poor'}">${ok?'✓ OTIF':partialOk?'⚡ Partial':'✗ Gagal'}</span>`;
+      otifHtml = `<span class="otif-badge ${ok ? 'otif-good' : partialOk ? 'otif-ok' : 'otif-poor'}">${ok ? '✓ OTIF' : partialOk ? '⚡ Partial' : '✗ Gagal'}</span>`;
     } else {
       otifHtml = '<span style="font-size:11px;color:#B08A62;">Pending</span>';
     }
@@ -2369,7 +2564,7 @@ function _renderPoHistory() {
         <td style="font-size:12px;font-weight:600;color:#5C4A3C;">${sanitizeHtml(p.po_number)}</td>
         <td style="font-size:12px;">${sanitizeHtml(vendorName)}</td>
         <td style="font-size:12px;">${sanitizeHtml(p.material)}</td>
-        <td style="text-align:right;font-weight:600;color:#2D1F17;">${fmtRp(p.total_amount||0)}</td>
+        <td style="text-align:right;font-weight:600;color:#2D1F17;">${fmtRp(p.total_amount || 0)}</td>
         <td style="text-align:center;">${otifHtml}</td>
         <td style="text-align:center;"><span class="pay-badge ${payCls}">${payLabel}</span></td>
         <td>
@@ -2383,94 +2578,92 @@ function _renderPoHistory() {
    GOOGLE SHEETS PnL INTEGRATION
    ═══════════════════════════════════════════════════════ */
 
-const GSHEETS_ID = '1_TGa5MOoW0q7b8RX3jN6NnpXU-2gJr5FkztSYG3HrHw';
-const GSHEETS_SHEET = 'PnL Fix';
 let PNL_DATA = null; // Parsed PnL data array (3 years x 12 months)
+let CSV_URL = localStorage.getItem('pnl_csv_url') || '';
+let isFetchingPnL = false;
 
-async function fetchGoogleSheetsPnL() {
-  const btn = document.getElementById('pnl-sync-btn');
-  const lbl = document.getElementById('pnl-sync-label');
-  if (btn) btn.classList.add('loading');
-  if (lbl) lbl.textContent = 'Menyinkronkan…';
+async function fetchGoogleSheetsPnL(silent = false) {
+  if (isFetchingPnL) return;
+  const syncEl = document.getElementById('pnl-last-sync');
 
-  const url = `https://docs.google.com/spreadsheets/d/${GSHEETS_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(GSHEETS_SHEET)}`;
+  if (!CSV_URL) {
+    if (syncEl) syncEl.textContent = 'Menunggu URL CSV...';
+    return;
+  }
+
+  isFetchingPnL = true;
+  if (syncEl && !silent) syncEl.textContent = 'Menyinkronkan…';
 
   try {
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const csv = await resp.text();
-    PNL_DATA = parsePnLCSV(csv);
-
-    if (lbl) lbl.textContent = 'Sinkronisasi Sheets';
-    if (btn) btn.classList.remove('loading');
-
-    const now = new Date().toLocaleString('id-ID');
-    const syncEl = document.getElementById('pnl-last-sync');
-    if (syncEl) syncEl.textContent = `Diperbarui: ${now}`;
-
-    // Cache in localStorage
+    const res = await fetch(CSV_URL);
+    if (!res.ok) throw new Error('Network response was not ok');
+    const text = await res.text();
+    
+    // Parse CSV manually
+    const rows = text.split('\n').map(row => row.split(','));
+    PNL_DATA = parsePnLCSV(rows);
+    
+    const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    if (syncEl) syncEl.textContent = `Auto-Sync: Aktif (Diperbarui ${now})`;
     localStorage.setItem('pnl_data', JSON.stringify(PNL_DATA));
     localStorage.setItem('pnl_sync', now);
-
     renderPnLMetrics();
-    showToast('Data PnL berhasil disinkronkan ✓', 'success');
+    renderMktDashboard();
+    if (!silent) toast('Data PnL berhasil disinkronkan dari Google Sheets ✓', 'success');
   } catch (e) {
-    if (btn) btn.classList.remove('loading');
-    if (lbl) lbl.textContent = 'Sinkronisasi Sheets';
-    showToast('Gagal ambil data Sheets: ' + e.message, 'error');
+    if (syncEl) syncEl.textContent = 'Auto-Sync: Gagal (Koneksi/Format)';
+    console.error('CSV Fetch Error:', e);
+    if (!silent) toast(e.message || 'Gagal mengambil data dari Google Sheets.', 'error');
+  } finally {
+    isFetchingPnL = false;
   }
 }
 
-function parsePnLCSV(csv) {
-  // Parse the CSV rows, columns: [label, Y1M1..Y1M12, Y2M1..Y2M12, Y3M1..Y3M12]
-  const rows = csv.trim().split('\n').map(line => {
-    // Parse CSV properly handling quoted fields
-    const cols = [];
-    let inQuote = false, cur = '';
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') { inQuote = !inQuote; }
-      else if (c === ',' && !inQuote) { cols.push(cur.trim()); cur = ''; }
-      else { cur += c; }
+function parsePnLCSV(rows) {
+  // Helper to find row index dynamically based on label keywords
+  function findRowIdx(keywords) {
+    for (let i = 0; i < rows.length; i++) {
+      const label = String(rows[i][0] || '').toLowerCase().trim();
+      if (keywords.some(kw => label.includes(kw.toLowerCase()))) {
+        return i;
+      }
     }
-    cols.push(cur.trim());
-    return cols;
-  });
+    return -1;
+  }
 
-  // Row indices (0-based): row 0=header, 2=revenue, 3=hpp, 4=gm1, 7=gm2, 12=gm3, 16=net, 15=marketing
-  const ROWS = {
-    revenue:   2,  // Total Revenue
-    hpp:       3,  // Total HPP
-    gm1:       4,  // GROSS MARGIN 1
-    marketing: 5,  // Biaya Pemasaran header (empty), so use row 6 = Total Marketing
-    total_mkt: 6,
-    gm2:       7,  // GROSS MARGIN 2
-    gm3:       12, // GROSS MARGIN 3
-    net:       16  // NET PROFIT (row 26 = index 16 in CSV which has no header offset)
-  };
+  const rRev = findRowIdx(['total revenue']);
+  const rHpp = findRowIdx(['total hpp tiap barang']);
+  const rGm1 = findRowIdx(['gross margin 1']);
+  const rMkt = findRowIdx(['- total marketing']);
+  const rGm2 = findRowIdx(['gross margin 2']);
+  const rLogistik = findRowIdx(['- total biaya logistik']);
+  const rGm3 = findRowIdx(['gross margin 3']);
+  const rNet = findRowIdx(['net profit']);
 
-  function parseNum(str) {
-    if (!str) return 0;
-    // Remove Rp, dots (thousands), parentheses (negative), spaces
-    const s = str.replace(/[Rp\s]/g,'').replace(/\./g,'').replace(/\(/g,'-').replace(/\)/g,'');
+  if (rRev === -1 || rHpp === -1) {
+    throw new Error('Format salah. Pastikan link adalah CSV dan memiliki baris "Total Revenue".');
+  }
+
+  function parseNum(val) {
+    if (!val) return 0;
+    const s = String(val).replace(/[Rp\s"]/g, '').replace(/\./g, '').replace(/\(/g, '-').replace(/\)/g, '');
     return parseFloat(s) || 0;
   }
 
-  // The CSV has columns: col0=label, col1..12 = Y1M1..M12, col13..24 = Y2, col25..36 = Y3
   const result = [];
-
   for (let year = 0; year < 3; year++) {
     const yearData = [];
     for (let month = 0; month < 12; month++) {
       const colIdx = 1 + year * 12 + month;
       yearData.push({
-        revenue:   parseNum(rows[ROWS.revenue]?.[colIdx]),
-        hpp:       parseNum(rows[ROWS.hpp]?.[colIdx]),
-        gm1:       parseNum(rows[ROWS.gm1]?.[colIdx]),
-        marketing: parseNum(rows[ROWS.total_mkt]?.[colIdx]),
-        gm2:       parseNum(rows[ROWS.gm2]?.[colIdx]),
-        gm3:       parseNum(rows[ROWS.gm3]?.[colIdx]),
-        net:       parseNum(rows[ROWS.net]?.[colIdx])
+        revenue: parseNum(rows[rRev]?.[colIdx]),
+        hpp: parseNum(rows[rHpp]?.[colIdx]),
+        gm1: parseNum(rows[rGm1]?.[colIdx]),
+        marketing: parseNum(rows[rMkt]?.[colIdx]),
+        logistik: parseNum(rows[rLogistik]?.[colIdx]),
+        gm2: parseNum(rows[rGm2]?.[colIdx]),
+        gm3: parseNum(rows[rGm3]?.[colIdx]),
+        net: parseNum(rows[rNet]?.[colIdx])
       });
     }
     result.push(yearData);
@@ -2479,20 +2672,17 @@ function parsePnLCSV(csv) {
 }
 
 function renderPnLMetrics() {
-  // Try loading from cache if not yet fetched
   if (!PNL_DATA) {
     const cached = localStorage.getItem('pnl_data');
     if (cached) {
       PNL_DATA = JSON.parse(cached);
       const syncTime = localStorage.getItem('pnl_sync');
       const syncEl = document.getElementById('pnl-last-sync');
-      if (syncEl && syncTime) syncEl.textContent = `Diperbarui: ${syncTime}`;
-    } else {
-      return; // No data yet
-    }
+      if (syncEl && syncTime) syncEl.textContent = `Auto-Sync: Aktif (Diperbarui ${syncTime})`;
+    } else return;
   }
 
-  const year  = parseInt(document.getElementById('pnl-year-select')?.value  || '0');
+  const year = parseInt(document.getElementById('pnl-year-select')?.value || '0');
   const month = parseInt(document.getElementById('pnl-month-select')?.value || '0');
   const d = PNL_DATA[year]?.[month];
   if (!d) return;
@@ -2508,12 +2698,40 @@ function renderPnLMetrics() {
   set('pnl-net', d.net);
   set('pnl-revenue', d.revenue);
   set('pnl-hpp', d.hpp);
-  set('pnl-marketing', Math.abs(d.marketing));
-
-  // Color net profit green if positive, red if negative
+  set('pnl-marketing', d.marketing);
+  set('pnl-logistik', d.logistik);
+  
   const netEl = document.getElementById('pnl-net');
   if (netEl) netEl.style.color = d.net >= 0 ? '#86EFAC' : '#FCA5A5';
 }
+
+function renderMktDashboard() {
+  if (!PNL_DATA) return;
+  const year = parseInt(document.getElementById('mkt-year-select')?.value || '0');
+  const month = parseInt(document.getElementById('mkt-month-select')?.value || '0');
+  const d = PNL_DATA[year]?.[month];
+  if (!d) return;
+
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fmtRp(Math.abs(val));
+  };
+
+  set('mkt-actual-mkt', d.marketing);
+  set('mkt-actual-log', d.logistik);
+}
+
+window.updateSpreadsheetId = function (val) {
+  if (!val) return;
+  const url = val.trim().replace(/^['"]|['"]$/g, '').replace(/,+$/, ''); // Remove accidental quotes and trailing commas
+  if (!url.startsWith('http')) {
+    toast('Tautan tidak valid. Harus diawali dengan https://', 'error');
+    return;
+  }
+  CSV_URL = url;
+  localStorage.setItem('pnl_csv_url', CSV_URL);
+  fetchGoogleSheetsPnL(false);
+};
 
 /* ═══════════════════════════════════════════════════════
    MODAL HELPERS
@@ -2536,16 +2754,338 @@ document.addEventListener('click', (e) => {
   }
 });
 
+let pnlSyncInterval = null;
+
+function startPnLSync() {
+  // Set the input field to current ID
+  const inputEl = document.getElementById('pnl-sheet-id');
+  if (inputEl) inputEl.value = CSV_URL;
+
+  // Fetch immediately
+  fetchGoogleSheetsPnL(true);
+
+  if (pnlSyncInterval) clearInterval(pnlSyncInterval);
+  // Auto-sync every 10 seconds (10000 ms) in background silently
+  pnlSyncInterval = setInterval(() => fetchGoogleSheetsPnL(true), 10000);
+}
+
 // Load POs and SKUs after auth
 document.addEventListener('wms:ready', async () => {
   await loadSkus();
   await loadPOs();
-  renderPnLMetrics(); // Render from cache if available
+  startPnLSync(); // Start background sync
 });
 
 // Also initialize on DOM ready (called manually after login)
 window._postLoginInit = async () => {
   await loadSkus();
   await loadPOs();
-  renderPnLMetrics();
+  startPnLSync(); // Start background sync
 };
+
+/* ═══════════════════════════════════════════════════════
+   HR MODULE
+   ═══════════════════════════════════════════════════════ */
+
+const HR_STAFF = ['Andi', 'Budi', 'Citra', 'Dewi', 'Eko'];
+
+function populateHrStaff() {
+  const staffSelect = document.getElementById('hr-error-staff');
+  const otSelect = document.getElementById('hr-ot-staff');
+  const options = HR_STAFF.map(s => `<option value="${s}">${s}</option>`).join('');
+  if (staffSelect) staffSelect.innerHTML = options;
+  if (otSelect) otSelect.innerHTML = options;
+}
+
+function switchHrTab(tabId) {
+  document.querySelectorAll('.hr-tab-panel').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('#page-hr .vendor-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(`hrpanel-${tabId}`).classList.remove('hidden');
+  document.getElementById(`hrtab-${tabId}`).classList.add('active');
+  if (tabId === 'overtime') renderHrPayroll();
+}
+
+function saveHrError() {
+  const staff = document.getElementById('hr-error-staff').value;
+  const type = document.getElementById('hr-error-type').value;
+  const resi = document.getElementById('hr-error-resi').value;
+  const notes = document.getElementById('hr-error-notes').value;
+  
+  S.hr.errors.push({ id: Date.now(), ts: Date.now(), staff, type, resi, notes });
+  saveState();
+  renderHr();
+  toast('Insiden Error berhasil dicatat', 'success');
+}
+
+function saveHrOvertime() {
+  const date = document.getElementById('hr-ot-date').value;
+  const staff = document.getElementById('hr-ot-staff').value;
+  const hours = parseFloat(document.getElementById('hr-ot-hours').value) || 0;
+  const notes = document.getElementById('hr-ot-notes').value;
+  
+  if (!date || !hours) {
+    toast('Isi tanggal dan durasi lembur!', 'warn');
+    return;
+  }
+  
+  S.hr.overtimes.push({ id: Date.now(), ts: Date.now(), date, staff, hours, notes });
+  saveState();
+  renderHrPayroll();
+  toast('Lembur berhasil dicatat', 'success');
+}
+
+function renderHr() {
+  const tbody = document.getElementById('hr-error-tbody');
+  const statsDiv = document.getElementById('hr-error-stats');
+  if (!tbody || !statsDiv) return;
+
+  const errors = S.hr.errors || [];
+  
+  // Render Stats
+  const staffErrors = {};
+  errors.forEach(e => {
+    staffErrors[e.staff] = (staffErrors[e.staff] || 0) + 1;
+  });
+  
+  if (Object.keys(staffErrors).length === 0) {
+    statsDiv.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada insiden tercatat.</div>';
+  } else {
+    statsDiv.innerHTML = Object.entries(staffErrors).sort((a,b) => b[1] - a[1]).map(([staff, count]) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#FEF2F2;border-radius:8px;">
+        <span style="font-size:13px;font-weight:600;color:#991B1B;">👤 ${staff}</span>
+        <span style="font-size:13px;font-weight:700;color:#7F1D1D;">${count} Insiden</span>
+      </div>
+    `).join('');
+  }
+
+  // Render Table
+  if (errors.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#B08A62;padding:24px;">Belum ada riwayat error.</td></tr>';
+  } else {
+    tbody.innerHTML = [...errors].reverse().slice(0, 50).map(e => `
+      <tr>
+        <td style="font-size:12px;color:#8B6F5E;">${fmtDateShort(e.ts)}</td>
+        <td style="font-size:13px;font-weight:600;color:#2D1F17;">${sanitizeHtml(e.staff)}</td>
+        <td style="font-size:13px;color:#991B1B;">${sanitizeHtml(e.type)}</td>
+        <td style="font-size:12px;">${sanitizeHtml(e.resi || '-')}</td>
+        <td style="font-size:12px;color:#5C4A3C;">${sanitizeHtml(e.notes || '-')}</td>
+      </tr>
+    `).join('');
+  }
+}
+
+function renderHrPayroll() {
+  const tbody = document.getElementById('hr-payroll-tbody');
+  if (!tbody) return;
+
+  const monthVal = document.getElementById('hr-payroll-month').value; // YYYY-MM
+  const baseRate = parseFloat(document.getElementById('hr-base-rate').value) || 100000;
+  const otRate = parseFloat(document.getElementById('hr-ot-rate').value) || 20000;
+  const workingDays = 22; // Assumed 22 working days
+  
+  if (!monthVal) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#B08A62;padding:24px;">Pilih Bulan Kerja terlebih dahulu.</td></tr>';
+    return;
+  }
+
+  const filteredOt = (S.hr.overtimes || []).filter(ot => ot.date && ot.date.startsWith(monthVal));
+  const otByStaff = {};
+  filteredOt.forEach(ot => {
+    otByStaff[ot.staff] = (otByStaff[ot.staff] || 0) + ot.hours;
+  });
+
+  tbody.innerHTML = HR_STAFF.map(staff => {
+    const hours = otByStaff[staff] || 0;
+    const baseTotal = baseRate * workingDays;
+    const otTotal = hours * otRate;
+    return `
+      <tr>
+        <td style="font-weight:600;color:#2D1F17;">${staff}</td>
+        <td style="text-align:center;">${workingDays}</td>
+        <td style="text-align:center;">${hours}</td>
+        <td style="text-align:right;">${fmtRp(baseTotal)}</td>
+        <td style="text-align:right;">${fmtRp(otTotal)}</td>
+        <td style="text-align:right;font-weight:700;color:#166534;">${fmtRp(baseTotal + otTotal)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   MARKETING MODULE
+   ═══════════════════════════════════════════════════════ */
+
+function switchMkTab(tabId) {
+  document.querySelectorAll('.hr-tab-panel').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('#page-marketing .vendor-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(`mkpanel-${tabId}`).classList.remove('hidden');
+  document.getElementById(`mktab-${tabId}`).classList.add('active');
+  if (tabId === 'budget') renderMktDashboard();
+}
+
+function renderMarketing() {
+  // Render KPI values into inputs
+  if (S.marketing.kpi) {
+    const kpi = S.marketing.kpi;
+    const el = id => document.getElementById(id);
+    if(el('mk-kpi-roas')) el('mk-kpi-roas').value = kpi.roas || '';
+    if(el('mk-kpi-cac')) el('mk-kpi-cac').value = kpi.cac || '';
+    if(el('mk-kpi-ltv')) el('mk-kpi-ltv').value = kpi.ltv || '';
+    if(el('mk-kpi-reach')) el('mk-kpi-reach').value = kpi.reach || '';
+    if(el('mk-kpi-growth')) el('mk-kpi-growth').value = kpi.growth || '';
+  }
+
+  // Render PR list
+  const prTbody = document.getElementById('mk-pr-tbody');
+  if (prTbody) {
+    if (!S.marketing.pr || S.marketing.pr.length === 0) {
+      prTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data Partnership & PR.</td></tr>';
+    } else {
+      prTbody.innerHTML = [...S.marketing.pr].reverse().map(pr => `
+        <tr>
+          <td style="font-size:12px;color:#8B6F5E;">${pr.date || '-'}</td>
+          <td style="font-size:13px;font-weight:600;">${sanitizeHtml(pr.name)}</td>
+          <td style="font-size:13px;">${sanitizeHtml(pr.type)}</td>
+          <td style="font-size:12px;">${sanitizeHtml(pr.notes)}</td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  // Render Calendar
+  const calList = document.getElementById('mk-calendar-list');
+  if (calList) {
+    if (!S.marketing.calendar || S.marketing.calendar.length === 0) {
+      calList.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada agenda di Kalender Campaign.</div>';
+    } else {
+      calList.innerHTML = [...S.marketing.calendar].reverse().map(cal => `
+        <div style="padding:12px;background:#FAF7F2;border-radius:8px;border:1px solid #F2EAE0;border-left:4px solid #D0B898;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-weight:600;font-size:14px;">${sanitizeHtml(cal.title)}</div>
+            <div style="font-size:11px;color:#8B6F5E;font-family:monospace;">${cal.start} ${cal.end ? '- ' + cal.end : ''}</div>
+          </div>
+          <div style="font-size:12px;color:#5C4A3C;display:flex;justify-content:space-between;">
+             <span>${sanitizeHtml(cal.type)}</span>
+             <span>👤 PIC: ${sanitizeHtml(cal.pic || '-')}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+}
+
+function saveMkBudget() {
+  const category = document.getElementById('mk-budget-category').value;
+  const month = document.getElementById('mk-budget-month').value;
+  const amount = parseFloat(document.getElementById('mk-budget-amount').value) || 0;
+  
+  if (!month || !amount) {
+    toast('Pilih bulan dan isi nilai budget!', 'warn');
+    return;
+  }
+  
+  S.marketing.budgets.push({ id: Date.now(), ts: Date.now(), category, month, amount });
+  saveState();
+  toast('Alokasi budget berhasil disimpan', 'success');
+}
+
+function saveMkKpi() {
+  S.marketing.kpi = {
+    roas: parseFloat(document.getElementById('mk-kpi-roas').value) || 0,
+    cac: parseFloat(document.getElementById('mk-kpi-cac').value) || 0,
+    ltv: parseFloat(document.getElementById('mk-kpi-ltv').value) || 0,
+    reach: parseFloat(document.getElementById('mk-kpi-reach').value) || 0,
+    growth: parseFloat(document.getElementById('mk-kpi-growth').value) || 0
+  };
+  saveState();
+  toast('KPI Digital berhasil diperbarui', 'success');
+}
+
+function openMkCalendarModal() {
+  openModal('modal-mk-calendar');
+}
+
+window.renderCarryingCost = function() {
+  const rateInput = document.getElementById('fin-carrying-rate');
+  if (!rateInput) return;
+  const rateAnnual = parseFloat(rateInput.value) || 0;
+  const rateMonthly = rateAnnual / 100 / 12;
+  
+  // Calculate total inventory value
+  let totalValue = 0;
+  const valEl = document.getElementById('fin-inventory-value');
+  if (valEl) {
+    // A rough approximation if actual valuasi is not yet rendered fully, 
+    // but typically `renderFinancial()` handles inventory valuasi.
+    // We'll calculate it from S directly
+    if (S.rm) {
+       // Rough estimate mapping, or we could use `TOTAL_VALUATION` global if we had one.
+       // The actual values are in renderFinancial() using `getValuation`.
+    }
+  }
+  
+  // Just rely on the previously calculated total from renderFinancial
+  const totalValuationStr = document.getElementById('fin-inventory-value')?.innerText || '';
+  // parse Rp X.XXX.XXX from text if exists
+  const match = totalValuationStr.match(/Total:\s*Rp\s*([\d\.]+)/i);
+  if (match) {
+    const totalVal = parseFloat(match[1].replace(/\./g, ''));
+    const monthlyCost = totalVal * rateMonthly;
+    document.getElementById('fin-carrying-cost').textContent = fmtRp(monthlyCost);
+  }
+};
+
+// We need to inject renderCarryingCost into renderFinancial as well so it updates automatically
+const oldRenderFinancial = window.renderFinancial || function(){};
+window.renderFinancial = function() {
+  oldRenderFinancial();
+  setTimeout(renderCarryingCost, 100); // wait for fin-inventory-value to populate
+};
+
+
+function saveMkCalendarAgenda() {
+  const title = document.getElementById('mk-cal-title').value;
+  const type = document.getElementById('mk-cal-type').value;
+  const start = document.getElementById('mk-cal-start').value;
+  const end = document.getElementById('mk-cal-end').value;
+  const pic = document.getElementById('mk-cal-pic').value;
+  
+  if (!title || !start) {
+    toast('Judul dan tanggal mulai wajib diisi!', 'warn');
+    return;
+  }
+  
+  S.marketing.calendar.push({ id: Date.now(), title, type, start, end, pic });
+  saveState();
+  closeModal('modal-mk-calendar');
+  renderMarketing();
+  toast('Agenda berhasil ditambahkan', 'success');
+  
+  // Clear modal inputs
+  document.getElementById('mk-cal-title').value = '';
+  document.getElementById('mk-cal-start').value = '';
+  document.getElementById('mk-cal-end').value = '';
+  document.getElementById('mk-cal-pic').value = '';
+}
+
+function saveMkPr() {
+  const name = document.getElementById('mk-pr-name').value;
+  const type = document.getElementById('mk-pr-type').value;
+  const date = document.getElementById('mk-pr-date').value;
+  const notes = document.getElementById('mk-pr-notes').value;
+  
+  if (!name) {
+    toast('Nama Partner / Event wajib diisi!', 'warn');
+    return;
+  }
+  
+  S.marketing.pr.push({ id: Date.now(), name, type, date, notes });
+  saveState();
+  renderMarketing();
+  toast('Data PR & Partnership berhasil disimpan', 'success');
+  
+  // Clear inputs
+  document.getElementById('mk-pr-name').value = '';
+  document.getElementById('mk-pr-date').value = '';
+  document.getElementById('mk-pr-notes').value = '';
+}

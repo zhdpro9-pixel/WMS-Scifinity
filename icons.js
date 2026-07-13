@@ -7,11 +7,11 @@ function icon(name, extraClass) {
 }
 
 function prodLabelHtml(type, short) {
-  const isP = type === 'perempuan' || type === 'p';
+  const meta = typeof FINISHED_GOODS !== 'undefined' ? FINISHED_GOODS[type] : null;
+  const isP = type.includes('parfumP') || type === 'perempuan' || type === 'p' || type.includes('Wanita');
   const dot = isP ? 'prod-dot-f' : 'prod-dot-l';
-  const text = short
-    ? (isP ? 'Perempuan' : 'Laki-laki')
-    : (isP ? 'Parfum Perempuan' : 'Parfum Laki-laki');
+  let text = meta ? meta.label : type;
+  if (short && meta) text = text.replace('Parfum ', ''); // simplified short label
   return `<span class="prod-label"><span class="prod-dot ${dot}" aria-hidden="true"></span>${text}</span>`;
 }
 
@@ -30,8 +30,13 @@ function logTypeIcon(type) {
 
 function matIconName(key) {
   return {
-    biang: 'flask', botolP: 'bottle-f', botolL: 'bottle-m',
-    box: 'box', kardus: 'carton', bubble: 'wrap'
+    biangP: 'flask', biangL: 'flask',
+    botolP: 'bottle-f', botolL: 'bottle-m',
+    boxParfumP: 'box', boxParfumL: 'box',
+    cairanDeo: 'flask', botolDeo: 'bottle-m', boxDeo: 'box',
+    cairanHM: 'flask', botolHM: 'bottle-f',
+    boxExclusive: 'box', boxBundlingP: 'box', boxBundlingW: 'box',
+    boxLuar: 'carton', bubbleWrap: 'wrap'
   }[key] || 'box';
 }
 
