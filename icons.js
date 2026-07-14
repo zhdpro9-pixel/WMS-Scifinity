@@ -33,8 +33,8 @@ function matIconName(key) {
     biangP: 'flask', biangL: 'flask',
     botolP: 'bottle-f', botolL: 'bottle-m',
     boxParfumP: 'box', boxParfumL: 'box',
-    cairanDeo: 'flask', botolDeo: 'bottle-m', boxDeo: 'box',
-    cairanHM: 'flask', botolHM: 'bottle-f',
+    cairanDeoP: 'flask', cairanDeoL: 'flask', botolDeoP: 'bottle-f', botolDeoL: 'bottle-m', boxDeoP: 'box', boxDeoL: 'box',
+    cairanHMP: 'flask', cairanHML: 'flask', botolHMP: 'bottle-f', botolHML: 'bottle-m',
     boxExclusive: 'box', boxBundlingP: 'box', boxBundlingW: 'box',
     boxLuar: 'carton', bubbleWrap: 'wrap'
   }[key] || 'box';

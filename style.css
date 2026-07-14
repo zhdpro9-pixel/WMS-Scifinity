@@ -51,7 +51,8 @@ body {
 #sidebar {
   width: 260px;
   background: #fff;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   border-right: 1px solid #E4D3BD;
   position: fixed;
   top: 0;

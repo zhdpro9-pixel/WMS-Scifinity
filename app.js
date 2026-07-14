@@ -13,23 +13,25 @@ const MATERIAL_PARFUM = {
   biangP: { label: 'Biang Parfum Perempuan', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Biang Parfum Perempuan (mL)', group: 'parfum' },
   biangL: { label: 'Biang Parfum Laki-laki', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Biang Parfum Laki-laki (mL)', group: 'parfum' },
   botolP: { label: 'Botol Parfum Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Parfum Perempuan (pcs)', group: 'parfum' },
-  botolL: { label: 'Botol Parfum Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Parfum Laki-laki (pcs)', group: 'parfum' },
-  boxParfumL: { label: 'Box Parfum Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Parfum Laki-laki (pcs)', group: 'parfum' },
-  boxParfumP: { label: 'Box Parfum Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Parfum Perempuan (pcs)', group: 'parfum' }
+  botolL: { label: 'Botol Parfum Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Parfum Laki-laki (pcs)', group: 'parfum' }
 };
 
-const MATERIAL_DEODORANT = {
-  cairanDeo: { label: 'Cairan Deodorant', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Cairan Deodorant (mL)', group: 'deodorant' },
-  botolDeo: { label: 'Botol Deodorant', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Deodorant (pcs)', group: 'deodorant' },
-  boxDeo: { label: 'Box Deodorant', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Deodorant (pcs)', group: 'deodorant' }
-};
-
-const MATERIAL_HAIRMIST = {
-  cairanHM: { label: 'Cairan Hair Mist', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Cairan Hair Mist (mL)', group: 'hairmist' },
-  botolHM: { label: 'Botol Hair Mist', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Hair Mist (pcs)', group: 'hairmist' }
+const MATERIAL_PERSONAL_CARE = {
+  cairanDeoP: { label: 'Cairan Deodorant Perempuan', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Cairan Deodorant Perempuan (mL)', group: 'personal_care' },
+  cairanDeoL: { label: 'Cairan Deodorant Laki-laki', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Cairan Deodorant Laki-laki (mL)', group: 'personal_care' },
+  botolDeoP: { label: 'Botol Deodorant Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Deodorant Perempuan (pcs)', group: 'personal_care' },
+  botolDeoL: { label: 'Botol Deodorant Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Deodorant Laki-laki (pcs)', group: 'personal_care' },
+  cairanHMP: { label: 'Cairan Hair Mist Perempuan', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Cairan Hair Mist Perempuan (mL)', group: 'personal_care' },
+  cairanHML: { label: 'Cairan Hair Mist Laki-laki', unit: 'mL', warnAt: 100, lowAt: 30, optionLabel: 'Cairan Hair Mist Laki-laki (mL)', group: 'personal_care' },
+  botolHMP: { label: 'Botol Hair Mist Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Hair Mist Perempuan (pcs)', group: 'personal_care' },
+  botolHML: { label: 'Botol Hair Mist Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Botol Hair Mist Laki-laki (pcs)', group: 'personal_care' }
 };
 
 const MATERIAL_PACKAGING = {
+  boxParfumL: { label: 'Box Parfum Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Parfum Laki-laki (pcs)', group: 'packaging' },
+  boxParfumP: { label: 'Box Parfum Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Parfum Perempuan (pcs)', group: 'packaging' },
+  boxDeoP: { label: 'Box Deodorant Perempuan', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Deodorant Perempuan (pcs)', group: 'packaging' },
+  boxDeoL: { label: 'Box Deodorant Laki-laki', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Deodorant Laki-laki (pcs)', group: 'packaging' },
   boxExclusive: { label: 'Box Exclusive', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Exclusive (pcs)', group: 'packaging' },
   boxBundlingP: { label: 'Box Bundling Pria', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Bundling Pria (pcs)', group: 'packaging' },
   boxBundlingW: { label: 'Box Bundling Wanita', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Bundling Wanita (pcs)', group: 'packaging' },
@@ -37,18 +39,14 @@ const MATERIAL_PACKAGING = {
   boxLuar: { label: 'Box Luar', unit: 'pcs', warnAt: 5, lowAt: 2, optionLabel: 'Box Luar (pcs)', group: 'packaging' }
 };
 
-// Legacy aliases for backward compatibility with inbound form categories
-const MATERIAL_UTAMA = { ...MATERIAL_PARFUM, ...MATERIAL_DEODORANT, ...MATERIAL_HAIRMIST };
-const MATERIAL_PENOLONG = { ...MATERIAL_PACKAGING };
-
-const MATERIAL_META = { ...MATERIAL_PARFUM, ...MATERIAL_DEODORANT, ...MATERIAL_HAIRMIST, ...MATERIAL_PACKAGING };
+const MATERIAL_META = { ...MATERIAL_PARFUM, ...MATERIAL_PERSONAL_CARE, ...MATERIAL_PACKAGING };
 
 const VENDORS_DEFAULT = [
   { id: 1, name: 'PT Aroma Nusantara', material: 'biangP,biangL', leadTimeDays: 3, contact: '0812-xxxx-xxxx' },
-  { id: 2, name: 'CV Botol Kaca Jaya', material: 'botolP,botolL,botolDeo,botolHM', leadTimeDays: 5, contact: '0813-xxxx-xxxx' },
-  { id: 3, name: 'PT PackIndo Sejahtera', material: 'boxParfumP,boxParfumL,boxDeo,boxExclusive,boxBundlingP,boxBundlingW,bubbleWrap,boxLuar', leadTimeDays: 2, contact: '0819-xxxx-xxxx' },
-  { id: 4, name: 'CV Deodorant Supply', material: 'cairanDeo', leadTimeDays: 4, contact: '0821-xxxx-xxxx' },
-  { id: 5, name: 'PT Hair Mist Indo', material: 'cairanHM', leadTimeDays: 4, contact: '0822-xxxx-xxxx' }
+  { id: 2, name: 'CV Botol Kaca Jaya', material: 'botolP,botolL,botolDeoP,botolDeoL,botolHMP,botolHML', leadTimeDays: 5, contact: '0813-xxxx-xxxx' },
+  { id: 3, name: 'PT PackIndo Sejahtera', material: 'boxParfumP,boxParfumL,boxDeoP,boxDeoL,boxExclusive,boxBundlingP,boxBundlingW,bubbleWrap,boxLuar', leadTimeDays: 2, contact: '0819-xxxx-xxxx' },
+  { id: 4, name: 'CV Deodorant Supply', material: 'cairanDeoP,cairanDeoL', leadTimeDays: 4, contact: '0821-xxxx-xxxx' },
+  { id: 5, name: 'PT Hair Mist Indo', material: 'cairanHMP,cairanHML', leadTimeDays: 4, contact: '0822-xxxx-xxxx' }
 ];
 
 let VENDORS = VENDORS_DEFAULT.map(v => ({ ...v }));
@@ -56,44 +54,51 @@ let VENDORS = VENDORS_DEFAULT.map(v => ({ ...v }));
 const CHANNEL_CODES = { Shopee: 'SHP', eBay: 'EBY' };
 
 const FINISHED_GOODS = {
-  parfumP_30: { label: 'Parfum Perempuan 30mL', size: 30, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  parfumP_50: { label: 'Parfum Perempuan 50mL', size: 50, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  parfumP_100: { label: 'Parfum Perempuan 100mL', size: 100, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  parfumL_30: { label: 'Parfum Laki-laki 30mL', size: 30, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  parfumL_50: { label: 'Parfum Laki-laki 50mL', size: 50, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  parfumL_100: { label: 'Parfum Laki-laki 100mL', size: 100, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  deodorant: { label: 'Deodorant', size: 50, product: 'deodorant', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  hairMist: { label: 'Hair Mist', size: 100, product: 'hairMist', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  bundlingPria: { label: 'Bundling Pria', size: 0, product: 'bundlingPria', unit: 'set', warnAt: 3, lowAt: 1 },
-  bundlingWanita: { label: 'Bundling Wanita', size: 0, product: 'bundlingWanita', unit: 'set', warnAt: 3, lowAt: 1 }
+  parfumP_QoS_35: { label: 'Parfum Queen of Sheba 35mL', size: 35, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  parfumP_Cleopatra_35: { label: 'Parfum Cleopatra’s Nilus 35mL', size: 35, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  parfumP_Joan_35: { label: 'Parfum Joan’s Armor 35mL', size: 35, product: 'perempuan', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  parfumL_KingSolomon_30: { label: 'Parfum King Solomon 30mL', size: 30, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  parfumL_Alexander_30: { label: 'Parfum Alexander’s Empire 30mL', size: 30, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  deodorantP: { label: 'Deodorant Queen of Sheba', size: 50, product: 'deodorantP', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  deodorantL: { label: 'Deodorant King Solomon', size: 50, product: 'deodorantL', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  hairMistP: { label: 'Crown of Velvet Hair Mist', size: 100, product: 'hairMistP', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  hairMistL: { label: 'Sovereign Mane Hair Mist', size: 100, product: 'hairMistL', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  bundlingPria: { label: 'The King\'s Ritual Trilogy 3-in-1', size: 0, product: 'bundlingPria', unit: 'set', warnAt: 3, lowAt: 1 },
+  bundlingWanita: { label: 'The Queen\'s Secret Trilogy 3-in-1', size: 0, product: 'bundlingWanita', unit: 'set', warnAt: 3, lowAt: 1 },
+  giftBoxLuxury: { label: 'The Queen\'s Trilogy Gift Box (Luxury)', size: 0, product: 'giftBoxLuxury', unit: 'set', warnAt: 3, lowAt: 1 }
 };
 
 // Recipe: bahan baku yang dibutuhkan per 1 unit produk jadi
 const PRODUCTION_RECIPES = {
-  parfumP_30: { biangP: 30, botolP: 1, boxParfumP: 1 },
-  parfumP_50: { biangP: 50, botolP: 1, boxParfumP: 1 },
-  parfumP_100: { biangP: 100, botolP: 1, boxParfumP: 1 },
-  parfumL_30: { biangL: 30, botolL: 1, boxParfumL: 1 },
-  parfumL_50: { biangL: 50, botolL: 1, boxParfumL: 1 },
-  parfumL_100: { biangL: 100, botolL: 1, boxParfumL: 1 },
-  deodorant: { cairanDeo: 50, botolDeo: 1, boxDeo: 1 },
-  hairMist: { cairanHM: 100, botolHM: 1, boxExclusive: 1 },
+  parfumP_QoS_35: { biangP: 35, botolP: 1, boxParfumP: 1 },
+  parfumP_Cleopatra_35: { biangP: 35, botolP: 1, boxParfumP: 1 },
+  parfumP_Joan_35: { biangP: 35, botolP: 1, boxParfumP: 1 },
+  parfumL_KingSolomon_30: { biangL: 30, botolL: 1, boxParfumL: 1 },
+  parfumL_Alexander_30: { biangL: 30, botolL: 1, boxParfumL: 1 },
+  deodorantP: { cairanDeoP: 50, botolDeoP: 1, boxDeoP: 1 },
+  deodorantL: { cairanDeoL: 50, botolDeoL: 1, boxDeoL: 1 },
+  hairMistP: { cairanHMP: 100, botolHMP: 1, boxExclusive: 1 },
+  hairMistL: { cairanHML: 100, botolHML: 1, boxExclusive: 1 },
   // Bundling menggunakan produk jadi (fg) bukan bahan baku langsung
-  bundlingPria: { _fg: { parfumL_30: 1, deodorant: 1 }, boxBundlingP: 1 },
-  bundlingWanita: { _fg: { parfumP_30: 1, deodorant: 1 }, boxBundlingW: 1 }
+  bundlingPria: { _fg: { parfumL_KingSolomon_30: 1, deodorantL: 1, hairMistL: 1 }, boxBundlingP: 1 },
+  bundlingWanita: { _fg: { parfumP_QoS_35: 1, deodorantP: 1, hairMistP: 1 }, boxBundlingW: 1 },
+  giftBoxLuxury: { _fg: { parfumP_QoS_35: 1, deodorantP: 1, hairMistP: 1 }, boxExclusive: 1 }
 };
 
 const DEFAULT_STATE = {
   rm: {
     biangP: 0, biangL: 0, botolP: 0, botolL: 0, boxParfumL: 0, boxParfumP: 0,
-    cairanDeo: 0, botolDeo: 0, boxDeo: 0,
-    cairanHM: 0, botolHM: 0,
+    cairanDeoP: 0, cairanDeoL: 0, botolDeoP: 0, botolDeoL: 0, boxDeoP: 0, boxDeoL: 0,
+    cairanHMP: 0, cairanHML: 0, botolHMP: 0, botolHML: 0,
     boxExclusive: 0, boxBundlingP: 0, boxBundlingW: 0, bubbleWrap: 0, boxLuar: 0
   },
+  rmCost: {},
+  customRM: {},
   fg: {
-    parfumP_30: 0, parfumP_50: 0, parfumP_100: 0,
-    parfumL_30: 0, parfumL_50: 0, parfumL_100: 0,
-    deodorant: 0, hairMist: 0, bundlingPria: 0, bundlingWanita: 0
+    parfumP_QoS_35: 0, parfumP_Cleopatra_35: 0, parfumP_Joan_35: 0,
+    parfumL_KingSolomon_30: 0, parfumL_Alexander_30: 0,
+    deodorantP: 0, deodorantL: 0, hairMistP: 0, hairMistL: 0,
+    bundlingPria: 0, bundlingWanita: 0, giftBoxLuxury: 0
   },
   hr: {
     errors: [], // { id, ts, staff, type, resi, notes }
@@ -243,7 +248,8 @@ function loadLocalState() {
 }
 
 async function loadState() {
-  if (!sb) { loadLocalState(); return; }
+  loadLocalState(); // load local cache first, including rmCost and other non-synced states
+  if (!sb) return;
 
   showStatSkeletons();
 
@@ -264,11 +270,16 @@ async function loadState() {
         botolL: inv.botol_l || 0,
         boxParfumL: inv.box_parfum_l || 0,
         boxParfumP: inv.box_parfum_p || inv.box || 0,
-        cairanDeo: inv.cairan_deo || 0,
-        botolDeo: inv.botol_deo || 0,
-        boxDeo: inv.box_deo || 0,
-        cairanHM: inv.cairan_hm || 0,
-        botolHM: inv.botol_hm || 0,
+        cairanDeoP: inv.cairan_deo_p || inv.cairan_deo || 0,
+        cairanDeoL: inv.cairan_deo_l || 0,
+        botolDeoP: inv.botol_deo_p || inv.botol_deo || 0,
+        botolDeoL: inv.botol_deo_l || 0,
+        boxDeoP: inv.box_deo_p || inv.box_deo || 0,
+        boxDeoL: inv.box_deo_l || 0,
+        cairanHMP: inv.cairan_hm_p || inv.cairan_hm || 0,
+        cairanHML: inv.cairan_hm_l || 0,
+        botolHMP: inv.botol_hm_p || inv.botol_hm || 0,
+        botolHML: inv.botol_hm_l || 0,
         boxExclusive: inv.box_exclusive || 0,
         boxBundlingP: inv.box_bundling_p || 0,
         boxBundlingW: inv.box_bundling_w || 0,
@@ -280,8 +291,8 @@ async function loadState() {
         id: 1,
         biang_p: 0, biang_l: 0, botol_p: 0, botol_l: 0,
         box_parfum_l: 0, box_parfum_p: 0,
-        cairan_deo: 0, botol_deo: 0, box_deo: 0,
-        cairan_hm: 0, botol_hm: 0,
+        cairan_deo_p: 0, cairan_deo_l: 0, botol_deo_p: 0, botol_deo_l: 0, box_deo_p: 0, box_deo_l: 0,
+        cairan_hm_p: 0, cairan_hm_l: 0, botol_hm_p: 0, botol_hm_l: 0,
         box_exclusive: 0, box_bundling_p: 0, box_bundling_w: 0,
         bubble_wrap: 0, box_luar: 0
       });
@@ -298,23 +309,25 @@ async function loadState() {
 
     if (fg) {
       S.fg = {
-        parfumP_30: fg.parfum_p_30 || 0,
-        parfumP_50: fg.parfum_p_50 || 0,
-        parfumP_100: fg.parfum_p_100 || 0,
-        parfumL_30: fg.parfum_l_30 || 0,
-        parfumL_50: fg.parfum_l_50 || 0,
-        parfumL_100: fg.parfum_l_100 || 0,
-        deodorant: fg.deodorant || 0,
-        hairMist: fg.hair_mist || 0,
+        parfumP_QoS_35: fg.parfum_p_qos_35 || 0,
+        parfumP_Cleopatra_35: fg.parfum_p_cleopatra_35 || 0,
+        parfumP_Joan_35: fg.parfum_p_joan_35 || 0,
+        parfumL_KingSolomon_30: fg.parfum_l_kingsolomon_30 || 0,
+        parfumL_Alexander_30: fg.parfum_l_alexander_30 || 0,
+        deodorantP: fg.deodorant_p || fg.deodorant || 0,
+        deodorantL: fg.deodorant_l || 0,
+        hairMistP: fg.hair_mist_p || fg.hair_mist || 0,
+        hairMistL: fg.hair_mist_l || 0,
         bundlingPria: fg.bundling_pria || 0,
-        bundlingWanita: fg.bundling_wanita || 0
+        bundlingWanita: fg.bundling_wanita || 0,
+        giftBoxLuxury: fg.gift_box_luxury || 0
       };
     } else {
       await sb.from('wms_finished_goods').insert({
         id: 1,
-        parfum_p_30: 0, parfum_p_50: 0, parfum_p_100: 0,
-        parfum_l_30: 0, parfum_l_50: 0, parfum_l_100: 0,
-        deodorant: 0, hair_mist: 0, bundling_pria: 0, bundling_wanita: 0
+        parfum_p_qos_35: 0, parfum_p_cleopatra_35: 0, parfum_p_joan_35: 0,
+        parfum_l_kingsolomon_30: 0, parfum_l_alexander_30: 0,
+        deodorant_p: 0, deodorant_l: 0, hair_mist_p: 0, hair_mist_l: 0, bundling_pria: 0, bundling_wanita: 0, gift_box_luxury: 0
       });
     }
 
@@ -375,11 +388,16 @@ async function syncInventory() {
       botol_l: S.rm.botolL,
       box_parfum_l: S.rm.boxParfumL,
       box_parfum_p: S.rm.boxParfumP,
-      cairan_deo: S.rm.cairanDeo,
-      botol_deo: S.rm.botolDeo,
-      box_deo: S.rm.boxDeo,
-      cairan_hm: S.rm.cairanHM,
-      botol_hm: S.rm.botolHM,
+      cairan_deo_p: S.rm.cairanDeoP,
+      cairan_deo_l: S.rm.cairanDeoL,
+      botol_deo_p: S.rm.botolDeoP,
+      botol_deo_l: S.rm.botolDeoL,
+      box_deo_p: S.rm.boxDeoP,
+      box_deo_l: S.rm.boxDeoL,
+      cairan_hm_p: S.rm.cairanHMP,
+      cairan_hm_l: S.rm.cairanHML,
+      botol_hm_p: S.rm.botolHMP,
+      botol_hm_l: S.rm.botolHML,
       box_exclusive: S.rm.boxExclusive,
       box_bundling_p: S.rm.boxBundlingP,
       box_bundling_w: S.rm.boxBundlingW,
@@ -389,18 +407,20 @@ async function syncInventory() {
     }).eq('id', 1);
     if (invErr) throw invErr;
 
-    // Sync finished goods (10 produk jadi)
+    // Sync finished goods
     const { error: fgErr } = await sb.from('wms_finished_goods').update({
-      parfum_p_30: S.fg.parfumP_30,
-      parfum_p_50: S.fg.parfumP_50,
-      parfum_p_100: S.fg.parfumP_100,
-      parfum_l_30: S.fg.parfumL_30,
-      parfum_l_50: S.fg.parfumL_50,
-      parfum_l_100: S.fg.parfumL_100,
-      deodorant: S.fg.deodorant,
-      hair_mist: S.fg.hairMist,
+      parfum_p_qos_35: S.fg.parfumP_QoS_35,
+      parfum_p_cleopatra_35: S.fg.parfumP_Cleopatra_35,
+      parfum_p_joan_35: S.fg.parfumP_Joan_35,
+      parfum_l_kingsolomon_30: S.fg.parfumL_KingSolomon_30,
+      parfum_l_alexander_30: S.fg.parfumL_Alexander_30,
+      deodorant_p: S.fg.deodorantP,
+      deodorant_l: S.fg.deodorantL,
+      hair_mist_p: S.fg.hairMistP,
+      hair_mist_l: S.fg.hairMistL,
       bundling_pria: S.fg.bundlingPria,
       bundling_wanita: S.fg.bundlingWanita,
+      gift_box_luxury: S.fg.giftBoxLuxury,
       updated_at: new Date().toISOString()
     }).eq('id', 1);
     if (fgErr) throw fgErr;
@@ -411,9 +431,8 @@ async function syncInventory() {
 }
 
 async function saveState() {
-  if (!sb) {
-    try { localStorage.setItem('wmsParfum_v2', JSON.stringify(S)); } catch (e) { }
-  } else {
+  try { localStorage.setItem('wmsParfum_v2', JSON.stringify(S)); } catch (e) { }
+  if (sb) {
     await syncInventory();
   }
 }
@@ -558,21 +577,68 @@ function renderSalesChart(sales) {
   `).join('');
 }
 
+let RM_FILTER = 'parfum';
+
+function switchRmTab(tabId) {
+  RM_FILTER = tabId;
+  document.querySelectorAll('#page-rawmaterials .vendor-tab').forEach(b => {
+    if (b.id === `rmtab-${tabId}`) b.classList.add('active');
+    else b.classList.remove('active');
+  });
+  renderRawMaterials();
+}
+
+let RM_SEARCH = '';
+
+function filterRmList() {
+  const input = document.getElementById('rm-search');
+  if (input) {
+    RM_SEARCH = input.value.trim().toLowerCase();
+    renderRawMaterials();
+  }
+}
+
 function renderRawMaterials() {
   const { rm, log } = S;
 
-  // Update all material cards dynamically
-  Object.entries(MATERIAL_META).forEach(([key, meta]) => {
-    const valEl = document.getElementById(`rm-${key}-val`);
-    const badgeEl = document.getElementById(`rm-${key}-badge`);
-    const hintEl = document.getElementById(`rm-${key}-hint`);
-    const val = rm[key] || 0;
-    if (valEl) valEl.innerHTML = fmt(val) + `<span class="stat-unit">${meta.unit}</span>`;
-    if (badgeEl) updateBadge(`rm-${key}-badge`, val, key);
-    if (hintEl) updateVendorHint(`rm-${key}-hint`, val, key);
-  });
+  const tbody = document.getElementById('rm-list-tbody');
+  if (tbody) {
+    const allMaterials = { ...MATERIAL_META, ...(S.customRM || {}) };
+    let materials = Object.entries(allMaterials).filter(([key, meta]) => meta.group === RM_FILTER);
+
+    if (RM_SEARCH) {
+      materials = materials.filter(([key, meta]) => meta.label.toLowerCase().includes(RM_SEARCH));
+    }
+
+    if (materials.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#B08A62;padding:24px;">Tidak ada bahan baku ditemukan</td></tr>';
+    } else {
+      tbody.innerHTML = materials.map(([key, meta]) => {
+        const stock = rm[key] || 0;
+        const isLow = stock <= meta.warnAt;
+        const stockColor = isLow ? '#991B1B' : '#5C4A3C';
+        const costVal = S.rmCost[key] || '';
+
+        return `
+          <tr>
+            <td style="font-weight:600;color:#2D1F17;">${meta.label}</td>
+            <td style="text-align:center;font-weight:700;color:${stockColor};">
+              ${fmt(stock)} <span style="font-size:12px;font-weight:400;">${meta.unit}</span>
+            </td>
+            <td>
+              <input type="number" class="form-input rm-mass-cost" data-key="${key}" min="0" step="1" value="${costVal}" placeholder="Rp">
+            </td>
+            <td>
+              <input type="number" class="form-input rm-mass-qty" data-key="${key}" min="0" step="0.1" placeholder="+ Qty">
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
 
   const el = document.getElementById('rm-log');
+  if (!el) return;
   const entries = log.filter(e => e.type === 'inbound').reverse().slice(0, 10);
   if (!entries.length) {
     el.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada data inbound</div>';
@@ -584,6 +650,7 @@ function renderRawMaterials() {
       <span style="color:#6EE7B7;font-size:11px;white-space:nowrap;margin-left:10px;">${fmtDate(e.ts)}</span>
     </div>`).join('');
 }
+
 
 function updateSalePreview() {
   // Sale preview box removed - preview is now shown in production page
@@ -823,32 +890,64 @@ function renderSales() {
 }
 
 /* ─────────────── ACTIONS ─────────────── */
-async function addStock() {
-  const typeEl = document.getElementById('rm-type');
-  const qtyEl = document.getElementById('rm-qty');
+async function massAddStock() {
   const vendorEl = document.getElementById('rm-vendor');
+  const vendor = vendorEl ? vendorEl.value.trim() : '';
 
-  const type = typeEl.value;
-  const qty = validateQuantity(qtyEl.value, true);
-  const vendor = vendorEl.value.trim();
+  const qtyInputs = document.querySelectorAll('.rm-mass-qty');
+  let hasItems = false;
+  let itemsProcessed = 0;
 
-  if (!qty) return;
+  // First pass to check if there is anything to save
+  qtyInputs.forEach(input => {
+    if (validateQuantity(input.value, true) > 0) hasItems = true;
+  });
 
-  if (!vendor) {
-    toast('Pilih vendor sebelum menambah stok!\nData ini penting untuk traceability.', 'warn', 4000);
-    vendorEl.focus();
+  if (!hasItems) {
+    toast('Isi minimal satu Qty Masuk untuk menyimpan stok.', 'warn');
     return;
   }
 
-  S.rm[type] = +(S.rm[type] + qty).toFixed(2);
-  const m = MATERIAL_META[type];
+  if (!vendor) {
+    toast('Pilih Vendor Suplier terlebih dahulu!\nData ini penting untuk traceability.', 'warn', 4000);
+    if (vendorEl) vendorEl.focus();
+    return;
+  }
 
-  await addLog('inbound', `+${fmt(qty)} ${m.unit} ${m.label} — ${vendor}`);
-  await saveState();
-  renderAll();
+  // Second pass to apply changes
+  for (const input of qtyInputs) {
+    const qty = validateQuantity(input.value, true);
+    if (qty > 0) {
+      const key = input.getAttribute('data-key');
+      const costInput = document.querySelector(`.rm-mass-cost[data-key="${key}"]`);
+      const cost = costInput ? validateQuantity(costInput.value, false) : 0;
 
-  qtyEl.value = '';
-  toast(`${m.label} berhasil ditambah: +${fmt(qty)} ${m.unit}\nDari: ${vendor}`, 'success');
+      S.rm[key] = +(S.rm[key] + qty).toFixed(2);
+      if (cost > 0) {
+        S.rmCost[key] = cost;
+      }
+
+      const m = MATERIAL_META[key];
+      await addLog('inbound', `+${fmt(qty)} ${m.unit} ${m.label} — ${vendor}`);
+      itemsProcessed++;
+
+      input.value = ''; // clear qty input after processing
+    }
+  }
+
+  if (itemsProcessed > 0) {
+    await saveState();
+    renderAll();
+
+    // Clear search
+    const searchInput = document.getElementById('rm-search');
+    if (searchInput) searchInput.value = '';
+    RM_SEARCH = '';
+    if (vendorEl) vendorEl.value = ''; // Reset vendor
+    renderRawMaterials();
+
+    toast(`Berhasil menyimpan inbound untuk ${itemsProcessed} jenis bahan baku dari ${vendor}.`, 'success');
+  }
 }
 
 // (processProduction removed - use recordProduction instead)
@@ -1183,19 +1282,15 @@ function populateRmTypeOptions() {
 }
 
 function populateRmVendorSelect() {
-  const typeEl = document.getElementById('rm-type');
   const vendorEl = document.getElementById('rm-vendor');
-  if (!typeEl || !vendorEl) return;
+  if (!vendorEl) return;
 
-  const materialKey = typeEl.value;
-  const vendors = getVendorsForMaterial(materialKey);
-
-  if (!vendors.length) {
+  if (!VENDORS || !VENDORS.length) {
     vendorEl.innerHTML = '<option value="">— Tidak ada vendor terdaftar —</option>';
     return;
   }
 
-  vendorEl.innerHTML = vendors.map(v =>
+  vendorEl.innerHTML = '<option value="">-- Pilih Vendor --</option>' + VENDORS.map(v =>
     `<option value="${v.name}">${v.name} (Lead time: ${v.leadTimeDays} hari)</option>`
   ).join('');
 }
@@ -1251,17 +1346,22 @@ function renderVendors() {
   const container = document.getElementById('vendors-cards');
   if (!container) return;
 
-  const activeFilter = document.querySelector('.vendor-tab-panel.active')?.id;
+  const activeTabId = document.querySelector('.vendor-tab-panel.active')?.id;
 
   // Populate PO vendor filter
   populatePoVendorSelect();
 
-  const activeChip = document.querySelector('#vpanel-list .chip.active');
-  const filterType = activeChip?.dataset?.filter || 'all';
+  const activeFilter = window._vendorFilter || 'all';
 
   let filtered = VENDORS;
-  if (filterType !== 'all') {
-    filtered = VENDORS.filter(v => (v.vendor_type || '') === filterType);
+  if (activeFilter !== 'all') {
+    filtered = VENDORS.filter(v => {
+      const vt = v.vendor_type || '';
+      if (activeFilter === 'parfum') return vt === 'parfum' || vt === 'biang_parfum' || vt === 'botol_parfum';
+      if (activeFilter === 'personal_care') return vt === 'personal_care' || vt === 'deodorant' || vt === 'hairmist';
+      if (activeFilter === 'packaging') return vt === 'packaging';
+      return vt === activeFilter;
+    });
   }
 
   if (!filtered.length) {
@@ -1277,7 +1377,8 @@ function renderVendors() {
 
     const rating = parseFloat(v.rating) || 5;
     const stars = renderStars(rating);
-    const otif = parseFloat(v.otif_rate) || 100;
+    const parsedOtif = parseFloat(v.otif_rate);
+    const otif = isNaN(parsedOtif) ? 100 : parsedOtif;
     const otifCls = otif >= 90 ? 'otif-good' : otif >= 75 ? 'otif-ok' : 'otif-poor';
     const top = v.term_of_payment || 'CBD';
     const topCls = top === 'CBD' || top === 'COD' ? 'top-cbd' : 'top-net';
@@ -1310,7 +1411,7 @@ function renderVendors() {
             <div style="font-size:18px;font-weight:700;color:#166534;">${fmtRp(totalPaid)}</div>
             <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px;">
               <button class="btn-secondary" style="padding:5px 12px;font-size:12px;" onclick="openEditVendorModal(${v.id})">Edit</button>
-              <button class="btn-primary btn-with-icon" style="padding:5px 12px;font-size:12px;" onclick="switchVendorTab('po')">
+              <button class="btn-primary btn-with-icon" style="padding:5px 12px;font-size:12px;" onclick="createPoForVendor(${v.id})">
                 <svg class="ico ico-xs"><use href="#ico-plus"/></svg> PO
               </button>
             </div>
@@ -1330,32 +1431,31 @@ function renderStars(rating) {
 }
 
 function vtypeCls(t) {
-  const map = { biang_parfum: 'vtype-biang', botol_parfum: 'vtype-botol', packaging: 'vtype-packaging', deodorant: 'vtype-deodorant', hairmist: 'vtype-hairmist' };
+  const map = { parfum: 'vtype-biang', personal_care: 'vtype-deodorant', packaging: 'vtype-packaging', biang_parfum: 'vtype-biang', botol_parfum: 'vtype-botol', deodorant: 'vtype-deodorant', hairmist: 'vtype-hairmist' };
   return map[t] || 'vtype-default';
 }
 
 function vtypeLabel(t) {
-  const map = { biang_parfum: 'Biang Parfum', botol_parfum: 'Botol Parfum', packaging: 'Packaging', deodorant: 'Deodorant', hairmist: 'Hair Mist' };
+  const map = { parfum: 'Parfum', personal_care: 'Personal Care', packaging: 'Packaging', biang_parfum: 'Biang Parfum', botol_parfum: 'Botol Parfum', deodorant: 'Deodorant', hairmist: 'Hair Mist' };
   return map[t] || (t || 'Umum');
 }
 
 function filterVendors(type) {
   document.querySelectorAll('#vpanel-list .chip').forEach(c => {
-    const isActive = (type === 'all' && !c.dataset.filter) ||
-      c.id === `vf-${type}` || (type === 'all' && c.id === 'vf-all');
+    const isActive = (type === 'all' && c.id === 'vf-all') || c.id === `vf-${type}`;
     c.classList.toggle('active', isActive);
   });
-  // Store filter in active chip via data attribute trick
-  const chip = document.getElementById(type === 'all' ? 'vf-all' : `vf-${type}`) ||
-    document.getElementById(`vf-${type.replace('_parfum', '').replace('_', '')}`);
-  if (chip) chip.dataset.filter = type;
-  // Set all chips data-filter
-  const chipMap = { all: 'all', biang: 'biang_parfum', botol: 'botol_parfum', deo: 'deodorant', hair: 'hairmist', pack: 'packaging' };
-  Object.entries(chipMap).forEach(([k, v]) => {
-    const el = document.getElementById(`vf-${k}`);
-    if (el) el.dataset.filter = v;
-  });
+  window._vendorFilter = type;
   renderVendors();
+}
+
+function createPoForVendor(vendorId) {
+  switchVendorTab('po');
+  const vendorSelect = document.getElementById('po-vendor');
+  if (vendorSelect) {
+    vendorSelect.value = vendorId;
+    updatePoMaterialOptions();
+  }
 }
 
 function switchVendorTab(tab) {
@@ -2063,22 +2163,34 @@ async function loadSkus() {
 }
 
 function renderWarehouse() {
-  const { rm } = S;
+  const { rm, fg } = S;
   const search = (document.getElementById('sku-search')?.value || '').toLowerCase();
 
-  let materials = Object.entries(MATERIAL_META).map(([key, meta]) => {
-    return { key, meta, stock: rm[key] || 0 };
+  const allMaterials = { ...MATERIAL_META, ...(S.customRM || {}) };
+  let materials = Object.entries(allMaterials).map(([key, meta]) => {
+    return { key, meta, stock: rm[key] || 0, isFg: false };
   });
+
+  // Add Finished Goods
+  const fgItems = Object.entries(FINISHED_GOODS).map(([key, meta]) => {
+    return { key, meta: { ...meta, group: 'produk_jadi' }, stock: fg[key] || 0, isFg: true };
+  });
+  materials = materials.concat(fgItems);
 
   if (WH_FILTER !== 'all') {
     const filterGroupMap = {
-      parfum: ['biangP', 'biangL', 'botolP', 'botolL', 'boxParfumL', 'boxParfumP'],
-      deodorant: ['cairanDeo', 'botolDeo', 'boxDeo'],
-      hairmist: ['cairanHM', 'botolHM'],
-      bahan_baku: ['boxExclusive', 'boxBundlingP', 'boxBundlingW', 'bubbleWrap', 'boxLuar']
+      parfum: ['biangP', 'biangL', 'botolP', 'botolL'],
+      personal_care: ['cairanDeoP', 'cairanDeoL', 'botolDeoP', 'botolDeoL', 'cairanHMP', 'cairanHML', 'botolHMP', 'botolHML'],
+      packaging: ['boxParfumL', 'boxParfumP', 'boxDeoP', 'boxDeoL', 'boxExclusive', 'boxBundlingP', 'boxBundlingW', 'bubbleWrap', 'boxLuar']
     };
-    const allowedKeys = filterGroupMap[WH_FILTER] || [];
-    materials = materials.filter(m => allowedKeys.includes(m.key));
+
+    if (WH_FILTER === 'produk_jadi') {
+      materials = materials.filter(m => m.isFg);
+    } else {
+      const allowedKeys = filterGroupMap[WH_FILTER] || [];
+      // Also allow dynamic customRM items that match the group
+      materials = materials.filter(m => allowedKeys.includes(m.key) || m.meta.group === WH_FILTER);
+    }
   }
 
   if (search) {
@@ -2090,17 +2202,23 @@ function renderWarehouse() {
   const lowSkus = materials.filter(m => m.stock <= m.meta.warnAt).length;
   const cats = new Set(materials.map(m => m.meta.group)).size;
 
+  let totalValuation = 0;
+  materials.forEach(m => {
+    const cost = S.rmCost[m.key] || 0;
+    totalValuation += m.stock * cost;
+  });
+
   const el = (id) => document.getElementById(id);
   if (el('wh-total-sku')) el('wh-total-sku').textContent = totalSkus;
   if (el('wh-low-sku')) el('wh-low-sku').textContent = lowSkus;
   if (el('wh-categories')) el('wh-categories').textContent = cats;
-  if (el('wh-total-value')) el('wh-total-value').textContent = '—'; // Simplified as we don't track cost per RM yet
+  if (el('wh-total-value')) el('wh-total-value').textContent = fmtRp(totalValuation);
 
   // Grid cards
   const grid = document.getElementById('sku-grid');
   if (grid) {
     if (!materials.length) {
-      grid.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:40px 0;grid-column:1/-1;">Tidak ada bahan baku ditemukan</div>';
+      grid.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:40px 0;grid-column:1/-1;">Tidak ada barang ditemukan</div>';
     } else {
       grid.innerHTML = materials.map(m => {
         const { key, meta, stock } = m;
@@ -2110,17 +2228,20 @@ function renderWarehouse() {
         const isWarn = stock <= meta.warnAt && !isLow;
         const pct = Math.min(100, (stock / (max || 1)) * 100);
 
-        const groupLabels = { parfum: '🌸 Parfum', deodorant: '🧴 Deodorant', hairmist: '💨 Hair Mist', packaging: '📦 Packaging' };
-        const catCls = { parfum: 'sku-parfum', deodorant: 'sku-deodorant', hairmist: 'sku-hairmist', packaging: 'sku-bahan' }[meta.group] || 'sku-bahan';
+        const groupLabels = { parfum: '🌸 Parfum', personal_care: '🧴 Personal Care', packaging: '📦 Packaging', produk_jadi: '📦 Produk Jadi' };
+        const catCls = { parfum: 'sku-parfum', personal_care: 'sku-deodorant', packaging: 'sku-bahan', produk_jadi: 'sku-bahan' }[meta.group] || 'sku-bahan';
         const statusCls = isLow ? 'low-stock' : isWarn ? 'warn-stock' : '';
         const statusLabel = isLow ? '<span class="sku-stock-indicator otif-poor">⚠ Restock Segera</span>' :
           isWarn ? '<span class="sku-stock-indicator otif-ok">⚡ Stok Menipis</span>' :
             '<span class="sku-stock-indicator otif-good">✓ Aman</span>';
 
         return `
-          <div class="sku-card ${statusCls}">
+          <div class="sku-card ${statusCls}" style="position:relative;">
+            <button onclick="openEditMaterial('${key}')" style="position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;color:#B08A62;padding:4px;border-radius:4px;" onmouseover="this.style.background='#F2EAE0'" onmouseout="this.style.background='none'" title="Edit Item">
+              <svg class="ico ico-sm"><use href="#ico-edit" /></svg>
+            </button>
             <div class="sku-card-sku">${key}</div>
-            <div class="sku-card-name">${meta.label}</div>
+            <div class="sku-card-name" style="padding-right:20px;">${meta.label}</div>
             <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
               <span class="sku-cat ${catCls}">${groupLabels[meta.group] || meta.group}</span>
             </div>
@@ -2141,13 +2262,13 @@ function renderWarehouse() {
   const tbody = document.getElementById('sku-tbody');
   if (tbody) {
     if (!materials.length) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#B08A62;padding:24px;">Tidak ada bahan baku ditemukan</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#B08A62;padding:24px;">Tidak ada barang ditemukan</td></tr>';
     } else {
       tbody.innerHTML = materials.map(m => {
         const { key, meta, stock } = m;
         const isLow = stock <= meta.warnAt;
-        const groupLabels = { parfum: '🌸 Parfum', deodorant: '🧴 Deodorant', hairmist: '💨 Hair Mist', packaging: '📦 Packaging' };
-        const catCls = { parfum: 'sku-parfum', deodorant: 'sku-deodorant', hairmist: 'sku-hairmist', packaging: 'sku-bahan' }[meta.group] || 'sku-bahan';
+        const groupLabels = { parfum: '🌸 Parfum', personal_care: '🧴 Personal Care', packaging: '📦 Packaging', produk_jadi: '📦 Produk Jadi' };
+        const catCls = { parfum: 'sku-parfum', personal_care: 'sku-deodorant', packaging: 'sku-bahan', produk_jadi: 'sku-bahan' }[meta.group] || 'sku-bahan';
         return `
           <tr>
             <td style="font-family:monospace;font-size:12px;font-weight:600;color:#5C4A3C;">${key}</td>
@@ -2156,9 +2277,11 @@ function renderWarehouse() {
             <td style="text-align:center;font-weight:700;color:${isLow ? '#991B1B' : '#166534'};">${fmt(stock)} ${meta.unit}</td>
             <td style="text-align:center;color:#8B6F5E;">${meta.warnAt}</td>
             <td style="text-align:center;color:#8B6F5E;">${meta.lowAt}</td>
-            <td style="color:#5C4A3C;">—</td>
-            <td style="color:#5C4A3C;">—</td>
+            <td style="color:#5C4A3C;">${fmtRp(S.rmCost[key] || 0)}</td>
             <td>${isLow ? '<span class="badge-low" style="font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid;">⚠ Low</span>' : '<span class="badge-ok" style="font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid;">✓ OK</span>'}</td>
+            <td style="text-align:right;">
+              <button onclick="openEditMaterial('${key}')" class="btn-secondary" style="padding:4px 8px;font-size:11px;">Edit</button>
+            </td>
           </tr>`;
       }).join('');
     }
@@ -2166,85 +2289,148 @@ function renderWarehouse() {
 }
 
 function skuCatLabel(cat) {
-  return { parfum: '🌸 Parfum', deodorant: '🧴 Deodorant', hairmist: '💨 Hair Mist', bahan_baku: '⚗️ Bahan Baku' }[cat] || cat;
+  return { parfum: '🌸 Parfum', deodorant: '🧴 Deodorant', hairmist: '💨 Hair Mist', bahan_baku: '⚗️ Bahan Baku', produk_jadi: '📦 Produk Jadi' }[cat] || cat;
 }
 
 function filterWarehouse(cat) {
   WH_FILTER = cat;
   document.querySelectorAll('#wh-filter-chips .chip').forEach(c => c.classList.remove('active'));
-  const active = { all: 'wh-chip-all', parfum: 'wh-chip-parfum', deodorant: 'wh-chip-deodorant', hairmist: 'wh-chip-hairmist', bahan_baku: 'wh-chip-bahan' }[cat];
+  const active = { all: 'wh-chip-all', parfum: 'wh-chip-parfum', personal_care: 'wh-chip-personal_care', packaging: 'wh-chip-packaging', produk_jadi: 'wh-chip-produk_jadi' }[cat];
   if (active) document.getElementById(active)?.classList.add('active');
-  _renderWarehouse();
+  renderWarehouse();
 }
 
 function openAddSkuModal() {
-  document.getElementById('modal-sku-title').textContent = 'Tambah Produk SKU';
+  document.getElementById('modal-sku-title').textContent = 'Tambah Stok Bahan Baku';
   document.getElementById('sku-code').value = '';
+  document.getElementById('sku-code').readOnly = false;
   document.getElementById('sku-name-input').value = '';
   document.getElementById('sku-category').value = 'parfum';
-  document.getElementById('sku-type').value = 'unisex';
-  document.getElementById('sku-size').value = '';
+  document.getElementById('sku-unit').value = 'pcs';
   document.getElementById('sku-stock').value = '0';
   document.getElementById('sku-min').value = '5';
   document.getElementById('sku-max').value = '100';
   document.getElementById('sku-cost').value = '0';
-  document.getElementById('sku-sell').value = '0';
   document.getElementById('sku-edit-id').value = '';
+  document.getElementById('btn-delete-sku').style.display = 'none';
   openModal('modal-sku');
 }
 
-function openEditSkuModal(id) {
-  const s = ALL_SKUS.find(x => x.id === id);
-  if (!s) return;
-  document.getElementById('modal-sku-title').textContent = 'Edit Produk SKU';
-  document.getElementById('sku-code').value = s.sku;
-  document.getElementById('sku-name-input').value = s.name;
-  document.getElementById('sku-category').value = s.category;
-  document.getElementById('sku-type').value = s.product_type || 'unisex';
-  document.getElementById('sku-size').value = s.size_ml || '';
-  document.getElementById('sku-stock').value = s.current_stock || 0;
-  document.getElementById('sku-min').value = s.min_stock || 5;
-  document.getElementById('sku-max').value = s.max_stock || 100;
-  document.getElementById('sku-cost').value = s.cost_price || 0;
-  document.getElementById('sku-sell').value = s.sell_price || 0;
-  document.getElementById('sku-edit-id').value = id;
+function openEditMaterial(key) {
+  const allMaterials = { ...MATERIAL_META, ...(S.customRM || {}) };
+  const m = allMaterials[key];
+  const isFg = !!FINISHED_GOODS[key];
+  const meta = isFg ? FINISHED_GOODS[key] : m;
+
+  if (!meta) return;
+
+  document.getElementById('modal-sku-title').textContent = 'Edit Data Barang';
+  document.getElementById('sku-code').value = key;
+  document.getElementById('sku-code').readOnly = true;
+  document.getElementById('sku-name-input').value = meta.label;
+
+  if (isFg) {
+    document.getElementById('sku-category').value = 'produk_jadi';
+    // Append produk_jadi if not exists in dropdown
+    const catDrop = document.getElementById('sku-category');
+    if (!catDrop.querySelector('option[value="produk_jadi"]')) {
+      const opt = document.createElement('option');
+      opt.value = 'produk_jadi';
+      opt.textContent = 'Produk Jadi';
+      catDrop.appendChild(opt);
+    }
+  } else {
+    document.getElementById('sku-category').value = meta.group || 'parfum';
+  }
+
+  document.getElementById('sku-unit').value = meta.unit || 'pcs';
+  document.getElementById('sku-stock').value = isFg ? (S.fg[key] || 0) : (S.rm[key] || 0);
+  document.getElementById('sku-min').value = meta.lowAt || 0;
+  document.getElementById('sku-max').value = meta.warnAt || 0;
+  document.getElementById('sku-cost').value = S.rmCost[key] || 0;
+  document.getElementById('sku-edit-id').value = key;
+
+  // Only allow deleting custom dynamic materials
+  const btnDelete = document.getElementById('btn-delete-sku');
+  if (S.customRM && S.customRM[key] && !MATERIAL_META[key] && !FINISHED_GOODS[key]) {
+    btnDelete.style.display = 'inline-flex';
+    btnDelete.style.alignItems = 'center';
+  } else {
+    btnDelete.style.display = 'none';
+  }
+
   openModal('modal-sku');
+}
+
+async function deleteSku() {
+  const key = document.getElementById('sku-edit-id').value;
+  if (!key) return;
+
+  // Ensure it is a custom item
+  if (S.customRM && S.customRM[key] && !MATERIAL_META[key] && !FINISHED_GOODS[key]) {
+    if (!confirm('Yakin ingin menghapus barang dinamis ini?')) return;
+    delete S.customRM[key];
+    delete S.rm[key];
+    delete S.rmCost[key];
+
+    await saveState();
+    toast('Barang berhasil dihapus', 'success');
+    closeModal('modal-sku');
+    renderWarehouse();
+    renderRawMaterials();
+  } else {
+    toast('Barang bawaan sistem (static) tidak bisa dihapus!', 'error');
+  }
 }
 
 async function saveSku() {
   const code = document.getElementById('sku-code').value.trim();
   const name = document.getElementById('sku-name-input').value.trim();
-  if (!code || !name) return showToast('Kode SKU dan nama wajib diisi', 'error');
-
-  const payload = {
-    sku: code,
-    name,
-    category: document.getElementById('sku-category').value,
-    product_type: document.getElementById('sku-type').value,
-    size_ml: parseInt(document.getElementById('sku-size').value) || null,
-    current_stock: parseFloat(document.getElementById('sku-stock').value) || 0,
-    min_stock: parseFloat(document.getElementById('sku-min').value) || 5,
-    max_stock: parseFloat(document.getElementById('sku-max').value) || 100,
-    cost_price: parseFloat(document.getElementById('sku-cost').value) || 0,
-    sell_price: parseFloat(document.getElementById('sku-sell').value) || 0,
-    updated_at: new Date().toISOString()
-  };
+  if (!code || !name) return toast('Kode Barang dan Nama wajib diisi', 'error');
 
   const editId = document.getElementById('sku-edit-id').value;
-  let error;
+  const targetKey = editId || code.replace(/[^a-zA-Z0-9]/g, '');
 
-  if (editId) {
-    ({ error } = await sb.from('wms_products_sku').update(payload).eq('id', editId));
-  } else {
-    ({ error } = await sb.from('wms_products_sku').insert([payload]));
+  const category = document.getElementById('sku-category').value;
+  const unit = document.getElementById('sku-unit').value || 'pcs';
+  const stock = parseFloat(document.getElementById('sku-stock').value) || 0;
+  const minStock = parseFloat(document.getElementById('sku-min').value) || 5;
+  const maxStock = parseFloat(document.getElementById('sku-max').value) || 100;
+  const cost = parseFloat(document.getElementById('sku-cost').value) || 0;
+
+  // Check if editing a static finished good
+  if (FINISHED_GOODS[targetKey]) {
+    S.fg[targetKey] = stock;
+  }
+  // Check if editing a static raw material
+  else if (MATERIAL_META[targetKey]) {
+    S.rm[targetKey] = stock;
+    S.rmCost[targetKey] = cost;
+    // For min/max updates, we can optionally save them to customRM as overrides
+    if (!S.customRM) S.customRM = {};
+    if (minStock !== MATERIAL_META[targetKey].lowAt || maxStock !== MATERIAL_META[targetKey].warnAt) {
+      S.customRM[targetKey] = { ...MATERIAL_META[targetKey], lowAt: minStock, warnAt: maxStock };
+    }
+  }
+  // Custom material
+  else {
+    if (!S.customRM) S.customRM = {};
+    S.customRM[targetKey] = {
+      label: name,
+      group: category,
+      unit: unit,
+      lowAt: minStock,
+      warnAt: maxStock
+    };
+    S.rm[targetKey] = stock;
+    S.rmCost[targetKey] = cost;
   }
 
-  if (error) return showToast('Gagal menyimpan SKU: ' + error.message, 'error');
-
-  showToast('SKU berhasil disimpan ✓', 'success');
+  await saveState();
+  toast('Stok berhasil disimpan ✓', 'success');
   closeModal('modal-sku');
-  await loadSkus();
-  _renderWarehouse();
+  renderWarehouse();
+  renderRawMaterials(); // Update inbound stock list
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2283,7 +2469,7 @@ function openEditVendorModal(id) {
 
 async function saveVendor() {
   const name = document.getElementById('v-name').value.trim();
-  if (!name) return showToast('Nama vendor wajib diisi', 'error');
+  if (!name) return toast('Nama vendor wajib diisi', 'error');
 
   const payload = {
     name,
@@ -2309,9 +2495,9 @@ async function saveVendor() {
     ({ data, error } = await sb.from('wms_vendors').insert([payload]).select());
   }
 
-  if (error) return showToast('Gagal menyimpan vendor: ' + error.message, 'error');
+  if (error) return toast('Gagal menyimpan vendor: ' + error.message, 'error');
 
-  showToast('Vendor berhasil disimpan ✓', 'success');
+  toast('Vendor berhasil disimpan ✓', 'success');
   closeModal('modal-vendor');
 
   // Reload vendors
@@ -2354,10 +2540,13 @@ function updatePoTotal() {
 }
 
 function updatePoMaterialOptions() {
-  const vendorId = parseInt(document.getElementById('po-vendor')?.value);
-  const vendor = VENDORS.find(v => v.id === vendorId);
-  if (vendor && document.getElementById('po-material')) {
-    document.getElementById('po-material').placeholder = vendor.material || 'Contoh: Biang parfum';
+  const materialSelect = document.getElementById('po-material');
+  if (materialSelect) {
+    let optionsHtml = '<option value="">-- Pilih Material --</option>';
+    for (const key in MATERIAL_META) {
+      optionsHtml += `<option value="${key}">${MATERIAL_META[key].label}</option>`;
+    }
+    materialSelect.innerHTML = optionsHtml;
   }
 }
 
@@ -2368,9 +2557,10 @@ async function savePurchaseOrder() {
   const qty = parseFloat(document.getElementById('po-qty')?.value) || 0;
   const unitPrice = parseFloat(document.getElementById('po-unit-price')?.value) || 0;
   const expectedDate = document.getElementById('po-expected-date')?.value;
+  const top = document.getElementById('po-top')?.value;
 
-  if (!vendorId || !poNumber || !material || qty <= 0) {
-    return showToast('Vendor, No. PO, material, dan qty wajib diisi', 'error');
+  if (!vendorId || !poNumber || !material || qty <= 0 || !expectedDate || !top) {
+    return toast('Vendor, No. PO, material, qty, estimasi tiba, dan ToP wajib diisi', 'error');
   }
 
   const payload = {
@@ -2381,7 +2571,8 @@ async function savePurchaseOrder() {
     unit: document.getElementById('po-unit')?.value || 'pcs',
     unit_price: unitPrice,
     total_amount: qty * unitPrice,
-    expected_date: expectedDate || null,
+    expected_date: expectedDate,
+    term_of_payment: top,
     payment_status: 'unpaid',
     paid_amount: 0,
     notes: document.getElementById('po-notes')?.value.trim() || null,
@@ -2389,12 +2580,12 @@ async function savePurchaseOrder() {
   };
 
   const { error } = await sb.from('wms_vendor_po').insert([payload]);
-  if (error) return showToast('Gagal simpan PO: ' + error.message, 'error');
+  if (error) return toast('Gagal simpan PO: ' + error.message, 'error');
 
-  showToast(`PO ${poNumber} berhasil disimpan ✓`, 'success');
+  toast(`PO ${poNumber} berhasil disimpan ✓`, 'success');
 
   // Reset form
-  ['po-number', 'po-material', 'po-qty', 'po-unit-price', 'po-total', 'po-notes'].forEach(id => {
+  ['po-number', 'po-material', 'po-qty', 'po-unit-price', 'po-total', 'po-notes', 'po-expected-date', 'po-top'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -2420,42 +2611,72 @@ function renderPendingPOs() {
     const today = new Date();
     const expDate = p.expected_date ? new Date(p.expected_date) : null;
     const isLate = expDate && today > expDate;
+    const allMats = { ...MATERIAL_META, ...(S.customRM || {}) };
 
     return `
       <div style="padding:12px;background:${isLate ? '#FEF2F2' : '#F9F7F4'};border:1px solid ${isLate ? '#FECACA' : '#E4D3BD'};border-radius:10px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
           <div>
             <div style="font-size:13px;font-weight:700;color:#2D1F17;">${sanitizeHtml(p.po_number)}</div>
-            <div style="font-size:12px;color:#5C4A3C;">${sanitizeHtml(vendorName)} · ${sanitizeHtml(p.material)}</div>
+            <div style="font-size:12px;color:#5C4A3C;">${sanitizeHtml(vendorName)} · ${sanitizeHtml(allMats[p.material]?.label || p.material)}</div>
             <div style="font-size:11px;color:#8B6F5E;margin-top:2px;">${p.qty} ${p.unit} · ${fmtRp(p.total_amount)}</div>
             <div style="font-size:11px;color:${isLate ? '#991B1B' : '#8B6F5E'};margin-top:2px;">
               ${isLate ? '⚠ Terlambat! ' : ''}Estimasi tiba: ${expected}
             </div>
           </div>
-          <button class="btn-secondary" style="font-size:11px;padding:5px 10px;white-space:nowrap;flex-shrink:0;" onclick="openReceivePoModal(${p.id})">Terima</button>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="btn-secondary" style="font-size:11px;padding:5px 10px;white-space:nowrap;color:#991B1B;border-color:#FECACA;" onclick="deletePurchaseOrder(${p.id})">Hapus</button>
+            <button class="btn-secondary" style="font-size:11px;padding:5px 10px;white-space:nowrap;" onclick="openReceivePoModal(${p.id})">Terima</button>
+          </div>
         </div>
       </div>`;
   }).join('');
 }
 
+async function deletePurchaseOrder(poId) {
+  if (!confirm('Apakah Anda yakin ingin menghapus PO ini?')) return;
+  const { error } = await sb.from('wms_vendor_po').delete().eq('id', poId);
+  if (error) return toast('Gagal menghapus PO: ' + error.message, 'error');
+  toast('PO berhasil dihapus', 'success');
+  await loadPOs();
+  renderPendingPOs();
+  renderPoHistory();
+}
+
 function openReceivePoModal(poId) {
   document.getElementById('rpo-po-id').value = poId;
-  document.getElementById('rpo-actual-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('rpo-in-full').value = 'true';
-  document.getElementById('rpo-payment-status').value = 'paid';
-  document.getElementById('rpo-paid-amount').value = '0';
+  document.getElementById('rpo-actual-date').value = '';
+  document.getElementById('rpo-in-full').value = '';
+  document.getElementById('rpo-payment-status').value = '';
+  document.getElementById('rpo-paid-amount').value = '';
   openModal('modal-receive-po');
 }
 
 async function confirmReceivePO() {
   const poId = parseInt(document.getElementById('rpo-po-id').value);
   const actualDate = document.getElementById('rpo-actual-date').value;
-  const isInFull = document.getElementById('rpo-in-full').value === 'true';
+  const isInFullRaw = document.getElementById('rpo-in-full').value;
   const payStatus = document.getElementById('rpo-payment-status').value;
-  const paidAmt = parseFloat(document.getElementById('rpo-paid-amount').value) || 0;
+  const paidAmt = document.getElementById('rpo-paid-amount').value;
+
+  if (!actualDate || !payStatus || isInFullRaw === '' || paidAmt === '') {
+    return toast('Harap isi semua field konfirmasi penerimaan PO', 'warn');
+  }
+
+  const isInFull = isInFullRaw === 'true';
+  const parsedPaidAmt = parseFloat(paidAmt) || 0;
 
   const po = ALL_POS.find(p => p.id === poId);
   if (!po) return;
+
+  const totalPoCost = po.total || (po.qty * po.unit_price) || 0;
+
+  if (parsedPaidAmt > totalPoCost) {
+    return toast(`Jumlah bayar tidak boleh lebih dari total PO (${fmtRp(totalPoCost)})`, 'error');
+  }
+  if (payStatus === 'paid' && parsedPaidAmt < totalPoCost) {
+    return toast(`Status Lunas tidak valid karena jumlah bayar kurang dari total (${fmtRp(totalPoCost)})`, 'error');
+  }
 
   // Calculate OTIF
   const isOnTime = po.expected_date ? new Date(actualDate) <= new Date(po.expected_date) : true;
@@ -2465,23 +2686,48 @@ async function confirmReceivePO() {
     is_on_time: isOnTime,
     is_in_full: isInFull,
     payment_status: payStatus,
-    paid_amount: paidAmt
+    paid_amount: parsedPaidAmt
   }).eq('id', poId);
 
-  if (error) return showToast('Gagal memperbarui PO: ' + error.message, 'error');
+  if (error) return toast('Gagal memperbarui PO: ' + error.message, 'error');
+
+  // AUTO-INBOUND STOK (Opsi A)
+  const allMats = { ...MATERIAL_META, ...(S.customRM || {}) };
+  if (po.material && allMats[po.material]) {
+    if (S.rm[po.material] === undefined) S.rm[po.material] = 0;
+    S.rm[po.material] += parseFloat(po.qty) || 0;
+
+    // Update HPP jika harga > 0
+    if (po.unit_price > 0) S.rmCost[po.material] = po.unit_price;
+
+    // Catat log
+    S.log.push({
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      type: 'inbound',
+      item: po.material,
+      qty: parseFloat(po.qty) || 0,
+      balance: S.rm[po.material],
+      notes: `Dari PO: ${po.po_number}`
+    });
+
+    await saveState(); // Sinkronisasi otomatis ke db
+  }
+
+  // Reload ALL_POS to get the updated DB state before calculating stats
+  await loadPOs();
 
   // Recalculate vendor OTIF rate
   await recalculateVendorOTIF(po.vendor_id);
 
   // Update vendor total_paid
   const vendorPos = ALL_POS.filter(p => p.vendor_id === po.vendor_id);
-  const totalPaid = vendorPos.reduce((s, p) => s + (p.paid_amount || 0), 0) + paidAmt;
+  const totalPaid = vendorPos.reduce((s, p) => s + (p.paid_amount || 0), 0);
   await sb.from('wms_vendors').update({ total_paid: totalPaid }).eq('id', po.vendor_id);
 
-  showToast(`PO diterima! OTIF: ${isOnTime ? '✓ On Time' : '✗ Terlambat'}`, isOnTime ? 'success' : 'warn');
+  toast(`PO diterima! OTIF: ${isOnTime ? '✓ On Time' : '✗ Terlambat'}`, isOnTime ? 'success' : 'warn');
   closeModal('modal-receive-po');
 
-  await loadPOs();
   renderPendingPOs();
   renderPoHistory();
 
@@ -2495,8 +2741,13 @@ async function recalculateVendorOTIF(vendorId) {
   const vendorPos = ALL_POS.filter(p => p.vendor_id === vendorId && p.actual_date);
   if (!vendorPos.length) return;
 
-  const onTimeFull = vendorPos.filter(p => p.is_on_time && p.is_in_full).length;
-  const otifRate = (onTimeFull / vendorPos.length) * 100;
+  const totalScore = vendorPos.reduce((score, p) => {
+    if (p.is_on_time && p.is_in_full) return score + 1; // 100%
+    if (p.is_on_time || p.is_in_full) return score + 0.5; // 50%
+    return score; // 0%
+  }, 0);
+
+  const otifRate = (totalScore / vendorPos.length) * 100;
 
   await sb.from('wms_vendors').update({ otif_rate: Math.round(otifRate * 10) / 10 }).eq('id', vendorId);
 }
@@ -2553,7 +2804,7 @@ function _renderPoHistory() {
     if (p.actual_date) {
       const ok = p.is_on_time && p.is_in_full;
       const partialOk = p.is_on_time || p.is_in_full;
-      otifHtml = `<span class="otif-badge ${ok ? 'otif-good' : partialOk ? 'otif-ok' : 'otif-poor'}">${ok ? '✓ OTIF' : partialOk ? '⚡ Partial' : '✗ Gagal'}</span>`;
+      otifHtml = `<span class="otif-badge ${ok ? 'otif-good' : partialOk ? 'otif-ok' : 'otif-poor'}">${ok ? '✓ On Time' : partialOk ? '⚡ Partial' : '✗ Late'}</span>`;
     } else {
       otifHtml = '<span style="font-size:11px;color:#B08A62;">Pending</span>';
     }
@@ -2598,11 +2849,11 @@ async function fetchGoogleSheetsPnL(silent = false) {
     const res = await fetch(CSV_URL);
     if (!res.ok) throw new Error('Network response was not ok');
     const text = await res.text();
-    
+
     // Parse CSV manually
     const rows = text.split('\n').map(row => row.split(','));
     PNL_DATA = parsePnLCSV(rows);
-    
+
     const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     if (syncEl) syncEl.textContent = `Auto-Sync: Aktif (Diperbarui ${now})`;
     localStorage.setItem('pnl_data', JSON.stringify(PNL_DATA));
@@ -2700,7 +2951,7 @@ function renderPnLMetrics() {
   set('pnl-hpp', d.hpp);
   set('pnl-marketing', d.marketing);
   set('pnl-logistik', d.logistik);
-  
+
   const netEl = document.getElementById('pnl-net');
   if (netEl) netEl.style.color = d.net >= 0 ? '#86EFAC' : '#FCA5A5';
 }
@@ -2810,7 +3061,7 @@ function saveHrError() {
   const type = document.getElementById('hr-error-type').value;
   const resi = document.getElementById('hr-error-resi').value;
   const notes = document.getElementById('hr-error-notes').value;
-  
+
   S.hr.errors.push({ id: Date.now(), ts: Date.now(), staff, type, resi, notes });
   saveState();
   renderHr();
@@ -2822,12 +3073,12 @@ function saveHrOvertime() {
   const staff = document.getElementById('hr-ot-staff').value;
   const hours = parseFloat(document.getElementById('hr-ot-hours').value) || 0;
   const notes = document.getElementById('hr-ot-notes').value;
-  
+
   if (!date || !hours) {
     toast('Isi tanggal dan durasi lembur!', 'warn');
     return;
   }
-  
+
   S.hr.overtimes.push({ id: Date.now(), ts: Date.now(), date, staff, hours, notes });
   saveState();
   renderHrPayroll();
@@ -2840,17 +3091,17 @@ function renderHr() {
   if (!tbody || !statsDiv) return;
 
   const errors = S.hr.errors || [];
-  
+
   // Render Stats
   const staffErrors = {};
   errors.forEach(e => {
     staffErrors[e.staff] = (staffErrors[e.staff] || 0) + 1;
   });
-  
+
   if (Object.keys(staffErrors).length === 0) {
     statsDiv.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada insiden tercatat.</div>';
   } else {
-    statsDiv.innerHTML = Object.entries(staffErrors).sort((a,b) => b[1] - a[1]).map(([staff, count]) => `
+    statsDiv.innerHTML = Object.entries(staffErrors).sort((a, b) => b[1] - a[1]).map(([staff, count]) => `
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#FEF2F2;border-radius:8px;">
         <span style="font-size:13px;font-weight:600;color:#991B1B;">👤 ${staff}</span>
         <span style="font-size:13px;font-weight:700;color:#7F1D1D;">${count} Insiden</span>
@@ -2882,7 +3133,7 @@ function renderHrPayroll() {
   const baseRate = parseFloat(document.getElementById('hr-base-rate').value) || 100000;
   const otRate = parseFloat(document.getElementById('hr-ot-rate').value) || 20000;
   const workingDays = 22; // Assumed 22 working days
-  
+
   if (!monthVal) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#B08A62;padding:24px;">Pilih Bulan Kerja terlebih dahulu.</td></tr>';
     return;
@@ -2928,11 +3179,11 @@ function renderMarketing() {
   if (S.marketing.kpi) {
     const kpi = S.marketing.kpi;
     const el = id => document.getElementById(id);
-    if(el('mk-kpi-roas')) el('mk-kpi-roas').value = kpi.roas || '';
-    if(el('mk-kpi-cac')) el('mk-kpi-cac').value = kpi.cac || '';
-    if(el('mk-kpi-ltv')) el('mk-kpi-ltv').value = kpi.ltv || '';
-    if(el('mk-kpi-reach')) el('mk-kpi-reach').value = kpi.reach || '';
-    if(el('mk-kpi-growth')) el('mk-kpi-growth').value = kpi.growth || '';
+    if (el('mk-kpi-roas')) el('mk-kpi-roas').value = kpi.roas || '';
+    if (el('mk-kpi-cac')) el('mk-kpi-cac').value = kpi.cac || '';
+    if (el('mk-kpi-ltv')) el('mk-kpi-ltv').value = kpi.ltv || '';
+    if (el('mk-kpi-reach')) el('mk-kpi-reach').value = kpi.reach || '';
+    if (el('mk-kpi-growth')) el('mk-kpi-growth').value = kpi.growth || '';
   }
 
   // Render PR list
@@ -2978,12 +3229,12 @@ function saveMkBudget() {
   const category = document.getElementById('mk-budget-category').value;
   const month = document.getElementById('mk-budget-month').value;
   const amount = parseFloat(document.getElementById('mk-budget-amount').value) || 0;
-  
+
   if (!month || !amount) {
     toast('Pilih bulan dan isi nilai budget!', 'warn');
     return;
   }
-  
+
   S.marketing.budgets.push({ id: Date.now(), ts: Date.now(), category, month, amount });
   saveState();
   toast('Alokasi budget berhasil disimpan', 'success');
@@ -3005,12 +3256,12 @@ function openMkCalendarModal() {
   openModal('modal-mk-calendar');
 }
 
-window.renderCarryingCost = function() {
+window.renderCarryingCost = function () {
   const rateInput = document.getElementById('fin-carrying-rate');
   if (!rateInput) return;
   const rateAnnual = parseFloat(rateInput.value) || 0;
   const rateMonthly = rateAnnual / 100 / 12;
-  
+
   // Calculate total inventory value
   let totalValue = 0;
   const valEl = document.getElementById('fin-inventory-value');
@@ -3019,11 +3270,11 @@ window.renderCarryingCost = function() {
     // but typically `renderFinancial()` handles inventory valuasi.
     // We'll calculate it from S directly
     if (S.rm) {
-       // Rough estimate mapping, or we could use `TOTAL_VALUATION` global if we had one.
-       // The actual values are in renderFinancial() using `getValuation`.
+      // Rough estimate mapping, or we could use `TOTAL_VALUATION` global if we had one.
+      // The actual values are in renderFinancial() using `getValuation`.
     }
   }
-  
+
   // Just rely on the previously calculated total from renderFinancial
   const totalValuationStr = document.getElementById('fin-inventory-value')?.innerText || '';
   // parse Rp X.XXX.XXX from text if exists
@@ -3036,8 +3287,8 @@ window.renderCarryingCost = function() {
 };
 
 // We need to inject renderCarryingCost into renderFinancial as well so it updates automatically
-const oldRenderFinancial = window.renderFinancial || function(){};
-window.renderFinancial = function() {
+const oldRenderFinancial = window.renderFinancial || function () { };
+window.renderFinancial = function () {
   oldRenderFinancial();
   setTimeout(renderCarryingCost, 100); // wait for fin-inventory-value to populate
 };
@@ -3049,18 +3300,18 @@ function saveMkCalendarAgenda() {
   const start = document.getElementById('mk-cal-start').value;
   const end = document.getElementById('mk-cal-end').value;
   const pic = document.getElementById('mk-cal-pic').value;
-  
+
   if (!title || !start) {
     toast('Judul dan tanggal mulai wajib diisi!', 'warn');
     return;
   }
-  
+
   S.marketing.calendar.push({ id: Date.now(), title, type, start, end, pic });
   saveState();
   closeModal('modal-mk-calendar');
   renderMarketing();
   toast('Agenda berhasil ditambahkan', 'success');
-  
+
   // Clear modal inputs
   document.getElementById('mk-cal-title').value = '';
   document.getElementById('mk-cal-start').value = '';
@@ -3073,17 +3324,17 @@ function saveMkPr() {
   const type = document.getElementById('mk-pr-type').value;
   const date = document.getElementById('mk-pr-date').value;
   const notes = document.getElementById('mk-pr-notes').value;
-  
+
   if (!name) {
     toast('Nama Partner / Event wajib diisi!', 'warn');
     return;
   }
-  
+
   S.marketing.pr.push({ id: Date.now(), name, type, date, notes });
   saveState();
   renderMarketing();
   toast('Data PR & Partnership berhasil disimpan', 'success');
-  
+
   // Clear inputs
   document.getElementById('mk-pr-name').value = '';
   document.getElementById('mk-pr-date').value = '';
