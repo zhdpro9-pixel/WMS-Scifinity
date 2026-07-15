@@ -61,8 +61,8 @@ const FINISHED_GOODS = {
   parfumL_Alexander_30: { label: 'Parfum Alexander’s Empire 30mL', size: 30, product: 'lakiLaki', unit: 'pcs', warnAt: 5, lowAt: 2 },
   deodorantP: { label: 'Deodorant Queen of Sheba', size: 50, product: 'deodorantP', unit: 'pcs', warnAt: 5, lowAt: 2 },
   deodorantL: { label: 'Deodorant King Solomon', size: 50, product: 'deodorantL', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  hairMistP: { label: 'Crown of Velvet Hair Mist', size: 100, product: 'hairMistP', unit: 'pcs', warnAt: 5, lowAt: 2 },
-  hairMistL: { label: 'Sovereign Mane Hair Mist', size: 100, product: 'hairMistL', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  hairMistP: { label: 'Crown of Velvet Hair Mist', size: 60, product: 'hairMistP', unit: 'pcs', warnAt: 5, lowAt: 2 },
+  hairMistL: { label: 'Sovereign Mane Hair Mist', size: 60, product: 'hairMistL', unit: 'pcs', warnAt: 5, lowAt: 2 },
   bundlingPria: { label: 'The King\'s Ritual Trilogy 3-in-1', size: 0, product: 'bundlingPria', unit: 'set', warnAt: 3, lowAt: 1 },
   bundlingWanita: { label: 'The Queen\'s Secret Trilogy 3-in-1', size: 0, product: 'bundlingWanita', unit: 'set', warnAt: 3, lowAt: 1 },
   giftBoxLuxury: { label: 'The Queen\'s Trilogy Gift Box (Luxury)', size: 0, product: 'giftBoxLuxury', unit: 'set', warnAt: 3, lowAt: 1 }
@@ -77,8 +77,8 @@ const PRODUCTION_RECIPES = {
   parfumL_Alexander_30: { biangL: 30, botolL: 1, boxParfumL: 1 },
   deodorantP: { cairanDeoP: 50, botolDeoP: 1, boxDeoP: 1 },
   deodorantL: { cairanDeoL: 50, botolDeoL: 1, boxDeoL: 1 },
-  hairMistP: { cairanHMP: 100, botolHMP: 1, boxExclusive: 1 },
-  hairMistL: { cairanHML: 100, botolHML: 1, boxExclusive: 1 },
+  hairMistP: { cairanHMP: 60, botolHMP: 1, boxExclusive: 1 },
+  hairMistL: { cairanHML: 60, botolHML: 1, boxExclusive: 1 },
   // Bundling menggunakan produk jadi (fg) bukan bahan baku langsung
   bundlingPria: { _fg: { parfumL_KingSolomon_30: 1, deodorantL: 1, hairMistL: 1 }, boxBundlingP: 1 },
   bundlingWanita: { _fg: { parfumP_QoS_35: 1, deodorantP: 1, hairMistP: 1 }, boxBundlingW: 1 },
@@ -92,7 +92,18 @@ const DEFAULT_STATE = {
     cairanHMP: 0, cairanHML: 0, botolHMP: 0, botolHML: 0,
     boxExclusive: 0, boxBundlingP: 0, boxBundlingW: 0, bubbleWrap: 0, boxLuar: 0
   },
-  rmCost: {},
+  rmCost: {
+    biangP: 500, biangL: 500, 
+    botolP: 12000, botolL: 12000, 
+    boxParfumL: 5000, boxParfumP: 5000,
+    cairanDeoP: 200, cairanDeoL: 200, 
+    botolDeoP: 8000, botolDeoL: 8000, 
+    boxDeoP: 2000, boxDeoL: 2000,
+    cairanHMP: 150, cairanHML: 150, 
+    botolHMP: 10000, botolHML: 10000,
+    boxExclusive: 6000, boxBundlingP: 15000, boxBundlingW: 15000, 
+    bubbleWrap: 500, boxLuar: 3000
+  },
   customRM: {},
   fg: {
     parfumP_QoS_35: 0, parfumP_Cleopatra_35: 0, parfumP_Joan_35: 0,
@@ -226,7 +237,7 @@ function showApp() {
     window._userEmail = currentUser.email;
   }
   loadFinConfig(); // baca config dari localStorage ke memori
-  populateFinFields(); // isi input form sekali saat pertama load
+  // populateFinFields removed
   setupFormListeners();
   renderAll();
   startClock();
@@ -240,7 +251,12 @@ function hideLoading() {
 function loadLocalState() {
   try {
     const raw = localStorage.getItem('wmsParfum_v2');
-    if (raw) S = { ...deepClone(DEFAULT_STATE), ...JSON.parse(raw) };
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      S = { ...deepClone(DEFAULT_STATE), ...parsed };
+      // Pastikan rmCost di-merge dalam (deep merge) agar nilai default tidak hilang jika kosong
+      S.rmCost = { ...DEFAULT_STATE.rmCost, ...(parsed.rmCost || {}) };
+    }
   } catch (e) { console.warn('loadLocalState error', e); }
   setupFormListeners();
   renderAll();
@@ -458,7 +474,7 @@ function navigateTo(pageKey) {
   document.querySelector(`[data-page="${pageKey}"]`).classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[pageKey];
   if (pageKey === 'hr') { renderHr(); populateHrStaff(); }
-  if (pageKey === 'financial') populateFinFields();
+  if (pageKey === 'financial') switchFinTab('dashboard');
   if (pageKey === 'marketing') renderMarketing();
   if (pageKey === 'vendors') { renderVendors(); renderPoHistory(); populatePoVendorSelect(); }
   if (pageKey === 'warehouse') renderWarehouse();
@@ -768,6 +784,19 @@ async function recordProduction() {
   const fgLabel = FINISHED_GOODS[fgKey].label;
   await addLog('production', `Produksi ${qty} pcs ${fgLabel} berhasil! ${deductions.join(', ')}`);
 
+  // Kalkulasi HPP dari bahan baku yang digunakan & simpan ke Supabase
+  const unitHpp = typeof calculateFgHpp === 'function' ? calculateFgHpp(fgKey) : 0;
+  if (sb && unitHpp > 0) {
+    try {
+      await sb.from('wms_products_sku').update({ cost_price: unitHpp }).eq('product_type', fgKey);
+      // Update local cache so UI reflects immediately without refetching
+      const s = ALL_SKUS.find(x => x.product_type === fgKey);
+      if (s) s.cost_price = unitHpp;
+    } catch (e) {
+      console.error('Failed to sync HPP to cloud', e);
+    }
+  }
+
   toast(`Produksi berhasil! ${qty} pcs ${fgLabel} ditambahkan ke stok.`, 'success', 3000);
 
   await saveState();
@@ -1035,12 +1064,22 @@ async function recordSale() {
     try {
       const { error } = await sb.from('wms_sales').insert(saleItem);
       if (error) throw error;
-      // Jangan push manual — realtime listener yang akan push setelah INSERT sukses
-      // agar tidak ada duplikasi data di S.sales
+
+      try {
+        const skuData = ALL_SKUS.find(s => s.category === 'parfum' && s.product_type === fgKey);
+        const sellPrice = skuData?.sell_price || (fgKey === 'perempuan' ? finConfig.priceP : finConfig.priceL);
+        const revenue = qty * sellPrice;
+        await sb.from('wms_finance_cash').insert({
+          type: 'IN',
+          category: 'sales',
+          amount: revenue,
+          notes: `Penjualan ${qty}x ${fgLabel} via ${channel}`
+        });
+      } catch (e2) { console.error('Cash insert err:', e2); }
+
     } catch (e) {
       console.error('recordSale supabase error:', e);
       toast('Gagal menyimpan ke cloud, tapi disimpan lokal: ' + e.message, 'warn', 4000);
-      // Fallback: push manual hanya jika INSERT ke Supabase gagal
       S.sales.push(saleItem);
       if (S.sales.length > 5000) S.sales = S.sales.slice(-5000);
     }
@@ -1186,7 +1225,49 @@ function setupRealtime() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'wms_inventory' }, payload => {
       const inv = payload.new;
       if (inv && inv.id === 1) {
-        S.rm = { biang: inv.biang || 0, botolP: inv.botol_p || 0, botolL: inv.botol_l || 0, box: inv.box || 0, kardus: inv.kardus || 0, bubble: inv.bubble || 0 };
+        S.rm = {
+          biangP: inv.biang_p || inv.biang || 0,
+          biangL: inv.biang_l || 0,
+          botolP: inv.botol_p || 0,
+          botolL: inv.botol_l || 0,
+          boxParfumL: inv.box_parfum_l || 0,
+          boxParfumP: inv.box_parfum_p || inv.box || 0,
+          cairanDeoP: inv.cairan_deo_p || inv.cairan_deo || 0,
+          cairanDeoL: inv.cairan_deo_l || 0,
+          botolDeoP: inv.botol_deo_p || inv.botol_deo || 0,
+          botolDeoL: inv.botol_deo_l || 0,
+          boxDeoP: inv.box_deo_p || inv.box_deo || 0,
+          boxDeoL: inv.box_deo_l || 0,
+          cairanHMP: inv.cairan_hm_p || inv.cairan_hm || 0,
+          cairanHML: inv.cairan_hm_l || 0,
+          botolHMP: inv.botol_hm_p || inv.botol_hm || 0,
+          botolHML: inv.botol_hm_l || 0,
+          boxExclusive: inv.box_exclusive || 0,
+          boxBundlingP: inv.box_bundling_p || 0,
+          boxBundlingW: inv.box_bundling_w || 0,
+          bubbleWrap: inv.bubble_wrap || inv.bubble || 0,
+          boxLuar: inv.box_luar || inv.kardus || 0
+        };
+        renderAll();
+      }
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'wms_finished_goods' }, payload => {
+      const fg = payload.new;
+      if (fg && fg.id === 1) {
+        S.fg = {
+          parfumP_QoS_35: fg.parfum_p_qos_35 || 0,
+          parfumP_Cleopatra_35: fg.parfum_p_cleopatra_35 || 0,
+          parfumP_Joan_35: fg.parfum_p_joan_35 || 0,
+          parfumL_KingSolomon_30: fg.parfum_l_kingsolomon_30 || 0,
+          parfumL_Alexander_30: fg.parfum_l_alexander_30 || 0,
+          deodorantP: fg.deodorant_p || fg.deodorant || 0,
+          deodorantL: fg.deodorant_l || 0,
+          hairMistP: fg.hair_mist_p || fg.hair_mist || 0,
+          hairMistL: fg.hair_mist_l || 0,
+          bundlingPria: fg.bundling_pria || 0,
+          bundlingWanita: fg.bundling_wanita || 0,
+          giftBoxLuxury: fg.gift_box_luxury || 0
+        };
         renderAll();
       }
     })
@@ -1450,7 +1531,8 @@ function filterVendors(type) {
 }
 
 function createPoForVendor(vendorId) {
-  switchVendorTab('po');
+  switchPage('financial');
+  switchFinTab('po');
   const vendorSelect = document.getElementById('po-vendor');
   if (vendorSelect) {
     vendorSelect.value = vendorId;
@@ -1459,15 +1541,14 @@ function createPoForVendor(vendorId) {
 }
 
 function switchVendorTab(tab) {
-  ['list', 'po', 'history'].forEach(t => {
+  ['list'].forEach(t => {
     const btn = document.getElementById(`vtab-${t}`);
     const panel = document.getElementById(`vpanel-${t}`);
     const isActive = t === tab;
     if (btn) btn.classList.toggle('active', isActive);
     if (panel) panel.classList.toggle('active', isActive);
   });
-  if (tab === 'po') { populatePoVendorSelect(); renderPendingPOs(); }
-  if (tab === 'history') { renderPoHistory(); }
+
 }
 
 function generateInternalTrackingId(channel) {
@@ -1768,32 +1849,26 @@ function loadFinConfig() {
   } catch (e) { }
 }
 
-/** Isi form input dengan nilai finConfig saat ini. Dipanggil sekali saat halaman financial dibuka. */
-function populateFinFields() {
-  const el = (id, val) => { const e = document.getElementById(id); if (e) e.value = val; };
-  el('fin-price-p', finConfig.priceP);
-  el('fin-price-l', finConfig.priceL);
-  el('fin-cost-biang', finConfig.costBiang);
-  el('fin-cost-bottle', finConfig.costBottle);
-  el('fin-cost-box', finConfig.costBox);
-  el('fin-cost-packing', finConfig.costPacking);
-  el('fin-cost-kardus', finConfig.costKardus);
-  el('fin-cost-bubble', finConfig.costBubble);
-  el('fin-fee-marketplace', finConfig.feeMarketplace);
-  el('fin-cost-overhead', finConfig.costOverhead);
-}
-
 function saveFinConfig() {
-  const v = (id) => parseFloat(document.getElementById(id)?.value) || 0;
-  finConfig = {
-    priceP: v('fin-price-p'), priceL: v('fin-price-l'),
-    costBiang: v('fin-cost-biang'), costBottle: v('fin-cost-bottle'),
-    costBox: v('fin-cost-box'), costPacking: v('fin-cost-packing'),
-    costKardus: v('fin-cost-kardus'), costBubble: v('fin-cost-bubble'),
-    feeMarketplace: v('fin-fee-marketplace'), costOverhead: v('fin-cost-overhead')
-  };
   try { localStorage.setItem('wmsFinConfig', JSON.stringify(finConfig)); } catch (e) { }
 }
+
+window.switchFinTab = function (tabName) {
+  ['dashboard', 'pricing', 'po', 'po-history', 'invoices', 'payroll', 'cash'].forEach(t => {
+    const btn = document.getElementById(`tab-fin-${t}`);
+    const panel = document.getElementById(`fin-panel-${t}`);
+    if (btn) btn.classList.toggle('active', t === tabName);
+    if (panel) panel.style.display = (t === tabName) ? 'block' : 'none';
+  });
+
+  if (tabName === 'dashboard') renderFinancial();
+  else if (tabName === 'pricing') renderFinProducts();
+  else if (tabName === 'po') { populatePoVendorSelect(); renderPendingPOs(); }
+  else if (tabName === 'po-history') { populatePoVendorSelect(); renderPoHistory(); }
+  else if (tabName === 'invoices') renderFinInvoices();
+  else if (tabName === 'payroll') renderFinPayroll();
+  else if (tabName === 'cash') renderFinCash();
+};
 
 function fmtRp(n) {
   if (n == null || isNaN(n)) return 'Rp 0';
@@ -1819,9 +1894,17 @@ function renderFinancial() {
   // Untuk channel revenue
   let revenueShopee = 0, revenueEbay = 0, qtyShopee = 0, qtyEbay = 0;
 
+  // Cache SKU prices
+  const getPrice = (type) => {
+    const s = ALL_SKUS.find(x => x.category === 'parfum' && x.product_type === type);
+    return s?.sell_price || (type === 'perempuan' ? finConfig.priceP : finConfig.priceL);
+  };
+  const priceP = getPrice('perempuan');
+  const priceL = getPrice('laki-laki');
+
   salesThisMonth.forEach(s => {
     const qty = parseInt(s.qty) || 0;
-    const price = s.product === 'perempuan' ? finConfig.priceP : finConfig.priceL;
+    const price = s.product === 'perempuan' ? priceP : priceL;
     const saleRevenue = qty * price;
 
     if (s.product === 'perempuan') qtyP += qty;
@@ -1837,8 +1920,8 @@ function renderFinancial() {
       qtyEbay += qty;
     }
   });
-  const revenueP = qtyP * finConfig.priceP;
-  const revenueL = qtyL * finConfig.priceL;
+  const revenueP = qtyP * priceP;
+  const revenueL = qtyL * priceL;
 
   // --- 2. COGS & Expenses Calculation ---
   let totalBiangMl = 0, totalBottles = 0, totalBoxes = 0;
@@ -1875,7 +1958,7 @@ function renderFinancial() {
 
   // --- 5. Break Even Point (BEP) ---
   // Calculate average contribution margin per unit
-  const avgPrice = (qtyP + qtyL) > 0 ? (revenueP + revenueL) / (qtyP + qtyL) : finConfig.priceP;
+  const avgPrice = (qtyP + qtyL) > 0 ? (revenueP + revenueL) / (qtyP + qtyL) : priceP;
   // Average variable cost per unit (simplified - using 30mL as average)
   const avgVariableCost = (30 * finConfig.costBiang) + finConfig.costBottle + finConfig.costBox +
     (finConfig.costKardus / 2) + (finConfig.costBubble / 2) + (finConfig.costPacking / 2);
@@ -2626,7 +2709,6 @@ function renderPendingPOs() {
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0;">
             <button class="btn-secondary" style="font-size:11px;padding:5px 10px;white-space:nowrap;color:#991B1B;border-color:#FECACA;" onclick="deletePurchaseOrder(${p.id})">Hapus</button>
-            <button class="btn-secondary" style="font-size:11px;padding:5px 10px;white-space:nowrap;" onclick="openReceivePoModal(${p.id})">Terima</button>
           </div>
         </div>
       </div>`;
@@ -2644,97 +2726,115 @@ async function deletePurchaseOrder(poId) {
 }
 
 function openReceivePoModal(poId) {
+  const po = ALL_POS.find(p => p.id == poId);
+  const total = po ? (po.total_amount || (po.qty * po.unit_price) || 0) : 0;
+  const paid = po ? (po.paid_amount || 0) : 0;
+  const remaining = total - paid;
+
   document.getElementById('rpo-po-id').value = poId;
-  document.getElementById('rpo-actual-date').value = '';
-  document.getElementById('rpo-in-full').value = '';
+  document.getElementById('rpo-actual-date').value = po?.actual_date || '';
+  document.getElementById('rpo-in-full').value = po?.is_in_full != null ? po.is_in_full : '';
   document.getElementById('rpo-payment-status').value = '';
-  document.getElementById('rpo-paid-amount').value = '';
+  document.getElementById('rpo-paid-amount').value = remaining > 0 ? remaining : 0;
   openModal('modal-receive-po');
 }
 
 async function confirmReceivePO() {
   const poId = parseInt(document.getElementById('rpo-po-id').value);
-  const actualDate = document.getElementById('rpo-actual-date').value;
+  let actualDate = document.getElementById('rpo-actual-date').value;
   const isInFullRaw = document.getElementById('rpo-in-full').value;
   const payStatus = document.getElementById('rpo-payment-status').value;
   const paidAmt = document.getElementById('rpo-paid-amount').value;
 
-  if (!actualDate || !payStatus || isInFullRaw === '' || paidAmt === '') {
-    return toast('Harap isi semua field konfirmasi penerimaan PO', 'warn');
+  if (!payStatus || paidAmt === '') {
+    return toast('Status pembayaran dan jumlah bayar wajib diisi', 'warn');
   }
 
-  const isInFull = isInFullRaw === 'true';
   const parsedPaidAmt = parseFloat(paidAmt) || 0;
 
   const po = ALL_POS.find(p => p.id === poId);
   if (!po) return;
 
-  const totalPoCost = po.total || (po.qty * po.unit_price) || 0;
+  const totalPoCost = po.total_amount || (po.qty * po.unit_price) || 0;
+  const newPaidAmount = (po.paid_amount || 0) + parsedPaidAmt;
 
-  if (parsedPaidAmt > totalPoCost) {
-    return toast(`Jumlah bayar tidak boleh lebih dari total PO (${fmtRp(totalPoCost)})`, 'error');
+  if (newPaidAmount > totalPoCost) {
+    return toast(`Total bayar (${fmtRp(newPaidAmount)}) melebihi total PO (${fmtRp(totalPoCost)})`, 'error');
   }
-  if (payStatus === 'paid' && parsedPaidAmt < totalPoCost) {
-    return toast(`Status Lunas tidak valid karena jumlah bayar kurang dari total (${fmtRp(totalPoCost)})`, 'error');
+  if (payStatus === 'paid' && newPaidAmount < totalPoCost) {
+    return toast(`Status Lunas tidak valid karena total bayar (${fmtRp(newPaidAmount)}) kurang dari total (${fmtRp(totalPoCost)})`, 'error');
   }
 
-  // Calculate OTIF
-  const isOnTime = po.expected_date ? new Date(actualDate) <= new Date(po.expected_date) : true;
+  const isFirstTimeReceiving = !po.actual_date && actualDate;
+  if (!actualDate && po.actual_date) actualDate = po.actual_date;
+
+  let isInFull = null;
+  if (isInFullRaw !== '') isInFull = isInFullRaw === 'true';
+  else if (po.is_in_full !== null) isInFull = po.is_in_full;
+
+  const isOnTime = po.expected_date && actualDate ? new Date(actualDate) <= new Date(po.expected_date) : true;
 
   const { error } = await sb.from('wms_vendor_po').update({
-    actual_date: actualDate,
+    actual_date: actualDate || null,
     is_on_time: isOnTime,
     is_in_full: isInFull,
     payment_status: payStatus,
-    paid_amount: parsedPaidAmt
+    paid_amount: newPaidAmount
   }).eq('id', poId);
 
   if (error) return toast('Gagal memperbarui PO: ' + error.message, 'error');
 
-  // AUTO-INBOUND STOK (Opsi A)
-  const allMats = { ...MATERIAL_META, ...(S.customRM || {}) };
-  if (po.material && allMats[po.material]) {
-    if (S.rm[po.material] === undefined) S.rm[po.material] = 0;
-    S.rm[po.material] += parseFloat(po.qty) || 0;
-
-    // Update HPP jika harga > 0
-    if (po.unit_price > 0) S.rmCost[po.material] = po.unit_price;
-
-    // Catat log
-    S.log.push({
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      type: 'inbound',
-      item: po.material,
-      qty: parseFloat(po.qty) || 0,
-      balance: S.rm[po.material],
-      notes: `Dari PO: ${po.po_number}`
-    });
-
-    await saveState(); // Sinkronisasi otomatis ke db
+  // Auto-deduct Cash Flow if payment was made THIS TIME
+  if (parsedPaidAmt > 0) {
+    try {
+      await sb.from('wms_finance_cash').insert({
+        type: 'OUT',
+        category: 'vendor',
+        amount: parsedPaidAmt,
+        notes: `Pembayaran PO ${po.po_number} - Vendor #${po.vendor_id}`,
+        reference_id: poId
+      });
+    } catch (ce) { console.error('Cash deduct error', ce); }
   }
 
-  // Reload ALL_POS to get the updated DB state before calculating stats
-  await loadPOs();
+  // AUTO-INBOUND STOK (Opsi A) hanya jika ini penerimaan pertama kali
+  if (isFirstTimeReceiving) {
+    const allMats = { ...MATERIAL_META, ...(S.customRM || {}) };
+    if (po.material && allMats[po.material]) {
+      if (S.rm[po.material] === undefined) S.rm[po.material] = 0;
+      S.rm[po.material] += parseFloat(po.qty) || 0;
 
-  // Recalculate vendor OTIF rate
+      if (po.unit_price > 0) S.rmCost[po.material] = po.unit_price;
+
+      S.log.push({
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        type: 'inbound',
+        item: po.material,
+        qty: parseFloat(po.qty) || 0,
+        balance: S.rm[po.material],
+        notes: `Dari PO: ${po.po_number}`
+      });
+
+      await saveState();
+    }
+  }
+
+  await loadPOs();
   await recalculateVendorOTIF(po.vendor_id);
 
-  // Update vendor total_paid
   const vendorPos = ALL_POS.filter(p => p.vendor_id === po.vendor_id);
   const totalPaid = vendorPos.reduce((s, p) => s + (p.paid_amount || 0), 0);
   await sb.from('wms_vendors').update({ total_paid: totalPaid }).eq('id', po.vendor_id);
 
-  toast(`PO diterima! OTIF: ${isOnTime ? '✓ On Time' : '✗ Terlambat'}`, isOnTime ? 'success' : 'warn');
+  toast(`PO diproses!${isFirstTimeReceiving ? (isOnTime ? ' OTIF: ✓ On Time' : ' OTIF: ✗ Terlambat') : ''}`, 'success');
   closeModal('modal-receive-po');
 
   renderPendingPOs();
   renderPoHistory();
-
-  // Reload vendors to show updated OTIF
-  const { data: vdata } = await sb.from('wms_vendors').select('*').order('name');
-  if (vdata) VENDORS = vdata.map(v => ({ ...v, leadTimeDays: v.lead_time_days || 3 }));
-  renderVendors();
+  // Call Finance renderers safely in case we are in Finance tab
+  if (window.renderFinInvoices) renderFinInvoices();
+  if (window.renderFinCash) renderFinCash();
 }
 
 async function recalculateVendorOTIF(vendorId) {
@@ -2772,8 +2872,8 @@ function _renderPoHistory() {
   if (statusFilter) pos = pos.filter(p => p.payment_status === statusFilter);
 
   // Summary totals
-  const totalUnpaid = ALL_POS.filter(p => p.payment_status === 'unpaid').reduce((s, p) => s + (p.total_amount || 0), 0);
-  const totalPartial = ALL_POS.filter(p => p.payment_status === 'partial').reduce((s, p) => s + (p.total_amount || 0), 0);
+  const totalUnpaid = ALL_POS.reduce((s, p) => s + ((p.total_amount || 0) - (p.paid_amount || 0)), 0);
+  const totalPartial = ALL_POS.filter(p => p.payment_status === 'partial').reduce((s, p) => s + (p.paid_amount || 0), 0);
   const totalPaidAll = ALL_POS.reduce((s, p) => s + (p.paid_amount || 0), 0);
   const totalAll = ALL_POS.reduce((s, p) => s + (p.total_amount || 0), 0);
 
@@ -2819,7 +2919,7 @@ function _renderPoHistory() {
         <td style="text-align:center;">${otifHtml}</td>
         <td style="text-align:center;"><span class="pay-badge ${payCls}">${payLabel}</span></td>
         <td>
-          ${!p.actual_date ? `<button class="btn-secondary" style="font-size:11px;padding:3px 8px;" onclick="openReceivePoModal(${p.id})">Terima</button>` : '<span style="font-size:11px;color:#8B6F5E;">Selesai</span>'}
+          ${!p.actual_date ? '<span style="font-size:11px;color:#8B6F5E;">Pending (Proses di Finance)</span>' : '<span style="font-size:11px;color:#8B6F5E;">Selesai</span>'}
         </td>
       </tr>`;
   }).join('');
@@ -3038,11 +3138,33 @@ window._postLoginInit = async () => {
    HR MODULE
    ═══════════════════════════════════════════════════════ */
 
-const HR_STAFF = ['Andi', 'Budi', 'Citra', 'Dewi', 'Eko'];
+let HR_STAFF = ['Andi', 'Budi', 'Citra', 'Dewi', 'Eko'];
+let HR_STAFF_DATA = [];
 
-function populateHrStaff() {
+async function populateHrStaff() {
   const staffSelect = document.getElementById('hr-error-staff');
   const otSelect = document.getElementById('hr-ot-staff');
+
+  if (sb) {
+    try {
+      const { data: staffData, error } = await sb.from('wms_hr_staff').select('*').eq('is_active', true);
+      if (!error && staffData) {
+        HR_STAFF_DATA = staffData;
+        HR_STAFF = staffData.map(s => s.name);
+
+        // For HR errors (still uses name)
+        const errorOptions = staffData.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+        if (staffSelect) staffSelect.innerHTML = errorOptions;
+
+        // For Overtime (needs ID and base_salary)
+        const otOptions = staffData.map(s => `<option value="${s.id}" data-salary="${s.base_salary}" data-name="${s.name}">${s.name}</option>`).join('');
+        if (otSelect) otSelect.innerHTML = otOptions;
+        return;
+      }
+    } catch (e) { console.error('Gagal mengambil data staf:', e); }
+  }
+
+  // Fallback to local
   const options = HR_STAFF.map(s => `<option value="${s}">${s}</option>`).join('');
   if (staffSelect) staffSelect.innerHTML = options;
   if (otSelect) otSelect.innerHTML = options;
@@ -3068,21 +3190,78 @@ function saveHrError() {
   toast('Insiden Error berhasil dicatat', 'success');
 }
 
-function saveHrOvertime() {
+async function saveHrOvertime() {
   const date = document.getElementById('hr-ot-date').value;
-  const staff = document.getElementById('hr-ot-staff').value;
+  const selectEl = document.getElementById('hr-ot-staff');
+  const staffId = selectEl.value;
+  const optionEl = selectEl.options[selectEl.selectedIndex];
+  const staffName = optionEl ? (optionEl.getAttribute('data-name') || staffId) : staffId;
+  const baseSalary = optionEl ? (parseFloat(optionEl.getAttribute('data-salary')) || 0) : 0;
+
   const hours = parseFloat(document.getElementById('hr-ot-hours').value) || 0;
   const notes = document.getElementById('hr-ot-notes').value;
+  const isHoliday = document.getElementById('hr-ot-isholiday').checked;
 
   if (!date || !hours) {
     toast('Isi tanggal dan durasi lembur!', 'warn');
     return;
   }
 
-  S.hr.overtimes.push({ id: Date.now(), ts: Date.now(), date, staff, hours, notes });
+  let amount = 0;
+  if (baseSalary > 0) {
+    const hourlyWage = baseSalary / 173;
+    let remainingHours = hours;
+
+    if (isHoliday) {
+      if (remainingHours <= 8) {
+        amount += remainingHours * 2 * hourlyWage;
+      } else {
+        amount += 8 * 2 * hourlyWage;
+        remainingHours -= 8;
+        if (remainingHours <= 1) {
+          amount += remainingHours * 3 * hourlyWage;
+        } else {
+          amount += 1 * 3 * hourlyWage;
+          remainingHours -= 1;
+          amount += remainingHours * 4 * hourlyWage;
+        }
+      }
+    } else {
+      if (remainingHours <= 1) {
+        amount += remainingHours * 1.5 * hourlyWage;
+      } else {
+        amount += 1 * 1.5 * hourlyWage;
+        remainingHours -= 1;
+        amount += remainingHours * 2 * hourlyWage;
+      }
+    }
+  }
+
+  if (sb && optionEl && optionEl.hasAttribute('data-salary')) {
+    try {
+      const { error } = await sb.from('wms_hr_overtimes').insert({
+        ts: Date.now(),
+        date: date,
+        staff: staffName,
+        staff_id: staffId,
+        hours: hours,
+        notes: notes,
+        amount: amount,
+        status: 'approved',
+        is_holiday: isHoliday
+      });
+      if (error) throw error;
+    } catch (e) {
+      console.error(e);
+      toast('Gagal sinkronisasi lembur ke cloud', 'warn');
+      return;
+    }
+  }
+
+  S.hr.overtimes.push({ id: Date.now(), ts: Date.now(), date, staff: staffName, hours, notes, isHoliday, amount });
   saveState();
   renderHrPayroll();
-  toast('Lembur berhasil dicatat', 'success');
+  toast('Lembur berhasil dicatat' + (sb ? ' dan disinkronisasi' : ''), 'success');
 }
 
 function renderHr() {
@@ -3131,8 +3310,7 @@ function renderHrPayroll() {
 
   const monthVal = document.getElementById('hr-payroll-month').value; // YYYY-MM
   const baseRate = parseFloat(document.getElementById('hr-base-rate').value) || 100000;
-  const otRate = parseFloat(document.getElementById('hr-ot-rate').value) || 20000;
-  const workingDays = 22; // Assumed 22 working days
+  const workingDays = 22; // Assumed 22 working days per bulan
 
   if (!monthVal) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#B08A62;padding:24px;">Pilih Bulan Kerja terlebih dahulu.</td></tr>';
@@ -3140,20 +3318,57 @@ function renderHrPayroll() {
   }
 
   const filteredOt = (S.hr.overtimes || []).filter(ot => ot.date && ot.date.startsWith(monthVal));
-  const otByStaff = {};
-  filteredOt.forEach(ot => {
-    otByStaff[ot.staff] = (otByStaff[ot.staff] || 0) + ot.hours;
-  });
 
   tbody.innerHTML = HR_STAFF.map(staff => {
-    const hours = otByStaff[staff] || 0;
-    const baseTotal = baseRate * workingDays;
-    const otTotal = hours * otRate;
+    const sData = HR_STAFF_DATA.find(d => d.name === staff);
+    const monthlySalary = sData ? parseFloat(sData.base_salary) : (baseRate * workingDays);
+    const hourlyWage = monthlySalary / 173;
+
+    const staffOts = filteredOt.filter(ot => ot.staff === staff);
+    let totalOtHours = 0;
+    let otTotal = 0;
+
+    staffOts.forEach(ot => {
+      totalOtHours += ot.hours;
+
+      if (ot.amount !== undefined) {
+        otTotal += ot.amount;
+      } else {
+        let remainingHours = ot.hours;
+        if (ot.isHoliday) {
+          // Asumsi 5 Hari Kerja (PP 35/2021)
+          if (remainingHours <= 8) {
+            otTotal += remainingHours * 2 * hourlyWage;
+          } else {
+            otTotal += 8 * 2 * hourlyWage;
+            remainingHours -= 8;
+            if (remainingHours <= 1) {
+              otTotal += remainingHours * 3 * hourlyWage;
+            } else {
+              otTotal += 1 * 3 * hourlyWage;
+              remainingHours -= 1;
+              otTotal += remainingHours * 4 * hourlyWage;
+            }
+          }
+        } else {
+          // Hari Kerja biasa (PP 35/2021)
+          if (remainingHours <= 1) {
+            otTotal += remainingHours * 1.5 * hourlyWage;
+          } else {
+            otTotal += 1 * 1.5 * hourlyWage;
+            remainingHours -= 1;
+            otTotal += remainingHours * 2 * hourlyWage;
+          }
+        }
+      }
+    });
+
+    const baseTotal = monthlySalary;
     return `
       <tr>
         <td style="font-weight:600;color:#2D1F17;">${staff}</td>
         <td style="text-align:center;">${workingDays}</td>
-        <td style="text-align:center;">${hours}</td>
+        <td style="text-align:center;">${totalOtHours}</td>
         <td style="text-align:right;">${fmtRp(baseTotal)}</td>
         <td style="text-align:right;">${fmtRp(otTotal)}</td>
         <td style="text-align:right;font-weight:700;color:#166534;">${fmtRp(baseTotal + otTotal)}</td>
@@ -3340,3 +3555,288 @@ function saveMkPr() {
   document.getElementById('mk-pr-date').value = '';
   document.getElementById('mk-pr-notes').value = '';
 }
+
+/* =====================================================================
+ * FINANCE MODULE ADDITIONS (TAB: PRICING, INVOICES, PAYROLL, CASH)
+ * ===================================================================== */
+
+function calculateFgHpp(fgKey) {
+  let totalHpp = 0;
+  const recipe = PRODUCTION_RECIPES[fgKey];
+  if (!recipe) return 0;
+
+  for (const rm in recipe) {
+    const qty = recipe[rm];
+    if (rm === '_fg') {
+      for (const subFg in qty) {
+        totalHpp += calculateFgHpp(subFg) * qty[subFg];
+      }
+    } else {
+      const rmHpp = S.rmCost[rm] || 0;
+      totalHpp += rmHpp * qty;
+    }
+  }
+  return totalHpp;
+}
+
+// --- TAB: PRICING ---
+async function renderFinProducts() {
+  const tbody = document.getElementById('fin-pricing-list');
+  if (!tbody) return;
+
+  let html = '';
+  for (const fgKey in FINISHED_GOODS) {
+    const fgMeta = FINISHED_GOODS[fgKey];
+    // Find sku in ALL_SKUS
+    const s = ALL_SKUS.find(x => x.product_type === fgKey);
+    const skuCode = s ? s.sku : '-';
+    const sellPrice = s ? (s.sell_price || 0) : 0;
+    const hpp = s ? (s.cost_price || 0) : 0; // Baca HPP dari database Supabase
+
+    html += `<tr>
+      <td>${skuCode}</td>
+      <td>${fgMeta.label}</td>
+      <td>Produk Jadi</td>
+      <td>${fmtRp(hpp)}</td>
+      <td><input type="number" class="form-input" id="fin-price-${fgKey}" value="${sellPrice}" style="width:120px"></td>
+      <td><button class="btn-primary" onclick="updateFinProductPrice('${fgKey}')">Simpan</button></td>
+    </tr>`;
+  }
+
+  if (!html) html = '<tr><td colspan="6" style="text-align:center">Tidak ada data produk jadi.</td></tr>';
+  tbody.innerHTML = html;
+}
+
+window.updateFinProductPrice = async function (fgKey) {
+  const newPrice = parseFloat(document.getElementById(`fin-price-${fgKey}`).value) || 0;
+  try {
+    const { error } = await sb.from('wms_products_sku').update({ sell_price: newPrice }).eq('product_type', fgKey);
+    if (error) throw error;
+    toast('Harga berhasil diupdate!', 'success');
+    await loadSkus(); // Refresh ALL_SKUS
+    renderFinProducts();
+  } catch (e) {
+    console.error(e);
+    toast('Gagal update harga: ' + e.message, 'warn');
+  }
+};
+
+// --- TAB: INVOICES (AP) ---
+async function renderFinInvoices() {
+  const tbody = document.getElementById('fin-invoice-list');
+  const dispTotal = document.getElementById('fin-total-ap-display');
+  if (!tbody) return;
+
+  try {
+    const { data: pos, error } = await sb.from('wms_vendor_po').select('*, wms_vendors(name)').or('payment_status.in.(unpaid,partial),actual_date.is.null').order('created_at', { ascending: false });
+    if (error) throw error;
+
+    let html = '';
+    let totalAp = 0;
+
+    (pos || []).forEach(po => {
+      const unpaid = po.total_amount - (po.paid_amount || 0);
+      totalAp += unpaid;
+      const vendorName = po.wms_vendors?.name || `Vendor #${po.vendor_id}`;
+      html += `<tr>
+        <td>${po.po_number}</td>
+        <td>${vendorName}</td>
+        <td>${po.material} (${po.qty})</td>
+        <td>${fmtRp(po.total_amount)}</td>
+        <td>${fmtRp(po.paid_amount || 0)}</td>
+        <td><span class="status-badge status-${po.payment_status}">${po.payment_status.toUpperCase()}</span></td>
+        <td><button class="btn-secondary" onclick="openReceivePoModal('${po.id}')">Terima & Bayar</button></td>
+      </tr>`;
+    });
+    if (!html) html = '<tr><td colspan="7" style="text-align:center">Tidak ada tagihan/PO tertunda.</td></tr>';
+    tbody.innerHTML = html;
+    if (dispTotal) dispTotal.innerText = fmtRp(totalAp);
+  } catch (e) {
+    console.error(e);
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Gagal memuat invoice.</td></tr>';
+  }
+}
+
+
+
+// --- TAB: PAYROLL ---
+async function renderFinPayroll() {
+  const tbody = document.getElementById('fin-payroll-list');
+  const mInput = document.getElementById('fin-payroll-month');
+  if (!tbody || !mInput) return;
+
+  if (!mInput.value) {
+    const now = new Date();
+    mInput.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  }
+  const month = mInput.value;
+
+  try {
+    const { data: pr, error } = await sb.from('wms_hr_payroll').select('*, wms_hr_staff(name, role)').eq('month', month);
+    if (error) throw error;
+
+    let html = '';
+    (pr || []).forEach(p => {
+      html += `<tr>
+        <td>${p.wms_hr_staff?.name || '-'}</td>
+        <td>${p.wms_hr_staff?.role || '-'}</td>
+        <td>${fmtRp(p.base_salary)}</td>
+        <td>${fmtRp(p.overtime_pay)}</td>
+        <td>${fmtRp(p.deductions)}</td>
+        <td><strong>${fmtRp(p.net_pay)}</strong></td>
+        <td><span class="status-badge status-${p.status}">${p.status.toUpperCase()}</span></td>
+        <td>
+          ${p.status === 'unpaid'
+          ? `<button class="btn-primary" onclick="paySalary('${p.id}', '${p.wms_hr_staff?.name}', ${p.net_pay})">Bayar</button>`
+          : `<span style="font-size:11px;color:#8B6F5E">Lunas</span>`
+        }
+        </td>
+      </tr>`;
+    });
+    if (!html) html = '<tr><td colspan="8" style="text-align:center">Belum ada data payroll untuk bulan ini. Klik Hitung.</td></tr>';
+    tbody.innerHTML = html;
+  } catch (e) {
+    console.error(e);
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">Gagal memuat payroll.</td></tr>';
+  }
+}
+
+window.generatePayrollAutomated = async function () {
+  const month = document.getElementById('fin-payroll-month').value;
+  if (!month) return toast('Pilih bulan dulu', 'warn');
+
+  try {
+    const { data: staff, error: eStaff } = await sb.from('wms_hr_staff').select('*').eq('is_active', true);
+    if (eStaff) throw eStaff;
+
+    // Hitung lembur bulan ini
+    const { data: overtimes, error: eOv } = await sb.from('wms_hr_overtimes').select('*')
+      .gte('date', month + '-01').lte('date', month + '-31').eq('status', 'approved');
+
+    let insertCount = 0;
+    for (const s of staff) {
+      // Cek apa payroll sudah ada
+      const { data: exist } = await sb.from('wms_hr_payroll').select('id').eq('staff_id', s.id).eq('month', month).single();
+      if (exist) continue; // Skip jika sudah digenerate
+
+      // Hitung Overtimes Pay untuk staff ini
+      let ovPay = 0;
+      if (overtimes) {
+        ovPay = overtimes.filter(o => o.staff_id === s.id).reduce((sum, curr) => sum + (parseFloat(curr.amount) || 0), 0);
+      }
+
+      const netPay = s.base_salary + ovPay;
+
+      await sb.from('wms_hr_payroll').insert({
+        staff_id: s.id,
+        month: month,
+        base_salary: s.base_salary,
+        overtime_pay: ovPay,
+        deductions: 0,
+        net_pay: netPay,
+        status: 'unpaid'
+      });
+      insertCount++;
+    }
+    toast(`Berhasil generate ${insertCount} payroll baru`, 'success');
+    renderFinPayroll();
+  } catch (e) {
+    console.error(e);
+    toast('Gagal generate: ' + e.message, 'warn');
+  }
+}
+
+window.paySalary = async function (payroll_id, staffName, amount) {
+  if (!confirm(`Bayar gaji ${staffName} sebesar ${fmtRp(amount)} dan catat ke Kas?`)) return;
+
+  try {
+    const { error: errUpd } = await sb.from('wms_hr_payroll').update({
+      status: 'paid', paid_at: new Date().toISOString()
+    }).eq('id', payroll_id);
+    if (errUpd) throw errUpd;
+
+    // Catat ke Buku Kas (OUT)
+    await sb.from('wms_finance_cash').insert({
+      type: 'OUT',
+      category: 'payroll',
+      amount: amount,
+      notes: `Gaji ${staffName}`,
+      reference_id: payroll_id
+    });
+
+    toast('Gaji berhasil dibayar & tercatat di Buku Kas!', 'success');
+    renderFinPayroll();
+  } catch (e) {
+    console.error(e);
+    toast('Gagal memproses gaji: ' + e.message, 'warn');
+  }
+}
+
+// --- TAB: BUKU KAS ---
+async function renderFinCash() {
+  const tbody = document.getElementById('fin-cash-list');
+  if (!tbody) return;
+
+  try {
+    const { data: cashList, error } = await sb.from('wms_finance_cash').select('*').order('date', { ascending: false }).order('created_at', { ascending: false }).limit(200);
+    if (error) throw error;
+
+    let html = '';
+    let totalCash = 0;
+
+    cashList.forEach(c => {
+      const isOut = c.type === 'OUT';
+      html += `<tr>
+        <td>${new Date(c.date).toLocaleDateString('id-ID')}</td>
+        <td><span class="status-badge" style="background:${isOut ? '#FEE2E2' : '#DCFCE7'};color:${isOut ? '#991B1B' : '#166534'};">${c.type}</span></td>
+        <td>${c.category}</td>
+        <td>${c.notes || '-'}</td>
+        <td style="text-align:right;color:${isOut ? '#991B1B' : '#166534'}">${isOut ? '-' : '+'}${fmtRp(c.amount)}</td>
+      </tr>`;
+    });
+
+    // Kalkulasi total saldo kas (semua history, tidak hanya limit 200)
+    const { data: allCash, error: errAll } = await sb.from('wms_finance_cash').select('type, amount');
+    if (!errAll && allCash) {
+      allCash.forEach(c => {
+        if (c.type === 'IN') totalCash += parseFloat(c.amount);
+        else totalCash -= parseFloat(c.amount);
+      });
+      const balEl = document.getElementById('fin-cash-balance');
+      if (balEl) balEl.innerText = fmtRp(totalCash);
+    }
+
+    if (!html) html = '<tr><td colspan="5" style="text-align:center">Belum ada riwayat kas.</td></tr>';
+    tbody.innerHTML = html;
+  } catch (e) {
+    console.error(e);
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Gagal memuat kas.</td></tr>';
+  }
+}
+
+window.addCashTransaction = async function () {
+  const type = document.getElementById('fin-cash-type').value;
+  const category = document.getElementById('fin-cash-category').value;
+  const amount = parseFloat(document.getElementById('fin-cash-amount').value);
+  const notes = document.getElementById('fin-cash-notes').value;
+
+  if (!category || !amount) return toast('Kategori dan Nominal wajib diisi!', 'warn');
+
+  try {
+    const { error } = await sb.from('wms_finance_cash').insert({
+      type, category, amount, notes, date: new Date().toISOString().split('T')[0]
+    });
+    if (error) throw error;
+
+    toast('Transaksi manual berhasil ditambahkan', 'success');
+    document.getElementById('fin-cash-category').value = '';
+    document.getElementById('fin-cash-amount').value = '';
+    document.getElementById('fin-cash-notes').value = '';
+    renderFinCash();
+  } catch (e) {
+    console.error(e);
+    toast('Gagal tambah transaksi kas: ' + e.message, 'warn');
+  }
+};
+
+
