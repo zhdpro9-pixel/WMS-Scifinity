@@ -1833,8 +1833,8 @@ function renderReport() {
   const salesThisMonth = (S.sales || []).filter(s => s.ts && getYearMonthLocal(s.ts) === reportMonth);
 
   const totalQty = salesThisMonth.reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
-  const qtyP = salesThisMonth.filter(s => s.product === 'perempuan').reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
-  const qtyL = salesThisMonth.filter(s => s.product === 'lakiLaki').reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
+  const qtyP = salesThisMonth.filter(s => s.product === 'perempuan' || s.product?.includes('P_') || s.product?.endsWith('P') || s.product?.includes('Wanita') || s.product === 'giftBoxLuxury').reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
+  const qtyL = salesThisMonth.filter(s => s.product === 'lakiLaki' || s.product?.includes('L_') || s.product?.endsWith('L') || s.product?.includes('Pria')).reduce((acc, s) => acc + (parseInt(s.qty) || 0), 0);
   const orderShopee = salesThisMonth.filter(s => s.channel === 'Shopee').length;
   const orderEbay = salesThisMonth.filter(s => s.channel === 'eBay').length;
 
@@ -1872,24 +1872,32 @@ function renderReport() {
 
   const topEl = document.getElementById('rpt-top-product');
   if (topEl) {
-    const maxProd = Math.max(qtyP, qtyL, 1);
-    topEl.innerHTML = !totalQty
-      ? '<div style="text-align:center;color:#B08A62;font-size:13px;padding:12px 0;">Tidak ada penjualan bulan ini</div>'
-      : `
+    if (!totalQty) {
+      topEl.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:12px 0;">Tidak ada penjualan bulan ini</div>';
+    } else {
+      const productSales = {};
+      salesThisMonth.forEach(s => {
+        if (!productSales[s.product]) productSales[s.product] = 0;
+        productSales[s.product] += (parseInt(s.qty) || 0);
+      });
+      const sortedProducts = Object.keys(productSales)
+        .map(key => ({ key, qty: productSales[key] }))
+        .sort((a, b) => b.qty - a.qty);
+      const maxProd = sortedProducts.length ? sortedProducts[0].qty : 1;
+      topEl.innerHTML = sortedProducts.map(p => {
+        const isF = p.key.includes('P_') || p.key.includes('Wanita') || p.key.endsWith('P') || p.key === 'perempuan' || p.key.includes('giftBoxLuxury');
+        const color = isF ? '#BE185D' : '#1D4ED8';
+        const grad = isF ? 'linear-gradient(90deg,#BE185D,#F9A8D4)' : 'linear-gradient(90deg,#1D4ED8,#93C5FD)';
+        return `
       <div>
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
-          <span style="color:#BE185D;font-weight:600;">${prodLabelHtml('perempuan')}</span>
-          <span style="font-weight:700;">${qtyP} pcs</span>
+          <span style="color:${color};font-weight:600;">${prodLabelHtml(p.key, true)}</span>
+          <span style="font-weight:700;">${p.qty} pcs</span>
         </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${(qtyP / maxProd * 100).toFixed(1)}%;background:linear-gradient(90deg,#BE185D,#F9A8D4);"></div></div>
-      </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
-          <span style="color:#1D4ED8;font-weight:600;">${prodLabelHtml('lakiLaki')}</span>
-          <span style="font-weight:700;">${qtyL} pcs</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${(qtyL / maxProd * 100).toFixed(1)}%;background:linear-gradient(90deg,#1D4ED8,#93C5FD);"></div></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${(p.qty / maxProd * 100).toFixed(1)}%;background:${grad};"></div></div>
       </div>`;
+      }).join('<div style="height:12px;"></div>');
+    }
   }
 
   const tbody = document.getElementById('rpt-sales-tbody');
