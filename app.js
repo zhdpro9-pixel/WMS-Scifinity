@@ -93,15 +93,15 @@ const DEFAULT_STATE = {
     boxExclusive: 0, boxBundlingP: 0, boxBundlingW: 0, bubbleWrap: 0, boxLuar: 0
   },
   rmCost: {
-    biangP: 500, biangL: 500, 
-    botolP: 12000, botolL: 12000, 
+    biangP: 500, biangL: 500,
+    botolP: 12000, botolL: 12000,
     boxParfumL: 5000, boxParfumP: 5000,
-    cairanDeoP: 200, cairanDeoL: 200, 
-    botolDeoP: 8000, botolDeoL: 8000, 
+    cairanDeoP: 200, cairanDeoL: 200,
+    botolDeoP: 8000, botolDeoL: 8000,
     boxDeoP: 2000, boxDeoL: 2000,
-    cairanHMP: 150, cairanHML: 150, 
+    cairanHMP: 150, cairanHML: 150,
     botolHMP: 10000, botolHML: 10000,
-    boxExclusive: 6000, boxBundlingP: 15000, boxBundlingW: 15000, 
+    boxExclusive: 6000, boxBundlingP: 15000, boxBundlingW: 15000,
     bubbleWrap: 500, boxLuar: 3000
   },
   customRM: {},
@@ -357,6 +357,13 @@ async function loadState() {
     if (salesErr) throw salesErr;
     if (dbSales) S.sales = dbSales.reverse();
 
+    const { data: dbMkBudgets, error: mkBudgetsErr } = await sb
+      .from('wms_marketing_budgets').select('*').order('ts', { ascending: true });
+    if (!mkBudgetsErr && dbMkBudgets) {
+      if (!S.marketing) S.marketing = { budgets: [], kpi: null, calendar: [], pr: [] };
+      S.marketing.budgets = dbMkBudgets;
+    }
+
     const { data: dbVendors, error: vendorsErr } = await sb
       .from('wms_vendors').select('*').order('id', { ascending: true });
     if (!vendorsErr && dbVendors && dbVendors.length) {
@@ -473,7 +480,7 @@ function navigateTo(pageKey) {
   document.getElementById(`page-${pageKey}`).classList.add('active');
   document.querySelector(`[data-page="${pageKey}"]`).classList.add('active');
   document.getElementById('pageTitle').textContent = PAGE_TITLES[pageKey];
-  if (pageKey === 'hr') { renderHr(); populateHrStaff(); }
+  if (pageKey === 'hr') { renderHr(); populateHrStaff(); populateHrResiDropdown(); }
   if (pageKey === 'financial') switchFinTab('dashboard');
   if (pageKey === 'marketing') renderMarketing();
   if (pageKey === 'vendors') { renderVendors(); renderPoHistory(); populatePoVendorSelect(); }
@@ -504,29 +511,80 @@ function renderAll() {
   renderReport();
 }
 
-function renderDashboard() {
-  const { rm, log, sales } = S;
+async function renderDashboard() {
+  const { sales } = S;
 
-  // Summary stats for dashboard - grouped counts
-  const parfumBiangTotal = (rm.biangP || 0) + (rm.biangL || 0);
-  const parfumBotolTotal = (rm.botolP || 0) + (rm.botolL || 0);
-  const parfumBoxTotal = (rm.boxParfumP || 0) + (rm.boxParfumL || 0);
-  const deoTotal = (rm.cairanDeo || 0);
-  const hmTotal = (rm.cairanHM || 0);
-  const packTotal = (rm.boxExclusive || 0) + (rm.boxBundlingP || 0) + (rm.boxBundlingW || 0) + (rm.boxLuar || 0);
+  const now = new Date();
+  const currentMonthStr = getYearMonthLocal(now.toISOString());
 
-  set('d-biang', fmt(parfumBiangTotal) + '<span class="stat-unit">mL</span>');
-  set('d-botp', fmt(parfumBotolTotal) + '<span class="stat-unit">pcs</span>');
-  set('d-botl', fmt(deoTotal) + '<span class="stat-unit">mL</span>');
-  set('d-box', fmt(hmTotal) + '<span class="stat-unit">mL</span>');
-  set('d-kardus', fmt(rm.boxLuar || 0) + '<span class="stat-unit">pcs</span>');
-  set('d-bubble', fmt(rm.bubbleWrap || 0) + '<span class="stat-unit">m</span>');
+  // 1 & 2. Total Revenue & Total HPP
+  let totalRevenue = 0;
+  let totalHPP = 0;
+  
+  if (sales && sales.length) {
+    sales.forEach(s => {
+      if (s.ts && getYearMonthLocal(s.ts) === currentMonthStr) {
+        const skuData = ALL_SKUS.find(x => x.product_type === s.product);
+        const fallback = s.product === 'perempuan' ? finConfig.priceP : finConfig.priceL;
+        const sellPrice = skuData?.sell_price || fallback || 0;
+        
+        totalRevenue += (s.qty * sellPrice);
+        
+        const hpp = skuData?.cost_price || S.rmCost[s.product] || 0;
+        totalHPP += (s.qty * hpp);
+      }
+    });
+  }
 
-  const maxes = { biang: 500, botolP: 50, deo: 500, hm: 500 };
-  setStyle('d-biang-fill', 'width', Math.min(100, (parfumBiangTotal / maxes.biang) * 100) + '%');
-  setStyle('d-botp-fill', 'width', Math.min(100, (parfumBotolTotal / maxes.botolP) * 100) + '%');
-  setStyle('d-botl-fill', 'width', Math.min(100, (deoTotal / maxes.deo) * 100) + '%');
-  setStyle('d-box-fill', 'width', Math.min(100, (hmTotal / maxes.hm) * 100) + '%');
+  const gm1 = totalRevenue - totalHPP;
+
+  // Fetch expenses for this month
+  let totalLogistik = 0;
+  let totalMarketing = 0;
+  let totalPayroll = 0;
+
+  if (sb) {
+    try {
+      const { data: dbOuts, error } = await sb.from('wms_finance_cash')
+         .select('category, amount, created_at')
+         .eq('type', 'OUT')
+         .order('created_at', { ascending: false })
+         .limit(2000);
+      
+      if (!error && dbOuts) {
+        dbOuts.forEach(out => {
+          if (out.created_at && getYearMonthLocal(out.created_at) === currentMonthStr) {
+            const amt = parseFloat(out.amount) || 0;
+            if (out.category === 'logistik') totalLogistik += amt;
+            else if (out.category === 'marketing') totalMarketing += amt;
+            else if (out.category === 'payroll' || out.category === 'gaji') totalPayroll += amt;
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Failed fetching dashboard expenses:', e);
+    }
+  }
+
+  const gm2 = gm1 - totalMarketing;
+  const gm3 = gm2 - totalLogistik;
+  const netProfit = gm3 - totalPayroll;
+
+  // Helper for setting elements
+  const setEl = (id, html) => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  };
+
+  setEl('d-total-revenue', fmtRp(totalRevenue));
+  setEl('d-gm1', fmtRp(gm1));
+  setEl('d-gm2', fmtRp(gm2));
+  setEl('d-gm3', fmtRp(gm3));
+  setEl('d-net-profit', fmtRp(netProfit));
+
+  setEl('d-exp-logistik', fmtRp(totalLogistik));
+  setEl('d-exp-marketing', fmtRp(totalMarketing));
+  setEl('d-exp-payroll', fmtRp(totalPayroll));
 
   // Render sales chart
   renderSalesChart(sales);
@@ -554,41 +612,40 @@ function renderSalesChart(sales) {
   const chartEl = document.getElementById('sales-chart');
   if (!chartEl) return;
 
-  // Get last 7 days
-  const days = [];
+  // Get last 6 months
+  const months = [];
   const today = new Date();
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    days.push({
-      date: date,
-      key: date.toISOString().split('T')[0],
-      label: date.toLocaleDateString('id-ID', { weekday: 'short' }),
-      total: 0
-    });
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = d.toLocaleDateString('id-ID', { month: 'short' });
+    months.push({ key, label, totalRevenue: 0 });
   }
 
-  // Calculate sales per day
+  // Calculate revenue per month
   if (sales && sales.length) {
     sales.forEach(s => {
-      const saleDate = new Date(s.ts).toISOString().split('T')[0];
-      const dayData = days.find(d => d.key === saleDate);
-      if (dayData) {
-        dayData.total += s.qty;
+      const d = new Date(s.ts);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const monthData = months.find(m => m.key === key);
+      if (monthData) {
+        const skuData = ALL_SKUS.find(x => x.product_type === s.product);
+        const fallback = s.product === 'perempuan' ? finConfig.priceP : finConfig.priceL;
+        const sellPrice = skuData?.sell_price || fallback || 0;
+        monthData.totalRevenue += (s.qty * sellPrice);
       }
     });
   }
 
-  // Find max value for scaling
-  const maxTotal = Math.max(...days.map(d => d.total), 1);
+  const maxTotal = Math.max(...months.map(m => m.totalRevenue), 1);
 
-  chartEl.innerHTML = days.map(d => `
-    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
-      <div style="font-size:10px;font-weight:600;color:#5C4A3C;">${d.total}</div>
-      <div style="width:100%;background:#E4D3BD;border-radius:4px;flex:1;display:flex;align-items:end;">
-        <div style="width:100%;background:linear-gradient(180deg,#5C4A3C,#C9A882);border-radius:4px;transition:height 0.3s ease;height:${(d.total / maxTotal) * 100}%;"></div>
+  chartEl.innerHTML = months.map(m => `
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;">
+      <div style="font-size:11px;font-weight:600;color:#5C4A3C;white-space:nowrap;" title="Rp ${fmtRp(m.totalRevenue)}">${m.totalRevenue > 0 ? (m.totalRevenue / 1000000).toFixed(1) + 'M' : '0'}</div>
+      <div style="width:100%;background:#E4D3BD;border-radius:6px;flex:1;display:flex;align-items:end;position:relative;overflow:hidden;">
+        <div style="width:100%;background:linear-gradient(180deg,#5C4A3C,#C9A882);border-radius:6px;transition:height 0.4s ease-out;height:${(m.totalRevenue / maxTotal) * 100}%;"></div>
       </div>
-      <div style="font-size:10px;color:#8B6F5E;">${d.label}</div>
+      <div style="font-size:11px;color:#8B6F5E;font-weight:500;">${m.label}</div>
     </div>
   `).join('');
 }
@@ -645,7 +702,7 @@ function renderRawMaterials() {
               <input type="number" class="form-input rm-mass-cost" data-key="${key}" min="0" step="1" value="${costVal}" placeholder="Rp">
             </td>
             <td>
-              <input type="number" class="form-input rm-mass-qty" data-key="${key}" min="0" step="0.1" placeholder="+ Qty">
+              <input type="number" class="form-input rm-mass-qty" data-key="${key}" min="0" step="0.1" value="${(S.rmTempQty && S.rmTempQty[key] !== undefined) ? S.rmTempQty[key] : ''}" placeholder="+ Qty">
             </td>
           </tr>
         `;
@@ -916,6 +973,22 @@ function renderSales() {
         <td style="font-size:12px;color:#5C4A3C;">${sanitizeHtml(bubbleStr)}</td>
       </tr>`;
   }).join('');
+
+  // Render outbound log (realtime) — filtered from S.log, type='outbound'
+  const outboundLogEl = document.getElementById('sales-outbound-log');
+  if (outboundLogEl) {
+    const { log } = S;
+    const outboundEntries = log.filter(l => l.type === 'outbound').reverse().slice(0, 30);
+    if (!outboundEntries.length) {
+      outboundLogEl.innerHTML = '<div style="text-align:center;color:#B08A62;font-size:13px;padding:24px 0;">Belum ada riwayat outbound</div>';
+    } else {
+      outboundLogEl.innerHTML = outboundEntries.map(l => `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;font-size:13px;padding:9px 12px;background:#FFF7ED;border-radius:8px;border:1px solid #FED7AA;">
+          <span style="color:#C2410C;font-weight:500;flex:1;min-width:0;">${sanitizeHtml(l.description)}</span>
+          <span style="color:#D97706;font-size:11px;white-space:nowrap;margin-left:10px;">${fmtDate(l.ts)}</span>
+        </div>`).join('');
+    }
+  }
 }
 
 /* ─────────────── ACTIONS ─────────────── */
@@ -973,6 +1046,10 @@ async function massAddStock() {
     if (searchInput) searchInput.value = '';
     RM_SEARCH = '';
     if (vendorEl) vendorEl.value = ''; // Reset vendor
+
+    // Clear temp qty since we saved it
+    S.rmTempQty = {};
+
     renderRawMaterials();
 
     toast(`Berhasil menyimpan inbound untuk ${itemsProcessed} jenis bahan baku dari ${vendor}.`, 'success');
@@ -988,6 +1065,7 @@ async function recordSale() {
   const trackingEl = document.getElementById('sale-tracking');
   const kardusEl = document.getElementById('sale-kardus');
   const bubbleEl = document.getElementById('sale-bubble');
+  const shippingEl = document.getElementById('sale-shipping');
   const notesEl = document.getElementById('sale-notes');
 
   const fgKey = productEl.value;
@@ -997,6 +1075,7 @@ async function recordSale() {
   let kardus = parseFloat(kardusEl.value) || 0;
   let bubbleCm = parseFloat(bubbleEl.value) || 0;
   const bubble = +(bubbleCm / 100).toFixed(4); // simpan dalam meter untuk stok
+  const shippingCost = parseFloat(shippingEl.value) || 0;
   const notes = notesEl.value.trim();
 
   if (!qty || !tracking) return;
@@ -1014,6 +1093,16 @@ async function recordSale() {
   if (bubbleCm < 0) {
     toast('Jumlah bubble wrap tidak boleh negatif!', 'error');
     bubbleEl.focus();
+    return;
+  }
+  if (shippingEl.value === '') {
+    toast('Biaya pengiriman wajib diisi! (Isi 0 jika tidak ada)', 'error');
+    shippingEl.focus();
+    return;
+  }
+  if (shippingCost < 0) {
+    toast('Biaya pengiriman tidak boleh negatif!', 'error');
+    shippingEl.focus();
     return;
   }
 
@@ -1075,7 +1164,18 @@ async function recordSale() {
           amount: revenue,
           notes: `Penjualan ${qty}x ${fgLabel} via ${channel}`
         });
+
+        if (shippingCost > 0) {
+          await sb.from('wms_finance_cash').insert({
+            type: 'OUT',
+            category: 'logistik',
+            amount: shippingCost,
+            notes: `Biaya pengiriman ${qty}x ${fgLabel} via ${channel}`
+          });
+        }
       } catch (e2) { console.error('Cash insert err:', e2); }
+
+
 
     } catch (e) {
       console.error('recordSale supabase error:', e);
@@ -1094,6 +1194,7 @@ async function recordSale() {
   qtyEl.value = '1';
   kardusEl.value = '0';
   bubbleEl.value = '0';
+  shippingEl.value = '';
   notesEl.value = '';
   onSaleChannelChange();
   updateSalePreview();
@@ -1285,10 +1386,13 @@ function setupRealtime() {
         S.sales.push(n);
         if (S.sales.length > 5000) S.sales = S.sales.slice(-5000);
         renderAll();
+        populateHrResiDropdown(); // Update dropdown resi di HR realtime
       }
     })
     .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'wms_logs' }, () => { S.log = []; renderAll(); })
     .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'wms_sales' }, () => { S.sales = []; renderAll(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'wms_finance_cash' }, () => { if (document.getElementById('page-dashboard')?.classList.contains('active')) renderDashboard(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'wms_products_sku' }, async () => { await loadSkus(); renderAll(); })
     .subscribe();
 }
 
@@ -1531,7 +1635,7 @@ function filterVendors(type) {
 }
 
 function createPoForVendor(vendorId) {
-  switchPage('financial');
+  navigateTo('financial');
   switchFinTab('po');
   const vendorSelect = document.getElementById('po-vendor');
   if (vendorSelect) {
@@ -1850,6 +1954,10 @@ function loadFinConfig() {
 }
 
 function saveFinConfig() {
+  try { localStorage.setItem('wmsFinConfig', JSON.stringify(finConfig)); } catch (e) { }
+}
+
+async function updateFinConfig(key, value) {
   try { localStorage.setItem('wmsFinConfig', JSON.stringify(finConfig)); } catch (e) { }
 }
 
@@ -2227,6 +2335,21 @@ function renderFinancial() {
         <span style="font-size:16px;font-weight:700;color:#166534;">${fmtRp(totalVal)}</span>
       </div>`;
   }
+
+  // --- Update Dashboard Cash Balance ---
+  if (sb) {
+    sb.from('wms_finance_cash').select('type, amount').then(({ data, error }) => {
+      if (!error && data) {
+        let totalCash = 0;
+        data.forEach(c => {
+          if (c.type === 'OPENING' || c.type === 'IN') totalCash += parseFloat(c.amount) || 0;
+          else if (c.type === 'OUT') totalCash -= parseFloat(c.amount) || 0;
+        });
+        const balEl = document.getElementById('fin-cash-balance');
+        if (balEl) balEl.innerText = fmtRp(totalCash);
+      }
+    });
+  }
 }
 
 /* ─────────────── INIT ─────────────── */
@@ -2484,6 +2607,7 @@ async function saveSku() {
   // Check if editing a static finished good
   if (FINISHED_GOODS[targetKey]) {
     S.fg[targetKey] = stock;
+    S.rmCost[targetKey] = cost;
   }
   // Check if editing a static raw material
   else if (MATERIAL_META[targetKey]) {
@@ -2925,164 +3049,7 @@ function _renderPoHistory() {
   }).join('');
 }
 
-/* ═══════════════════════════════════════════════════════
-   GOOGLE SHEETS PnL INTEGRATION
-   ═══════════════════════════════════════════════════════ */
 
-let PNL_DATA = null; // Parsed PnL data array (3 years x 12 months)
-let CSV_URL = localStorage.getItem('pnl_csv_url') || '';
-let isFetchingPnL = false;
-
-async function fetchGoogleSheetsPnL(silent = false) {
-  if (isFetchingPnL) return;
-  const syncEl = document.getElementById('pnl-last-sync');
-
-  if (!CSV_URL) {
-    if (syncEl) syncEl.textContent = 'Menunggu URL CSV...';
-    return;
-  }
-
-  isFetchingPnL = true;
-  if (syncEl && !silent) syncEl.textContent = 'Menyinkronkan…';
-
-  try {
-    const res = await fetch(CSV_URL);
-    if (!res.ok) throw new Error('Network response was not ok');
-    const text = await res.text();
-
-    // Parse CSV manually
-    const rows = text.split('\n').map(row => row.split(','));
-    PNL_DATA = parsePnLCSV(rows);
-
-    const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    if (syncEl) syncEl.textContent = `Auto-Sync: Aktif (Diperbarui ${now})`;
-    localStorage.setItem('pnl_data', JSON.stringify(PNL_DATA));
-    localStorage.setItem('pnl_sync', now);
-    renderPnLMetrics();
-    renderMktDashboard();
-    if (!silent) toast('Data PnL berhasil disinkronkan dari Google Sheets ✓', 'success');
-  } catch (e) {
-    if (syncEl) syncEl.textContent = 'Auto-Sync: Gagal (Koneksi/Format)';
-    console.error('CSV Fetch Error:', e);
-    if (!silent) toast(e.message || 'Gagal mengambil data dari Google Sheets.', 'error');
-  } finally {
-    isFetchingPnL = false;
-  }
-}
-
-function parsePnLCSV(rows) {
-  // Helper to find row index dynamically based on label keywords
-  function findRowIdx(keywords) {
-    for (let i = 0; i < rows.length; i++) {
-      const label = String(rows[i][0] || '').toLowerCase().trim();
-      if (keywords.some(kw => label.includes(kw.toLowerCase()))) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  const rRev = findRowIdx(['total revenue']);
-  const rHpp = findRowIdx(['total hpp tiap barang']);
-  const rGm1 = findRowIdx(['gross margin 1']);
-  const rMkt = findRowIdx(['- total marketing']);
-  const rGm2 = findRowIdx(['gross margin 2']);
-  const rLogistik = findRowIdx(['- total biaya logistik']);
-  const rGm3 = findRowIdx(['gross margin 3']);
-  const rNet = findRowIdx(['net profit']);
-
-  if (rRev === -1 || rHpp === -1) {
-    throw new Error('Format salah. Pastikan link adalah CSV dan memiliki baris "Total Revenue".');
-  }
-
-  function parseNum(val) {
-    if (!val) return 0;
-    const s = String(val).replace(/[Rp\s"]/g, '').replace(/\./g, '').replace(/\(/g, '-').replace(/\)/g, '');
-    return parseFloat(s) || 0;
-  }
-
-  const result = [];
-  for (let year = 0; year < 3; year++) {
-    const yearData = [];
-    for (let month = 0; month < 12; month++) {
-      const colIdx = 1 + year * 12 + month;
-      yearData.push({
-        revenue: parseNum(rows[rRev]?.[colIdx]),
-        hpp: parseNum(rows[rHpp]?.[colIdx]),
-        gm1: parseNum(rows[rGm1]?.[colIdx]),
-        marketing: parseNum(rows[rMkt]?.[colIdx]),
-        logistik: parseNum(rows[rLogistik]?.[colIdx]),
-        gm2: parseNum(rows[rGm2]?.[colIdx]),
-        gm3: parseNum(rows[rGm3]?.[colIdx]),
-        net: parseNum(rows[rNet]?.[colIdx])
-      });
-    }
-    result.push(yearData);
-  }
-  return result;
-}
-
-function renderPnLMetrics() {
-  if (!PNL_DATA) {
-    const cached = localStorage.getItem('pnl_data');
-    if (cached) {
-      PNL_DATA = JSON.parse(cached);
-      const syncTime = localStorage.getItem('pnl_sync');
-      const syncEl = document.getElementById('pnl-last-sync');
-      if (syncEl && syncTime) syncEl.textContent = `Auto-Sync: Aktif (Diperbarui ${syncTime})`;
-    } else return;
-  }
-
-  const year = parseInt(document.getElementById('pnl-year-select')?.value || '0');
-  const month = parseInt(document.getElementById('pnl-month-select')?.value || '0');
-  const d = PNL_DATA[year]?.[month];
-  if (!d) return;
-
-  const set = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = fmtRp(Math.abs(val));
-  };
-
-  set('pnl-gm1', d.gm1);
-  set('pnl-gm2', d.gm2);
-  set('pnl-gm3', d.gm3);
-  set('pnl-net', d.net);
-  set('pnl-revenue', d.revenue);
-  set('pnl-hpp', d.hpp);
-  set('pnl-marketing', d.marketing);
-  set('pnl-logistik', d.logistik);
-
-  const netEl = document.getElementById('pnl-net');
-  if (netEl) netEl.style.color = d.net >= 0 ? '#86EFAC' : '#FCA5A5';
-}
-
-function renderMktDashboard() {
-  if (!PNL_DATA) return;
-  const year = parseInt(document.getElementById('mkt-year-select')?.value || '0');
-  const month = parseInt(document.getElementById('mkt-month-select')?.value || '0');
-  const d = PNL_DATA[year]?.[month];
-  if (!d) return;
-
-  const set = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = fmtRp(Math.abs(val));
-  };
-
-  set('mkt-actual-mkt', d.marketing);
-  set('mkt-actual-log', d.logistik);
-}
-
-window.updateSpreadsheetId = function (val) {
-  if (!val) return;
-  const url = val.trim().replace(/^['"]|['"]$/g, '').replace(/,+$/, ''); // Remove accidental quotes and trailing commas
-  if (!url.startsWith('http')) {
-    toast('Tautan tidak valid. Harus diawali dengan https://', 'error');
-    return;
-  }
-  CSV_URL = url;
-  localStorage.setItem('pnl_csv_url', CSV_URL);
-  fetchGoogleSheetsPnL(false);
-};
 
 /* ═══════════════════════════════════════════════════════
    MODAL HELPERS
@@ -3124,6 +3091,7 @@ function startPnLSync() {
 document.addEventListener('wms:ready', async () => {
   await loadSkus();
   await loadPOs();
+  renderAll();
   startPnLSync(); // Start background sync
 });
 
@@ -3131,6 +3099,7 @@ document.addEventListener('wms:ready', async () => {
 window._postLoginInit = async () => {
   await loadSkus();
   await loadPOs();
+  renderAll();
   startPnLSync(); // Start background sync
 };
 
@@ -3176,6 +3145,117 @@ function switchHrTab(tabId) {
   document.getElementById(`hrpanel-${tabId}`).classList.remove('hidden');
   document.getElementById(`hrtab-${tabId}`).classList.add('active');
   if (tabId === 'overtime') renderHrPayroll();
+  if (tabId === 'staff') renderHrStaff();
+}
+
+/* ─── HR: Populate Resi Dropdown from S.sales (realtime) ─── */
+function populateHrResiDropdown() {
+  const sel = document.getElementById('hr-error-resi');
+  if (!sel) return;
+  const current = sel.value;
+  const sales = (S.sales || []).slice().reverse().slice(0, 200); // ambil 200 terbaru
+  sel.innerHTML = '<option value="">-- Pilih Resi dari Outbound Log --</option>' +
+    sales.filter(s => s.tracking).map(s => {
+      const prodLabel = FINISHED_GOODS[s.product]?.label || s.product;
+      const dateStr = fmtDateShort(s.ts);
+      return `<option value="${sanitizeHtml(s.tracking)}">[${sanitizeHtml(s.channel)}] ${sanitizeHtml(s.tracking)} — ${sanitizeHtml(prodLabel)} ${sanitizeHtml(String(s.qty))}pcs (${dateStr})</option>`;
+    }).join('');
+  if (current) sel.value = current;
+}
+
+/* ─── HR: Render Staff Table ─── */
+async function renderHrStaff() {
+  const tbody = document.getElementById('hr-staff-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#B08A62;padding:24px;">Memuat data karyawan…</td></tr>';
+
+  try {
+    if (!sb) throw new Error('Supabase tidak terhubung');
+    const { data: staffList, error } = await sb.from('wms_hr_staff').select('*').order('name');
+    if (error) throw error;
+
+    if (!staffList || !staffList.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#B08A62;padding:24px;">Belum ada data karyawan. Klik "Tambah Karyawan" untuk menambahkan.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = staffList.map(s => {
+      const isActive = s.is_active !== false;
+      const statusBadge = isActive
+        ? '<span style="background:#DCFCE7;color:#166534;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">Aktif</span>'
+        : '<span style="background:#FEE2E2;color:#991B1B;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">Nonaktif</span>';
+      const joinDate = s.join_date ? new Date(s.join_date).toLocaleDateString('id-ID') : '—';
+      return `<tr>
+        <td style="font-weight:600;color:#2D1F17;">${sanitizeHtml(s.name)}</td>
+        <td style="color:#5C4A3C;">${sanitizeHtml(s.role || '—')}</td>
+        <td style="text-align:right;font-weight:600;color:#166534;">${fmtRp(s.base_salary || 0)}</td>
+        <td style="text-align:center;">${statusBadge}</td>
+        <td style="text-align:center;font-size:12px;color:#8B6F5E;">${joinDate}</td>
+        <td style="text-align:right;">
+          <button class="btn-secondary" style="padding:4px 10px;font-size:12px;" onclick="openEditStaffModal('${s.id}')">Edit</button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    console.error('renderHrStaff error:', e);
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#991B1B;padding:24px;">Gagal memuat data: ${e.message}</td></tr>`;
+  }
+}
+
+function openAddStaffModal() {
+  document.getElementById('modal-staff-title').textContent = 'Tambah Karyawan';
+  ['staff-name', 'staff-role', 'staff-phone'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.getElementById('staff-salary').value = '';
+  document.getElementById('staff-join-date').value = '';
+  document.getElementById('staff-is-active').value = 'true';
+  document.getElementById('staff-edit-id').value = '';
+  openModal('modal-staff');
+}
+
+async function openEditStaffModal(staffId) {
+  if (!sb) return;
+  const { data: s, error } = await sb.from('wms_hr_staff').select('*').eq('id', staffId).single();
+  if (error || !s) { toast('Data karyawan tidak ditemukan', 'error'); return; }
+
+  document.getElementById('modal-staff-title').textContent = 'Edit Karyawan';
+  document.getElementById('staff-name').value = s.name || '';
+  document.getElementById('staff-role').value = s.role || '';
+  document.getElementById('staff-salary').value = s.base_salary || '';
+  document.getElementById('staff-join-date').value = s.join_date || '';
+  document.getElementById('staff-phone').value = s.phone || '';
+  document.getElementById('staff-is-active').value = s.is_active !== false ? 'true' : 'false';
+  document.getElementById('staff-edit-id').value = staffId;
+  openModal('modal-staff');
+}
+
+async function saveStaff() {
+  if (!sb) { toast('Supabase tidak terhubung', 'error'); return; }
+  const name = document.getElementById('staff-name').value.trim();
+  if (!name) { toast('Nama karyawan wajib diisi', 'error'); return; }
+
+  const payload = {
+    name,
+    role: document.getElementById('staff-role').value.trim() || null,
+    base_salary: parseFloat(document.getElementById('staff-salary').value) || 0,
+    join_date: document.getElementById('staff-join-date').value || null,
+    phone: document.getElementById('staff-phone').value.trim() || null,
+    is_active: document.getElementById('staff-is-active').value === 'true'
+  };
+
+  const editId = document.getElementById('staff-edit-id').value;
+  let error;
+  if (editId) {
+    ({ error } = await sb.from('wms_hr_staff').update(payload).eq('id', editId));
+  } else {
+    ({ error } = await sb.from('wms_hr_staff').insert([payload]));
+  }
+
+  if (error) { toast('Gagal menyimpan: ' + error.message, 'error'); return; }
+
+  toast('Data karyawan berhasil disimpan ✓', 'success');
+  closeModal('modal-staff');
+  await populateHrStaff(); // refresh dropdown staf
+  renderHrStaff();
 }
 
 function saveHrError() {
@@ -3386,7 +3466,6 @@ function switchMkTab(tabId) {
   document.querySelectorAll('#page-marketing .vendor-tab').forEach(b => b.classList.remove('active'));
   document.getElementById(`mkpanel-${tabId}`).classList.remove('hidden');
   document.getElementById(`mktab-${tabId}`).classList.add('active');
-  if (tabId === 'budget') renderMktDashboard();
 }
 
 function renderMarketing() {
@@ -3440,7 +3519,7 @@ function renderMarketing() {
   }
 }
 
-function saveMkBudget() {
+async function saveMkBudget() {
   const category = document.getElementById('mk-budget-category').value;
   const month = document.getElementById('mk-budget-month').value;
   const amount = parseFloat(document.getElementById('mk-budget-amount').value) || 0;
@@ -3450,9 +3529,41 @@ function saveMkBudget() {
     return;
   }
 
-  S.marketing.budgets.push({ id: Date.now(), ts: Date.now(), category, month, amount });
+  const ts = Date.now();
+
+  if (sb) {
+    try {
+      const { data, error } = await sb.from('wms_marketing_budgets').insert({
+        ts,
+        category,
+        month,
+        amount
+      }).select().single();
+
+      if (error) throw error;
+
+      // Deduct from cash book
+      const { error: cashErr } = await sb.from('wms_finance_cash').insert({
+        type: 'OUT',
+        category: 'marketing',
+        amount: amount,
+        notes: `Alokasi budget ${category} untuk ${month}`
+      });
+      if (cashErr) console.error('Gagal mencatat pengeluaran kas marketing:', cashErr);
+
+      S.marketing.budgets.push(data || { id: ts, ts, category, month, amount });
+    } catch (e) {
+      console.error('saveMkBudget error:', e);
+      toast('Gagal menyimpan ke cloud: ' + e.message, 'error');
+      return;
+    }
+  } else {
+    S.marketing.budgets.push({ id: ts, ts, category, month, amount });
+  }
+
   saveState();
-  toast('Alokasi budget berhasil disimpan', 'success');
+  renderAll();
+  toast('Alokasi budget berhasil disimpan & kas terpotong', 'success');
 }
 
 function saveMkKpi() {
@@ -3608,13 +3719,29 @@ async function renderFinProducts() {
 }
 
 window.updateFinProductPrice = async function (fgKey) {
-  const newPrice = parseFloat(document.getElementById(`fin-price-${fgKey}`).value) || 0;
+  const inputEl = document.getElementById(`fin-price-${fgKey}`);
+  const newPrice = parseFloat(inputEl?.value) || 0;
   try {
     const { error } = await sb.from('wms_products_sku').update({ sell_price: newPrice }).eq('product_type', fgKey);
     if (error) throw error;
-    toast('Harga berhasil diupdate!', 'success');
-    await loadSkus(); // Refresh ALL_SKUS
-    renderFinProducts();
+
+    // Update ALL_SKUS in-place (tanpa loadSkus/re-render penuh agar input SKU lain tidak terhapus)
+    const skuEntry = ALL_SKUS.find(x => x.product_type === fgKey);
+    if (skuEntry) {
+      skuEntry.sell_price = newPrice;
+    }
+
+    // Berikan visual feedback pada baris yang berhasil disimpan
+    if (inputEl) {
+      inputEl.style.border = '2px solid #22C55E';
+      inputEl.style.background = '#F0FDF4';
+      setTimeout(() => {
+        inputEl.style.border = '';
+        inputEl.style.background = '';
+      }, 2000);
+    }
+
+    toast('Harga berhasil disimpan ✓', 'success');
   } catch (e) {
     console.error(e);
     toast('Gagal update harga: ' + e.message, 'warn');
@@ -3773,34 +3900,45 @@ window.paySalary = async function (payroll_id, staffName, amount) {
 }
 
 // --- TAB: BUKU KAS ---
+let _cashFetching = false;
+
 async function renderFinCash() {
+  if (_cashFetching) return; // Cegah race condition dari concurrent renderAll() calls
+  _cashFetching = true;
+
   const tbody = document.getElementById('fin-cash-list');
-  if (!tbody) return;
+  if (!tbody) { _cashFetching = false; return; }
 
   try {
     const { data: cashList, error } = await sb.from('wms_finance_cash').select('*').order('date', { ascending: false }).order('created_at', { ascending: false }).limit(200);
     if (error) throw error;
 
     let html = '';
-    let totalCash = 0;
 
     cashList.forEach(c => {
       const isOut = c.type === 'OUT';
+      const isOpening = c.type === 'OPENING';
+      const typeBg = isOpening ? '#EDE9FE' : (isOut ? '#FEE2E2' : '#DCFCE7');
+      const typeColor = isOpening ? '#5B21B6' : (isOut ? '#991B1B' : '#166534');
+      const typeLabel = isOpening ? 'SALDO AWAL' : c.type;
+      const amtPrefix = isOpening ? '' : (isOut ? '-' : '+');
       html += `<tr>
-        <td>${new Date(c.date).toLocaleDateString('id-ID')}</td>
-        <td><span class="status-badge" style="background:${isOut ? '#FEE2E2' : '#DCFCE7'};color:${isOut ? '#991B1B' : '#166534'};">${c.type}</span></td>
-        <td>${c.category}</td>
+        <td>${new Date(c.date || c.created_at).toLocaleDateString('id-ID')}</td>
+        <td><span class="status-badge" style="background:${typeBg};color:${typeColor};">${typeLabel}</span></td>
+        <td>${c.category || '-'}</td>
         <td>${c.notes || '-'}</td>
-        <td style="text-align:right;color:${isOut ? '#991B1B' : '#166534'}">${isOut ? '-' : '+'}${fmtRp(c.amount)}</td>
+        <td style="text-align:right;color:${isOut ? '#991B1B' : '#166534'}">${amtPrefix}${fmtRp(c.amount)}</td>
       </tr>`;
     });
 
-    // Kalkulasi total saldo kas (semua history, tidak hanya limit 200)
+    // Kalkulasi saldo kas: saldo awal (OPENING) + akumulasi IN/OUT
     const { data: allCash, error: errAll } = await sb.from('wms_finance_cash').select('type, amount');
     if (!errAll && allCash) {
+      let totalCash = 0;
       allCash.forEach(c => {
-        if (c.type === 'IN') totalCash += parseFloat(c.amount);
-        else totalCash -= parseFloat(c.amount);
+        if (c.type === 'OPENING') totalCash += parseFloat(c.amount) || 0;
+        else if (c.type === 'IN') totalCash += parseFloat(c.amount) || 0;
+        else if (c.type === 'OUT') totalCash -= parseFloat(c.amount) || 0;
       });
       const balEl = document.getElementById('fin-cash-balance');
       if (balEl) balEl.innerText = fmtRp(totalCash);
@@ -3811,6 +3949,8 @@ async function renderFinCash() {
   } catch (e) {
     console.error(e);
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">Gagal memuat kas.</td></tr>';
+  } finally {
+    _cashFetching = false;
   }
 }
 
@@ -3838,5 +3978,23 @@ window.addCashTransaction = async function () {
     toast('Gagal tambah transaksi kas: ' + e.message, 'warn');
   }
 };
+
+// --- FIX INBOUND INPUT RESET ON TAB SWITCH ---
+document.addEventListener('input', function (e) {
+  if (e.target.classList.contains('rm-mass-cost')) {
+    const key = e.target.getAttribute('data-key');
+    if (key) {
+      if (!S.rmCost) S.rmCost = {};
+      S.rmCost[key] = parseFloat(e.target.value) || '';
+    }
+  }
+  if (e.target.classList.contains('rm-mass-qty')) {
+    const key = e.target.getAttribute('data-key');
+    if (key) {
+      if (!S.rmTempQty) S.rmTempQty = {};
+      S.rmTempQty[key] = parseFloat(e.target.value) || '';
+    }
+  }
+});
 
 
